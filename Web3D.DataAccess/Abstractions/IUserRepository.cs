@@ -1,0 +1,14 @@
+﻿using Web3D.Domain.Models;
+
+namespace Web3D.DataAccess.Abstractions;
+
+public interface IUserRepository
+{
+    public Task RegisterAsync(User user, CancellationToken cancellationToken = default);
+    public Task<User?> LoginAsync(string login, CancellationToken cancellationToken = default);
+    public Task<bool> IsLoginTakenAsync(string login, CancellationToken cancellationToken = default);
+    public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
+    public Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
+    public Task UpdateAsync(User user, CancellationToken cancellationToken = default);
+    public Task DeleteAsync(User user, CancellationToken cancellationToken = default);
+}

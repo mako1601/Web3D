@@ -1,0 +1,30 @@
+services:
+  backend:
+    image: ${DOCKER_REGISTRY-}api
+    build:
+      context: .
+      dockerfile: Web3D.API/Dockerfile
+    depends_on:
+      - postgres_db
+
+  client:
+    image: client:latest
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+
+  postgres_db:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=web3ddb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
