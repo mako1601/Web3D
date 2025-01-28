@@ -32,13 +32,13 @@ public class UserController(IUserService userService) : ControllerBase
         return NoContent();
     }
 
-    [Authorize]
-    [HttpDelete("{id:long}")]
-    public async Task<IActionResult> DeleteAsync([FromRoute] long id)
-    {
-        await userService.DeleteAsync(id);
-        return NoContent();
-    }
+    //[Authorize]
+    //[HttpDelete("{id:long}")]
+    //public async Task<IActionResult> DeleteAsync([FromRoute] long id)
+    //{
+    //    await userService.DeleteAsync(id);
+    //    return NoContent();
+    //}
 
     [Authorize]
     [HttpPut("{id:long}/update_password")]
