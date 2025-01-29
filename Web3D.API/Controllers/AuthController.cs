@@ -12,14 +12,14 @@ public class AuthController(IUserService userService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
     {
-        await userService.RegisterAsync(request.Login, request.Password, request.LastName, request.FirstName, request.MiddleName, request.Role);
-        return NoContent();
+        var token = await userService.RegisterAsync(request.Login, request.Password, request.LastName, request.FirstName, request.MiddleName, request.Role, request.RememberMe);
+        return Ok(token);
     }
 
-    [HttpGet("login")]
+    [HttpPost("login")]
     public async Task<IActionResult> LoginAsync([FromBody] LoginRequest request)
     {
-        var token = await userService.LoginAsync(request.Login, request.Password);
+        var token = await userService.LoginAsync(request.Login, request.Password, request.RememberMe);
         return Ok(token);
     }
 }

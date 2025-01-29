@@ -4,8 +4,8 @@ namespace Web3D.BusinessLogic.Abstractions;
 
 public interface IUserService
 {
-    public Task RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, CancellationToken cancellationToken = default);
-    public Task<string> LoginAsync(string login, string password, CancellationToken cancellationToken = default);
+    public Task<string> RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, bool rememberMe, CancellationToken cancellationToken = default);
+    public Task<string> LoginAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken = default);
     public Task<User> GetByIdAsync(long id, CancellationToken cancellationToken = default);
     public Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
     public Task UpdateAsync(long id, string newLastName, string newFirstName, string? newMiddleName, CancellationToken cancellationToken = default);

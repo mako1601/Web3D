@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
@@ -17,11 +18,19 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
-import Card from './Card';
-import SignUpContainer from './SignUpContainer';
+import Card from '../components/Card';
+import Container from '../components/Container';
+import { registerUser } from '../servieces/users';
 
-export default function SignUp() {
+interface RegisterProps {
+  setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
+  setMessage: React.Dispatch<React.SetStateAction<string>>;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function Register({ setSeverity, setMessage, setOpen }: RegisterProps) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [loginError, setLoginError] = React.useState(false);
@@ -36,6 +45,8 @@ export default function SignUp() {
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
+
+  const navigate = useNavigate();
 
   const validateInputs = () => {
     const password = document.getElementById('password') as HTMLInputElement;
@@ -85,34 +96,55 @@ export default function SignUp() {
     return isValid;
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     if (loginError || passwordError || firstNameError || lastNameError) {
-      event.preventDefault();
       return;
     }
+
     const data = new FormData(event.currentTarget);
-    console.log({
-      login: data.get('login'),
-      password: data.get('password'),
-      lastName: data.get('lastName'),
-      firstName: data.get('firstName'),
-      middleName: data.get('middleName'),
-      role: data.get('role'),
-    });
-    event.preventDefault();
-    return;
+    const login = data.get("login") as string;
+    const password = data.get("password") as string;
+    const lastName = data.get("lastName") as string;
+    const firstName = data.get("firstName") as string;
+    const middleName = data.get("middleName") as string;
+    const role = Number(data.get("role"));
+    const rememberMe = Boolean(data.get("rememberMe"));
+
+    try {
+      const userData = await registerUser(login, password, lastName, firstName, middleName, role, rememberMe);
+      localStorage.setItem("token", userData.token);
+      setSeverity('success');
+      setMessage("Регисатрация и вход успешены!");
+      setOpen(true);
+      navigate("/");
+    } catch (e) {
+      console.error("Ошибка регистрации.");
+      setSeverity('error');
+      setMessage("Ошибка регистрации.");
+      setOpen(true);
+    }
   };
 
   return (
-    <SignUpContainer direction='column' justifyContent="space-between">
+    <Container direction='column' justifyContent="space-between">
       <Card variant='outlined'>
-        <Typography
-          component='h1'
-          variant='h4'
-          sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
-        >
-          Регистрация
-        </Typography>
+        <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+          <IconButton
+            onClick={() => navigate("/")}
+            style={{ border: 0, backgroundColor: 'transparent', paddingLeft: 0 }}
+          >
+            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}/> 
+          </IconButton>
+          <Typography
+            component='h1'
+            variant='h4'
+            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+          >
+            Регистрация
+          </Typography>
+        </FormControl>
         <Box
           component='form'
           onSubmit={handleSubmit}
@@ -128,7 +160,6 @@ export default function SignUp() {
               autoComplete='login'
               error={loginError}
               helperText={loginErrorMessage}
-              color={loginError ? 'error' : 'primary'}
             />
           </FormControl>
           <FormControl>
@@ -143,7 +174,6 @@ export default function SignUp() {
               variant="outlined"
               error={passwordError}
               helperText={passwordErrorMessage}
-              color={passwordError ? 'error' : 'primary'}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position='end'>
@@ -169,7 +199,6 @@ export default function SignUp() {
               autoComplete='family-name'
               error={lastNameError}
               helperText={lastNameErrorMessage}
-              color={lastNameError ? 'error' : 'primary'}
             />
           </FormControl>
           <FormControl>
@@ -182,7 +211,6 @@ export default function SignUp() {
               autoComplete='given-name'
               error={firstNameError}
               helperText={firstNameErrorMessage}
-              color={firstNameError ? 'error' : 'primary'}
             />
           </FormControl>
           <FormControl>
@@ -195,7 +223,6 @@ export default function SignUp() {
               autoComplete='additional-name'
               // error={middleNameError}
               // helperText={middleNameErrorMessage}
-              // color={middleNameError ? 'error' : 'primary'}
             />
           </FormControl>
           <FormControl>
@@ -211,7 +238,7 @@ export default function SignUp() {
             </RadioGroup>
           </FormControl>
           <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
+            control={<Checkbox name="rememberMe" color="primary" />}
             label="Сохранить вход"
           />
           <Button
@@ -219,7 +246,9 @@ export default function SignUp() {
             fullWidth
             variant="contained"
             onClick={validateInputs}
-          >Зарегистрироваться</Button>
+          >
+            Зарегистрироваться
+          </Button>
         </Box>
         <Divider>
           <Typography sx={{ color: 'text.secondary' }}>или</Typography>
@@ -227,12 +256,19 @@ export default function SignUp() {
         <Typography sx={{ textAlign: 'center' }}>
           У вас уже есть аккаунт?{' '}
           <Link
-            href="/sign-in"
+            component={RouterLink}
+            to="/login"
             variant="body2"
             sx={{ alignSelf: 'center' }}
-          >Войти</Link>
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('/login');
+            }}
+          >
+            Войти
+          </Link>
         </Typography>
       </Card>
-    </SignUpContainer>
+    </Container>
   );
 }

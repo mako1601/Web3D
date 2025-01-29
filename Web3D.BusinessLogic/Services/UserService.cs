@@ -8,7 +8,7 @@ namespace Web3D.BusinessLogic.Services;
 
 internal class UserService(IUserRepository userRepository, JwtService jwtService) : IUserService
 {
-    public async Task RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, CancellationToken cancellationToken = default)
+    public async Task<string> RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, bool rememberMe, CancellationToken cancellationToken = default)
     {
         if (await userRepository.IsLoginTakenAsync(login, cancellationToken))
         {
@@ -27,9 +27,10 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, password);
 
         await userRepository.RegisterAsync(user, cancellationToken);
+        return jwtService.GenerateToken(user, rememberMe);
     }
 
-    public async Task<string> LoginAsync(string login, string password, CancellationToken cancellationToken = default)
+    public async Task<string> LoginAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.LoginAsync(login, cancellationToken)
                    ?? throw new Exception("User was not found");
@@ -38,7 +39,7 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         if (result is PasswordVerificationResult.Success)
         {
             user.LastActivity = DateTime.UtcNow;
-            return jwtService.GenerateToken(user);
+            return jwtService.GenerateToken(user, rememberMe);
         }
         else
         {

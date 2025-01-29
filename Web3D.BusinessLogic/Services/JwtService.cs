@@ -11,7 +11,7 @@ namespace Web3D.BusinessLogic.Services;
 
 internal class JwtService(IOptions<AuthSettings> options)
 {
-    public string GenerateToken(User user)
+    public string GenerateToken(User user, bool rememberMe)
     {
         var claims = new List<Claim>
         {
@@ -19,8 +19,9 @@ internal class JwtService(IOptions<AuthSettings> options)
             new("role", user.Role.ToString())
         };
 
+        // TODO: обновление токена
         var jwtToken = new JwtSecurityToken(
-            expires: DateTime.UtcNow.Add(options.Value.Expires),
+            expires: rememberMe ? DateTime.UtcNow.Add(options.Value.Expires) : null,
             claims: claims,
             signingCredentials:
                 new SigningCredentials(
