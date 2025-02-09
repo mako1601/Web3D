@@ -3,6 +3,8 @@
 using Web3D.Domain.Models;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
+using Web3D.Domain;
+using Web3D.Domain.Filters;
 
 namespace Web3D.BusinessLogic.Services;
 
@@ -55,9 +57,9 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         return user;
     }
 
-    public async Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PageResult<UserDTO>> GetAllAsync(UserFilter userFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
-        var users = await userRepository.GetAllAsync(cancellationToken);
+        var users = await userRepository.GetAllAsync(userFilter, sortParams, pageParams, cancellationToken);
 
         return users;
     }

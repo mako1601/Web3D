@@ -6,6 +6,8 @@ import Alert from '@mui/material/Alert';
 import Home from './pages/Home';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import UserList from './pages/UserList';
+import Model from './pages/Model';
 import AppTheme from './theme/AppTheme';
 import ColorModeIconToggleButton from './theme/ColorModeIconToggleButton';
 
@@ -25,15 +27,20 @@ export default function App(props: { disableCustomTheme?: boolean }) {
     setOpen(false);
   };
 
-  return(
+  return (
     <AppTheme {...props}>
       <CssBaseline />
       <ColorModeIconToggleButton
-        sx={{ position: 'fixed', bottom: '1rem', right: '1rem' }}
+        sx={{
+          position: 'fixed',
+          bottom: '1rem',
+          right: '1rem',
+          zIndex: '100'
+        }}
       />
       <Snackbar
         open={open}
-        autoHideDuration={500000}
+        autoHideDuration={5000}
         onClose={handleClose}
       >
         <Alert
@@ -43,7 +50,7 @@ export default function App(props: { disableCustomTheme?: boolean }) {
           sx={{
             '& .MuiSvgIcon-fontSizeInherit': {
               height: '22px',
-              width: '22px' 
+              width: '22px'
             },
             '& .MuiButtonBase-root': {
               width: '100%',
@@ -60,7 +67,7 @@ export default function App(props: { disableCustomTheme?: boolean }) {
             },
             '& .MuiSvgIcon-fontSizeSmall': {
               height: '20px',
-              width: '20px' 
+              width: '20px'
             }
           }}
         >
@@ -68,9 +75,30 @@ export default function App(props: { disableCustomTheme?: boolean }) {
         </Alert>
       </Snackbar>
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/register' element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path='/login' element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+        <Route
+          path='/'
+          element={<Home />}
+        />
+        <Route
+          path='/register'
+          element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
+        />
+        <Route
+          path='/login'
+          element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
+        />
+        <Route
+          path='/users'
+          element={<UserList />}
+        />
+        <Route
+          path='/articles'
+          element={<Model />}
+        />
+        <Route
+          path='/model'
+          element={<Model />}
+        />
       </Routes>
     </AppTheme>
   );

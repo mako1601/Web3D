@@ -22,7 +22,7 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
 import Card from '../components/Card';
 import Container from '../components/Container';
-import { registerUser } from '../servieces/users';
+import { registerUser } from '../services/users';
 
 interface RegisterProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;

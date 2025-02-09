@@ -38,7 +38,7 @@ public static class ArticleExtension
 
         if (count <= 0) return new PageResult<Article>([], 0);
 
-        var page = pageParams.Page ?? 1;
+        var page = pageParams.CurrentPage ?? 1;
         var pageSize = pageParams.PageSize ?? 10;
 
         var result = await query

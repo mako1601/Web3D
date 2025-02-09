@@ -20,7 +20,7 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
 import Card from '../components/Card';
 import Container from '../components/Container';
-import { loginUser } from '../servieces/users';
+import { loginUser } from '../services/users';
 
 interface LoginProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;

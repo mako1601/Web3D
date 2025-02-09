@@ -2,6 +2,6 @@
 
 public class PageParams
 {
-    public int? Page { get; set; }
+    public int? CurrentPage { get; set; }
     public int? PageSize { get; set; }
 }

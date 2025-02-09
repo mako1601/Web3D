@@ -26,12 +26,7 @@ public class UserCleanupService(IServiceProvider serviceProvider) : IHostedServi
     {
         using var scope = serviceProvider.CreateScope();
         var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-        var users = await userRepository.GetAllAsync();
-
-        var cutoffDate = DateTime.UtcNow.AddYears(-1);
-        var inactiveUsers = users
-            .Where(x => x.LastActivity < cutoffDate && x.Role != Role.Admin)
-            .ToList();
+        var inactiveUsers = await userRepository.GetAllAsync(DateTime.UtcNow.AddYears(-1));
 
         foreach (var user in inactiveUsers)
         {

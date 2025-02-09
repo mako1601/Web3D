@@ -33,7 +33,7 @@ public class ArticleController(IArticleService articleService) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllAsync([FromQuery] ArticleFilter sort, [FromQuery] SortParams order, [FromQuery] PageParams page)
     {
-        if (page.Page <= 0 || page.PageSize <= 0) return BadRequest("Invalid pagination parameters");
+        if (page.CurrentPage <= 0 || page.PageSize <= 0) return BadRequest("Invalid pagination parameters");
 
         var result = await articleService.GetAllAsync(sort, order, page);
         return Ok(result);
