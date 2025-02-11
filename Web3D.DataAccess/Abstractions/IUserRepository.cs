@@ -1,6 +1,6 @@
-﻿using Web3D.Domain;
+﻿using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
-using Web3D.Domain.Models;
+using Web3D.Domain.Models.DTO;
 
 namespace Web3D.DataAccess.Abstractions;
 

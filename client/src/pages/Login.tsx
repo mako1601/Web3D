@@ -82,8 +82,10 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
     const rememberMe = Boolean(data.get("rememberMe"));
 
     try {
-      const userData = await loginUser(login, password, rememberMe);
-      localStorage.setItem("token", userData.token);
+      const userData = await loginUser(login, password);
+      console.log(userData);
+      localStorage.setItem("token", userData);
+      localStorage.setItem("user", JSON.stringify(userData));
       setSeverity('success');
       setMessage("Вход успешен!");
       setOpen(true);

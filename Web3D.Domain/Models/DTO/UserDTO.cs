@@ -1,4 +1,4 @@
-﻿namespace Web3D.Domain.Models;
+﻿namespace Web3D.Domain.Models.DTO;
 
 public class UserDTO
 {

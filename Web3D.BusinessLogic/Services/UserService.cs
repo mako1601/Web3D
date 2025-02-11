@@ -1,16 +1,22 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 
 using Web3D.Domain.Models;
+using Web3D.Domain.Filters;
+using Web3D.Domain.Models.DTO;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
-using Web3D.Domain;
-using Web3D.Domain.Filters;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class UserService(IUserRepository userRepository, JwtService jwtService) : IUserService
+internal class UserService(
+    IUserRepository userRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    JwtService jwtService,
+    IHttpContextAccessor httpContextAccessor)
+    : IUserService
 {
-    public async Task<string> RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, bool rememberMe, CancellationToken cancellationToken = default)
+    public async Task<(string, string)> RegisterAsync(string login, string password, string lastName, string firstName, string? middleName, Role role, CancellationToken cancellationToken = default)
     {
         if (await userRepository.IsLoginTakenAsync(login, cancellationToken))
         {
@@ -29,10 +35,22 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         user.PasswordHash = new PasswordHasher<User>().HashPassword(user, password);
 
         await userRepository.RegisterAsync(user, cancellationToken);
-        return jwtService.GenerateToken(user, rememberMe);
+
+        var refreshToken = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = JwtService.GenerateRefreshToken(),
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
+            IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+            UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent,
+        };
+
+        await refreshTokenRepository.CreateAsync(refreshToken, cancellationToken);
+
+        return (jwtService.GenerateAccessToken(user), refreshToken.Token);
     }
 
-    public async Task<string> LoginAsync(string login, string password, bool rememberMe, CancellationToken cancellationToken = default)
+    public async Task<(string, string)> LoginAsync(string login, string password, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.LoginAsync(login, cancellationToken)
                    ?? throw new Exception("User was not found");
@@ -41,7 +59,28 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         if (result is PasswordVerificationResult.Success)
         {
             user.LastActivity = DateTime.UtcNow;
-            return jwtService.GenerateToken(user, rememberMe);
+            await userRepository.UpdateAsync(user, cancellationToken);
+
+            var refreshTokenResult = await refreshTokenRepository.GetByUserIdAsync(user.Id, cancellationToken);
+            if (refreshTokenResult is null)
+            {
+                var refreshToken = new RefreshToken
+                {
+                    UserId = user.Id,
+                    Token = JwtService.GenerateRefreshToken(),
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
+                    UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent,
+                };
+                await refreshTokenRepository.CreateAsync(refreshToken, cancellationToken);
+
+                return (jwtService.GenerateAccessToken(user), refreshToken.Token);
+            }
+            else
+            {
+                await refreshTokenRepository.UpdateAsync(refreshTokenResult, cancellationToken);
+                return (jwtService.GenerateAccessToken(user), refreshTokenResult.Token);
+            }
         }
         else
         {
@@ -122,5 +161,16 @@ internal class UserService(IUserRepository userRepository, JwtService jwtService
         user.Role = newRole;
 
         await userRepository.UpdateAsync(user, cancellationToken);
+    }
+
+    public async Task<string> RefreshAccessTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        var refreshToken = await refreshTokenRepository.GetByTokenAsync(token, cancellationToken);
+
+        if (refreshToken == null || !refreshToken.IsActive) throw new Exception("Invalid or expired refresh token");
+
+        var user = await userRepository.GetByIdAsync(refreshToken.UserId, cancellationToken) ?? throw new Exception("User was not found");
+
+        return jwtService.GenerateAccessToken(user);
     }
 }

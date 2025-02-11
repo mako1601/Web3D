@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Web3D.Domain;
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Models.DTO;
 
 namespace Web3D.DataAccess.Extensions;
 
@@ -15,9 +16,8 @@ public static class UserExtension
         {
             string nameLower = userFilter.Name.ToLower();
             query = query.Where(x =>
-                (x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : ""))
-                .ToLower()
-                .Contains(nameLower));
+                (x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : string.Empty))
+                .Contains(nameLower, StringComparison.CurrentCultureIgnoreCase));
         }
 
         return query;
@@ -49,13 +49,10 @@ public static class UserExtension
 
     private static Expression<Func<User, object>> GetKeySelector(string? orderBy)
     {
-        if (string.IsNullOrEmpty(orderBy)) return u => u.LastName;
-
         return orderBy switch
         {
-            "Name" => u => u.LastName + " " + u.FirstName + (u.MiddleName != null ? " " + u.MiddleName : ""),
-            nameof(User.Role) => u => u.Role,
-            _ => u => u.LastName
+            nameof(User.Role) => x => x.Role,
+            _ => x => x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : string.Empty)
         };
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-using Web3D.Domain;
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Models.DTO;
 using Web3D.DataAccess.Contexts;
 using Web3D.DataAccess.Extensions;
 using Web3D.DataAccess.Abstractions;

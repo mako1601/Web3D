@@ -1,4 +1,4 @@
-﻿namespace Web3D.Domain;
+﻿namespace Web3D.Domain.Filters;
 
 public class PageResult<T>(T[] data, int totalCount) where T : class
 {

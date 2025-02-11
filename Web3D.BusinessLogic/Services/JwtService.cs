@@ -1,27 +1,30 @@
 ﻿using System.Text;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 using Web3D.Domain.Models;
-using Web3D.Domain.Settings;
+using Web3D.Domain.Options;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class JwtService(IOptions<AuthSettings> options)
+internal class JwtService(IOptions<AuthOptions> options)
 {
-    public string GenerateToken(User user, bool rememberMe)
+    public string GenerateAccessToken(User user)
     {
         var claims = new List<Claim>
         {
             new("id", user.Id.ToString()),
-            new("role", user.Role.ToString())
+            new("lastName", user.LastName),
+            new("firstName", user.FirstName),
+            new("middleName", user.MiddleName ?? string.Empty),
+            new("role", user.Role.ToString()),
         };
 
-        // TODO: обновление токена
         var jwtToken = new JwtSecurityToken(
-            expires: rememberMe ? DateTime.UtcNow.Add(options.Value.Expires) : null,
+            expires: DateTime.UtcNow.Add(options.Value.Expires),
             claims: claims,
             signingCredentials:
                 new SigningCredentials(
@@ -29,5 +32,13 @@ internal class JwtService(IOptions<AuthSettings> options)
                     SecurityAlgorithms.HmacSha256));
 
         return new JwtSecurityTokenHandler().WriteToken(jwtToken);
+    }
+
+    public static string GenerateRefreshToken()
+    {
+        var randomBytes = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
     }
 }

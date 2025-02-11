@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${DOCKER_REGISTRY-}api
+    image: ${DOCKER_REGISTRY-}api:latest
     build:
       context: .
       dockerfile: Web3D.API/Dockerfile

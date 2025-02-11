@@ -13,6 +13,7 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
     public DbSet<Article> Articles { get; set; }
     public DbSet<TestResult> TestResults { get; set; }
     public DbSet<AnswerResult> AnswerResults { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -42,16 +43,6 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
         modelBuilder.Entity<User>()
             .Property(x => x.Role)
             .HasConversion<string>();
-        modelBuilder.Entity<User>()
-            .HasMany(x => x.Tests)
-            .WithOne()
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-        modelBuilder.Entity<User>()
-            .HasMany(x => x.Articles)
-            .WithOne()
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         // Test
         modelBuilder.Entity<Test>()
@@ -68,6 +59,11 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
         modelBuilder.Entity<Test>()
             .Property(x => x.CreatedAt)
             .HasDefaultValueSql("NOW()");
+        modelBuilder.Entity<Test>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<Test>()
             .HasMany(x => x.Questions)
             .WithOne()
@@ -108,6 +104,11 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
         modelBuilder.Entity<Article>()
             .Property(x => x.Description)
             .HasMaxLength(512);
+        modelBuilder.Entity<Article>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // TestResult
         modelBuilder.Entity<TestResult>()
@@ -118,11 +119,6 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
         modelBuilder.Entity<TestResult>()
             .Property(x => x.StartedAt)
             .HasDefaultValueSql("NOW()");
-        modelBuilder.Entity<TestResult>()
-            .HasMany(x => x.AnswerResults)
-            .WithOne()
-            .HasForeignKey(x => x.TestResultId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         // AnswerResult
         modelBuilder.Entity<AnswerResult>()
@@ -136,5 +132,17 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasIndex(x => x.QuestionId);
         modelBuilder.Entity<AnswerResult>()
             .HasIndex(x => x.AnswerOptionId);
+        modelBuilder.Entity<AnswerResult>()
+            .HasOne<TestResult>()
+            .WithMany()
+            .HasForeignKey(x => x.TestResultId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // RefreshTokens
+        modelBuilder.Entity<RefreshToken>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

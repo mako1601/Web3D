@@ -6,8 +6,7 @@ export const registerUser = async (
   lastName: string,
   firstName: string,
   middleName: string,
-  role: number,
-  rememberMe: boolean
+  role: number
 ) => {
   try {
     var response = await axios.post("http://localhost:5000/api/auth/register", {
@@ -16,28 +15,20 @@ export const registerUser = async (
       lastName,
       firstName,
       middleName,
-      role,
-      rememberMe
+      role
     });
-    console.log(response.data);
     return response.data;
   } catch (e) {
     console.error(e);
   }
 };
 
-export const loginUser = async (
-  login: string,
-  password: string,
-  rememberMe: boolean
-) => {
+export const loginUser = async (login: string, password: string) => {
   try {
     var response = await axios.post("http://localhost:5000/api/auth/login", {
       login,
-      password,
-      rememberMe
+      password
     });
-    console.log(response.data);
     return response.data;
   } catch (e) {
     console.error(e);

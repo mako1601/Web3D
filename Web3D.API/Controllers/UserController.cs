@@ -21,8 +21,6 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllAsync([FromQuery] UserFilter sort, [FromQuery] PageParams page, [FromQuery] SortParams order)
     {
-        if (page.CurrentPage <= 0 || page.PageSize <= 0) return BadRequest("Invalid pagination parameters");
-
         var result = await userService.GetAllAsync(sort, order, page);
         return Ok(result);
     }
