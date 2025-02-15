@@ -2,7 +2,7 @@
 
 namespace Web3D.DataAccess.Abstractions;
 
-public interface IRefreshTokenRepository
+public interface ITokenRepository
 {
     public Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default);
     public Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default);

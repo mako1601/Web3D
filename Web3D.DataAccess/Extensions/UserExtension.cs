@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
-using Web3D.Domain;
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
 using Web3D.Domain.Models.DTO;
@@ -15,9 +14,9 @@ public static class UserExtension
         if (!string.IsNullOrEmpty(userFilter.Name))
         {
             string nameLower = userFilter.Name.ToLower();
-            query = query.Where(x =>
-                (x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : string.Empty))
-                .Contains(nameLower, StringComparison.CurrentCultureIgnoreCase));
+            query = query.Where(x => (x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : ""))
+                .ToLower()
+                .Contains(nameLower));
         }
 
         return query;
@@ -30,7 +29,7 @@ public static class UserExtension
             : query.OrderBy(GetKeySelector(sortParams.OrderBy));
     }
 
-    public static async Task<PageResult<UserDTO>> ToPagedAsync(this IQueryable<UserDTO> query, PageParams pageParams, CancellationToken cancellationToken = default)
+    public static async Task<PageResult<UserDTO>> ToPagedAsync(this IQueryable<User> query, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         var count = await query.CountAsync(cancellationToken);
 
@@ -42,6 +41,14 @@ public static class UserExtension
         var result = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(x => new UserDTO
+            {
+                Id = x.Id,
+                LastName = x.LastName,
+                FirstName = x.FirstName,
+                MiddleName = x.MiddleName,
+                Role = x.Role
+            })
             .ToArrayAsync(cancellationToken);
 
         return new PageResult<UserDTO>(result, count);

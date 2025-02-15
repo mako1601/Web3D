@@ -119,6 +119,11 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
         modelBuilder.Entity<TestResult>()
             .Property(x => x.StartedAt)
             .HasDefaultValueSql("NOW()");
+        modelBuilder.Entity<TestResult>()
+            .HasMany(x => x.AnswerResults)
+            .WithOne()
+            .HasForeignKey(x => x.TestResultId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // AnswerResult
         modelBuilder.Entity<AnswerResult>()
@@ -132,11 +137,6 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasIndex(x => x.QuestionId);
         modelBuilder.Entity<AnswerResult>()
             .HasIndex(x => x.AnswerOptionId);
-        modelBuilder.Entity<AnswerResult>()
-            .HasOne<TestResult>()
-            .WithMany()
-            .HasForeignKey(x => x.TestResultId)
-            .OnDelete(DeleteBehavior.Cascade);
 
         // RefreshTokens
         modelBuilder.Entity<RefreshToken>()

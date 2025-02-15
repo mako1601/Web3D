@@ -20,7 +20,7 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import UserCard from '../components/UserCard';
 import ContentContainer from '../components/ContentContainer';
-import { getAllUsers } from '../services/users';
+import { changeRole, getAllUsers } from '../api/userApi';
 
 interface User {
   id: number;
@@ -35,7 +35,13 @@ const cardStyle = {
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
 };
 
-export default function UserList() {
+interface UserListProps {
+  setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
+  setMessage: React.Dispatch<React.SetStateAction<string>>;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export default function UserList({ setSeverity, setMessage, setOpen }: UserListProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('name') || '');
 
@@ -49,27 +55,33 @@ export default function UserList() {
   const [totalCount, setTotalCount] = useState(0);
   const [users, setUsers] = useState<User[]>([]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await getAllUsers(name, orderBy, sortDirection, currentPage, pageSize);
-        setUsers(data.data);
-        setTotalCount(data.totalCount);
-      } catch (e) {
-        console.error(e);
-      }
-    };
+  const fetchUsers = useCallback(async () => {
+    try {
+      const data = await getAllUsers(name, orderBy, sortDirection, currentPage, pageSize);
+      setUsers(data.data);
+      setTotalCount(data.totalCount);
+    } catch (e: any) {
+      setUsers([]);
+      setTotalCount(0);
+    }
+  }, [name, orderBy, sortDirection, currentPage, pageSize]);
 
+  useEffect(() => {
     fetchUsers();
-  }, [searchParams]);
+  }, [fetchUsers]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {
+    window.scrollTo(0, 0);
     setSearchParams((prev) => {
       const updatedParams = new URLSearchParams(prev);
       Object.entries(newParams).forEach(([key, value]) => {
-        if (value) updatedParams.set(key, value.toString());
-        else updatedParams.delete(key);
+        if (value) {
+          updatedParams.set(key, value.toString());
+        } else {
+          updatedParams.delete(key);
+        }
       });
+      updatedParams.set("page", "1");
       return updatedParams;
     });
   };
@@ -94,9 +106,23 @@ export default function UserList() {
     console.log(`Просмотр профиля пользователя с ID: ${id}`);
   }, []);
 
-  const handleRoleChange = useCallback((id: number) => {
-    console.log(`Изменение роли пользователя с ID: ${id}`);
-  }, []);
+  const handleRoleChange = useCallback(async (id: number, role: number) => {
+    if (role === 0) {
+      setSeverity("error");
+      setMessage("Нельзя изменить роль администратора");
+      setOpen(true);
+      return;
+    }
+  
+    const newRole = role === 1 ? 2 : 1;
+  
+    try {
+      await changeRole(id, newRole);
+      await fetchUsers();
+    } catch (e: any) {
+      console.error("Ошибка при изменении роли:", e);
+    }
+  }, [fetchUsers]);
 
   return (
     <Page>
@@ -139,7 +165,7 @@ export default function UserList() {
                     key={user.id}
                     user={user}
                     onProfileClick={() => handleProfileClick(user.id)}
-                    onRoleChange={() => handleRoleChange(user.id)}
+                    onRoleChange={() => handleRoleChange(user.id, user.role)}
                   />
                 ))}
               </Card>

@@ -1,26 +1,21 @@
 import * as React from 'react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import Checkbox from '@mui/material/Checkbox';
 import FormLabel from '@mui/material/FormLabel';
-import TextField  from '@mui/material/TextField';
+import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
-
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-
 import Card from '../components/Card';
 import Container from '../components/Container';
-import { loginUser } from '../services/users';
+import { loginUser } from '../api/authApi';
 
 interface LoginProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
@@ -47,19 +42,28 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
     const login = document.getElementById('login') as HTMLInputElement;
 
     let isValid = true;
+    const trimmedLogin = login.value.trim();
 
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage('* Пароль должен содержать не менее 6 символов');
+      isValid = false;
+    } else if (/\s/.test(password.value)) {
+      setPasswordError(true);
+      setPasswordErrorMessage('* Пароль не должен содержать пробелы');
       isValid = false;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage('');
     }
 
-    if (!login.value || login.value.length < 1) {
+    if (!trimmedLogin) {
       setLoginError(true);
       setLoginErrorMessage('* Обязательное поле');
+      isValid = false;
+    } else if (/\s/.test(trimmedLogin)) {
+      setLoginError(true);
+      setLoginErrorMessage('* Логин не должен содержать пробелы');
       isValid = false;
     } else {
       setLoginError(false);
@@ -71,29 +75,21 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    if (loginError || passwordError) {
-      return;
-    }
+    if (loginError || passwordError) { return; }
 
     const data = new FormData(event.currentTarget);
     const login = data.get("login") as string;
     const password = data.get("password") as string;
-    const rememberMe = Boolean(data.get("rememberMe"));
 
     try {
-      const userData = await loginUser(login, password);
-      console.log(userData);
-      localStorage.setItem("token", userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      setSeverity('success');
+      await loginUser(login, password);
+      setSeverity("success");
       setMessage("Вход успешен!");
       setOpen(true);
       navigate("/");
-    } catch (e) {
-      console.error("Ошибка входа.");
-      setSeverity('error');
-      setMessage("Ошибка входа.");
+    } catch (e: any) {
+      setSeverity("error");
+      setMessage(e.message);
       setOpen(true);
     }
   };
@@ -106,7 +102,7 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
             onClick={() => navigate("/")}
             style={{ border: 0, backgroundColor: 'transparent', paddingLeft: 0 }}
           >
-            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}/> 
+            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }} />
           </IconButton>
           <Typography
             component='h1'
@@ -160,10 +156,6 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
               }}
             />
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox name="rememberMe" color="primary" />}
-            label="Сохранить вход"
-          />
           <Button
             type="submit"
             fullWidth
@@ -177,7 +169,7 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
           <Typography sx={{ color: 'text.secondary' }}>или</Typography>
         </Divider>
         <Typography sx={{ textAlign: 'center' }}>
-        У вас нет аккаунта?{' '}
+          У вас нет аккаунта?{' '}
           <Link
             component={RouterLink}
             to="/register"

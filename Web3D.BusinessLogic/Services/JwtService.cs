@@ -20,7 +20,7 @@ internal class JwtService(IOptions<AuthOptions> options)
             new("lastName", user.LastName),
             new("firstName", user.FirstName),
             new("middleName", user.MiddleName ?? string.Empty),
-            new("role", user.Role.ToString()),
+            new(ClaimTypes.Role, user.Role.ToString()),
         };
 
         var jwtToken = new JwtSecurityToken(

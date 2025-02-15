@@ -6,24 +6,8 @@ using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 
-internal class RefreshTokenRepository(Web3DDbContext context) : IRefreshTokenRepository
+internal class TokenRepository(Web3DDbContext context) : ITokenRepository
 {
-    public async Task SaveAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
-    {
-        var result = await context.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == refreshToken.UserId, cancellationToken: cancellationToken);
-
-        if (result is null)
-        {
-            await context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-        else
-        {
-            context.RefreshTokens.Update(refreshToken);
-            await context.SaveChangesAsync(cancellationToken);
-        }
-    }
-
     public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {
         await context.RefreshTokens.AddAsync(refreshToken, cancellationToken);

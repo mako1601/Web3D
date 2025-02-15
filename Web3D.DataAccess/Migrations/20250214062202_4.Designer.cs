@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Web3D.DataAccess.Contexts;
@@ -11,9 +12,11 @@ using Web3D.DataAccess.Contexts;
 namespace Web3D.DataAccess.Migrations
 {
     [DbContext(typeof(Web3DDbContext))]
-    partial class Web3DDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250214062202_4")]
+    partial class _4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,6 +78,9 @@ namespace Web3D.DataAccess.Migrations
                     b.Property<long>("TestResultId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("TestResultId1")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AnswerOptionId");
@@ -82,6 +88,8 @@ namespace Web3D.DataAccess.Migrations
                     b.HasIndex("QuestionId");
 
                     b.HasIndex("TestResultId");
+
+                    b.HasIndex("TestResultId1");
 
                     b.ToTable("AnswerResults");
                 });
@@ -319,10 +327,14 @@ namespace Web3D.DataAccess.Migrations
             modelBuilder.Entity("Web3D.Domain.Models.AnswerResult", b =>
                 {
                     b.HasOne("Web3D.Domain.Models.TestResult", null)
-                        .WithMany("AnswerResults")
+                        .WithMany()
                         .HasForeignKey("TestResultId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Web3D.Domain.Models.TestResult", null)
+                        .WithMany("AnswerResults")
+                        .HasForeignKey("TestResultId1");
                 });
 
             modelBuilder.Entity("Web3D.Domain.Models.Article", b =>

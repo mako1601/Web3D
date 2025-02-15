@@ -14,5 +14,5 @@ public interface IUserService
     public Task DeleteAsync(long id, CancellationToken cancellationToken = default);
     public Task UpdatePasswordAsync(long id, string oldPassword, string newPassword, string confirmPassword, CancellationToken cancellationToken = default);
     public Task UpdateRoleAsync(long callerUserId, long targetUserId, Role newRole, CancellationToken cancellationToken = default);
-    public Task<string> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+    public Task<string> RefreshAccessTokenAsync(long userId, CancellationToken cancellationToken = default);
 }

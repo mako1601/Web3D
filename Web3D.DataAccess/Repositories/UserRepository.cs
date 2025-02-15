@@ -37,14 +37,6 @@ internal class UserRepository(Web3DDbContext context) : IUserRepository
         return await context.Users
             .Filter(userFilter)
             .Sort(sortParams)
-            .Select(x => new UserDTO
-            {
-                Id = x.Id,
-                LastName = x.LastName,
-                FirstName = x.FirstName,
-                MiddleName = x.MiddleName,
-                Role = x.Role
-            })
             .ToPagedAsync(pageParams, cancellationToken);
     }
 

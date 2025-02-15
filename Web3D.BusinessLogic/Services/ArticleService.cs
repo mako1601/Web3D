@@ -1,8 +1,7 @@
 ﻿using Web3D.Domain.Models;
+using Web3D.Domain.Filters;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
-using Web3D.Domain.Filters;
-using Web3D.Domain;
 
 namespace Web3D.BusinessLogic.Services;
 

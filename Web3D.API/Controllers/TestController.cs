@@ -11,8 +11,8 @@ namespace Web3D.API.Controllers;
 [Route("api/tests")]
 public class TestController(ITestService testService) : ControllerBase
 {
-    [HttpPost]
     [Authorize(Roles = "Teacher")]
+    [HttpPost]
     public async Task<IActionResult> CreateAsync([FromBody] string title)
     {
         var userId = User.FindFirstValue("id");
@@ -36,8 +36,8 @@ public class TestController(ITestService testService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{testId:long}")]
     [Authorize(Roles = "Teacher")]
+    [HttpPut("{testId:long}")]
     public async Task<IActionResult> UpdateAsync([FromRoute] long testId, [FromBody] TestRequest request)
     {
         var userId = User.FindFirstValue("id");
@@ -47,8 +47,8 @@ public class TestController(ITestService testService) : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{testId:long}")]
     [Authorize(Roles = "Teacher")]
+    [HttpDelete("{testId:long}")]
     public async Task<IActionResult> DeleteAsync([FromRoute] long testId)
     {
         var userId = User.FindFirstValue("id");

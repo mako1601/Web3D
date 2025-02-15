@@ -1,12 +1,10 @@
 import * as React from 'react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import Checkbox from '@mui/material/Checkbox';
 import FormLabel from '@mui/material/FormLabel';
 import TextField  from '@mui/material/TextField';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -15,14 +13,12 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
-
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-
 import Card from '../components/Card';
 import Container from '../components/Container';
-import { registerUser } from '../services/users';
+import { registerUser } from '../api/authApi';
 
 interface RegisterProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
@@ -110,10 +106,9 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
     const firstName = data.get("firstName") as string;
     const middleName = data.get("middleName") as string;
     const role = Number(data.get("role"));
-    const rememberMe = Boolean(data.get("rememberMe"));
 
     try {
-      const userData = await registerUser(login, password, lastName, firstName, middleName, role, rememberMe);
+      const userData = await registerUser(login, password, lastName, firstName, middleName, role);
       localStorage.setItem("token", userData.token);
       setSeverity('success');
       setMessage("Регисатрация и вход успешены!");
@@ -237,10 +232,6 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
               <FormControlLabel value='2' control={<Radio />} label='Преподаватель' />
             </RadioGroup>
           </FormControl>
-          <FormControlLabel
-            control={<Checkbox name="rememberMe" color="primary" />}
-            label="Сохранить вход"
-          />
           <Button
             type="submit"
             fullWidth

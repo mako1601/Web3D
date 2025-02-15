@@ -48,7 +48,9 @@ export default function App(props: { disableCustomTheme?: boolean }) {
           severity={severity}
           variant="filled"
           sx={{
+            color: 'white',
             '& .MuiSvgIcon-fontSizeInherit': {
+              color: 'white',
               height: '22px',
               width: '22px'
             },
@@ -87,18 +89,9 @@ export default function App(props: { disableCustomTheme?: boolean }) {
           path='/login'
           element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
         />
-        <Route
-          path='/users'
-          element={<UserList />}
-        />
-        <Route
-          path='/articles'
-          element={<Model />}
-        />
-        <Route
-          path='/model'
-          element={<Model />}
-        />
+        <Route path='/users' element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+        <Route path='/articles' element={<Model />} />
+        <Route path='/model' element={<Model />} />
       </Routes>
     </AppTheme>
   );
