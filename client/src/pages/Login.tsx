@@ -16,6 +16,8 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import Card from '../components/Card';
 import Container from '../components/Container';
 import { loginUser } from '../api/authApi';
+import { getCurrentUser } from '../api/userApi';
+import { useAuth } from '../context/AuthContext';
 
 interface LoginProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
@@ -24,6 +26,15 @@ interface LoginProps {
 }
 
 export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) {
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [loginError, setLoginError] = React.useState(false);
@@ -34,8 +45,6 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
-  const navigate = useNavigate();
 
   const validateInputs = () => {
     const password = document.getElementById('password') as HTMLInputElement;
@@ -83,13 +92,16 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
 
     try {
       await loginUser(login, password);
+      const user = await getCurrentUser();
+      setUser(user);
       setSeverity("success");
       setMessage("Вход успешен!");
       setOpen(true);
       navigate("/");
     } catch (e: any) {
+      console.error(e);
       setSeverity("error");
-      setMessage(e.message);
+      setMessage(e.response.data);
       setOpen(true);
     }
   };
@@ -175,10 +187,7 @@ export default function Login({ setSeverity, setMessage, setOpen }: LoginProps) 
             to="/register"
             variant="body2"
             sx={{ alignSelf: 'center' }}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/register');
-            }}
+            onClick={(e) => { e.preventDefault(); navigate('/register');}}
           >
             Зарегистрироваться
           </Link>

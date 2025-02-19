@@ -111,26 +111,19 @@ internal class UserService(
         await userRepository.DeleteAsync(user, cancellationToken);
     }
 
-    public async Task UpdatePasswordAsync(long id, string oldPassword, string newPassword, string confirmPassword, CancellationToken cancellationToken = default)
+    public async Task UpdatePasswordAsync(long id, string oldPassword, string newPassword, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(id, cancellationToken) ?? throw new UserNotFoundException();
         var result = new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, oldPassword);
 
         if (result is PasswordVerificationResult.Success)
         {
-            if (newPassword.Equals(confirmPassword))
-            {
-                user.PasswordHash = new PasswordHasher<User>().HashPassword(user, newPassword);
-                await userRepository.UpdateAsync(user, cancellationToken);
-            }
-            else
-            {
-                throw new Exception("Passwords do not match");
-            }
+            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, newPassword);
+            await userRepository.UpdateAsync(user, cancellationToken);
         }
         else
         {
-            throw new Exception("Incorrect password");
+            throw new InvalidLoginOrPasswordException();
         }
     }
 

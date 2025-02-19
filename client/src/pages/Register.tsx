@@ -6,7 +6,7 @@ import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
-import TextField  from '@mui/material/TextField';
+import TextField from '@mui/material/TextField';
 import RadioGroup from '@mui/material/RadioGroup';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -19,6 +19,8 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import Card from '../components/Card';
 import Container from '../components/Container';
 import { registerUser } from '../api/authApi';
+import { getCurrentUser } from '../api/userApi';
+import { useAuth } from '../context/AuthContext';
 
 interface RegisterProps {
   setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
@@ -27,6 +29,15 @@ interface RegisterProps {
 }
 
 export default function Register({ setSeverity, setMessage, setOpen }: RegisterProps) {
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
   const [loginError, setLoginError] = React.useState(false);
@@ -41,8 +52,6 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-
-  const navigate = useNavigate();
 
   const validateInputs = () => {
     const password = document.getElementById('password') as HTMLInputElement;
@@ -108,16 +117,16 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
     const role = Number(data.get("role"));
 
     try {
-      const userData = await registerUser(login, password, lastName, firstName, middleName, role);
-      localStorage.setItem("token", userData.token);
+      await registerUser(login, password, lastName, firstName, middleName, role);
+      const user = await getCurrentUser();
+      setUser(user);
       setSeverity('success');
       setMessage("Регисатрация и вход успешены!");
       setOpen(true);
       navigate("/");
-    } catch (e) {
-      console.error("Ошибка регистрации.");
-      setSeverity('error');
-      setMessage("Ошибка регистрации.");
+    } catch (e: any) {
+      setSeverity("error");
+      setMessage(e.response.data);
       setOpen(true);
     }
   };
@@ -130,7 +139,7 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
             onClick={() => navigate("/")}
             style={{ border: 0, backgroundColor: 'transparent', paddingLeft: 0 }}
           >
-            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}/> 
+            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }} />
           </IconButton>
           <Typography
             component='h1'
@@ -216,8 +225,8 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
               placeholder='Иванович (необязательно)'
               id='middleName'
               autoComplete='additional-name'
-              // error={middleNameError}
-              // helperText={middleNameErrorMessage}
+            // error={middleNameError}
+            // helperText={middleNameErrorMessage}
             />
           </FormControl>
           <FormControl>

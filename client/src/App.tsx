@@ -10,6 +10,9 @@ import UserList from './pages/UserList';
 import Model from './pages/Model';
 import AppTheme from './theme/AppTheme';
 import ColorModeIconToggleButton from './theme/ColorModeIconToggleButton';
+import Profile from './pages/Profile';
+import { AuthProvider } from './context/AuthContext';
+import TiptapEditor from './pages/ArticleEditor';
 
 export default function App(props: { disableCustomTheme?: boolean }) {
   const [open, setOpen] = React.useState(false);
@@ -28,71 +31,74 @@ export default function App(props: { disableCustomTheme?: boolean }) {
   };
 
   return (
-    <AppTheme {...props}>
-      <CssBaseline />
-      <ColorModeIconToggleButton
-        sx={{
-          position: 'fixed',
-          bottom: '1rem',
-          right: '1rem',
-          zIndex: '100'
-        }}
-      />
-      <Snackbar
-        open={open}
-        autoHideDuration={5000}
-        onClose={handleClose}
-      >
-        <Alert
-          onClose={handleClose}
-          severity={severity}
-          variant="filled"
+    <AuthProvider>
+      <AppTheme {...props}>
+        <CssBaseline />
+        <ColorModeIconToggleButton
           sx={{
-            color: 'white',
-            '& .MuiSvgIcon-fontSizeInherit': {
-              color: 'white',
-              height: '22px',
-              width: '22px'
-            },
-            '& .MuiButtonBase-root': {
-              width: '100%',
-              height: '30px',
-              margin: 0,
-              padding: 0.625,
-              color: 'white',
-              border: 0,
-              backgroundColor: 'transparent',
-              ":hover": {
-                borderRadius: '20px',
-                background: 'rgba(var(--template-palette-action-activeChannel) / var(--template-palette-action-hoverOpacity))'
-              }
-            },
-            '& .MuiSvgIcon-fontSizeSmall': {
-              height: '20px',
-              width: '20px'
-            }
+            position: 'fixed',
+            bottom: '1rem',
+            right: '1rem',
+            zIndex: '100'
           }}
+        />
+        <Snackbar
+          open={open}
+          autoHideDuration={5000}
+          onClose={handleClose}
         >
-          {message}
-        </Alert>
-      </Snackbar>
-      <Routes>
-        <Route
-          path='/'
-          element={<Home />}
-        />
-        <Route
-          path='/register'
-          element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
-        />
-        <Route
-          path='/login'
-          element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
-        />
-        <Route path='/users' element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path='/articles' element={<Model />} />
-        <Route path='/model' element={<Model />} />
-      </Routes>
-    </AppTheme>
+          <Alert
+            onClose={handleClose}
+            severity={severity}
+            variant="filled"
+            sx={{
+              color: 'white',
+              '& .MuiSvgIcon-fontSizeInherit': {
+                color: 'white',
+                height: '22px',
+                width: '22px'
+              },
+              '& .MuiButtonBase-root': {
+                width: '100%',
+                height: '30px',
+                margin: 0,
+                padding: 0.625,
+                color: 'white',
+                border: 0,
+                backgroundColor: 'transparent',
+                ":hover": {
+                  borderRadius: '20px',
+                  background: 'rgba(var(--template-palette-action-activeChannel) / var(--template-palette-action-hoverOpacity))'
+                }
+              },
+              '& .MuiSvgIcon-fontSizeSmall': {
+                height: '20px',
+                width: '20px'
+              }
+            }}
+          >
+            {message}
+          </Alert>
+        </Snackbar>
+        <Routes>
+          <Route
+            path='/'
+            element={<Home />}
+          />
+          <Route
+            path='/register'
+            element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
+          />
+          <Route
+            path='/login'
+            element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />}
+          />
+          <Route path='/users' element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+          <Route path='/articles' element={<TiptapEditor />} />
+          <Route path='/model' element={<Model />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </AppTheme>
+    </AuthProvider>
   );
 }

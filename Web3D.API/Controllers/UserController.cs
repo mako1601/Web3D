@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
 using Web3D.Domain.Filters;
-using Web3D.BusinessLogic.Abstractions;
-using Web3D.Domain.Models;
 using Web3D.Domain.Exceptions;
+using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.API.Controllers;
 
@@ -63,10 +62,25 @@ public class UserController(IUserService userService) : ControllerBase
 
     [HttpPut("{id:long}/update-password")]
     [Authorize]
-    public async Task<IActionResult> UpdatePasswordAsync([FromRoute] long id, [FromBody] UpdateUserPasswordRequest request)
+    public async Task<IActionResult> UpdatePasswordAsync([FromRoute] long id, [FromBody] UpdatePasswordRequest request)
     {
-        await userService.UpdatePasswordAsync(id, request.OldPassword, request.NewPassword, request.ConfirmPassword);
-        return NoContent();
+        try
+        {
+            await userService.UpdatePasswordAsync(id, request.OldPassword, request.NewPassword);
+            return NoContent();
+        }
+        catch (UserNotFoundException)
+        {
+            return NotFound("Пользователь не найден");
+        }
+        catch (InvalidLoginOrPasswordException)
+        {
+            return NotFound("Не верный пароль");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Ошибка на сервере: " + ex.Message);
+        }
     }
 
     [HttpPut("{id:long}/change-role")]

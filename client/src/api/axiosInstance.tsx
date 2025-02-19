@@ -30,7 +30,7 @@ api.interceptors.response.use(
         return api(originalRequest); // Повторяем оригинальный запрос
       } catch (refreshError) {
         console.error("Не удалось обновить токен", refreshError);
-        window.location.href = "/login";
+        //window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
