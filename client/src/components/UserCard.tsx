@@ -5,16 +5,10 @@ import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';
 import CardActionArea from '@mui/material/CardActionArea';
 import EditIcon from '@mui/icons-material/Edit';
-
-interface User {
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  role: number;
-}
+import { UserDto } from '../api/userApi';
 
 interface UserCardProps {
-  user: User;
+  user: UserDto;
   onProfileClick: () => void;
   onRoleChange: () => void;
 }

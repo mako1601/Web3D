@@ -22,9 +22,6 @@ export default function Header() {
         </Stack>
         {/* middle */}
         <Stack direction="row" justifyContent="center" spacing={1}>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/users"); }}>
-            Пользователи
-          </Button>
           <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/articles"); }}>
             Учебные материалы
           </Button>

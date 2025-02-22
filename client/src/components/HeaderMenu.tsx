@@ -10,7 +10,7 @@ import { useAuth } from "../context/AuthContext";
 
 const HeaderMenu = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -36,6 +36,9 @@ const HeaderMenu = () => {
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem onClick={() => { navigate("/profile"); handleClose(); }}>Профиль</MenuItem>
+        {user?.role === "Admin" && (
+          <MenuItem onClick={() => { navigate("/users"); handleClose(); }}>Пользователи</MenuItem>
+        )}
         <Divider />
         <MenuItem onClick={() => { handleLogout(); }}>Выйти</MenuItem>
       </Menu>

@@ -1,5 +1,8 @@
 import * as React from 'react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Controller, useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Radio from '@mui/material/Radio';
@@ -18,172 +21,124 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import Card from '../components/Card';
 import Container from '../components/Container';
-import { registerUser } from '../api/authApi';
+import { RegData, registerUser } from '../api/authApi';
 import { getCurrentUser } from '../api/userApi';
 import { useAuth } from '../context/AuthContext';
+import { PageProps } from '../App';
 
-interface RegisterProps {
-  setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+const schema = yup.object({
+  login: yup.string()
+    .trim()
+    .required("Обязательное поле")
+    .max(64, "Логин не может превышать 64 символа")
+    .matches(/^\S*$/, "Логин не должен содержать пробелы"),
+  password: yup.string()
+    .required("Пароль должен содержать не менее 6 символов")
+    .min(6, "Пароль должен содержать не менее 6 символов")
+    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
+  lastName: yup.string()
+    .required("Обязательное поле")
+    .max(64, "Фамилия не может превышать 64 символа")
+    .matches(/^\S*$/, "Фамилия не должна содержать пробелы"),
+  firstName: yup.string()
+    .required("Обязательное поле")
+    .max(64, "Имя не может превышать 64 символа")
+    .matches(/^\S*$/, "Имя не должно содержать пробелы"),
+  middleName: yup.string()
+    .optional()
+    .max(64, "Отчество не может превышать 64 символа")
+    .matches(/^\S*$/, "Отчество не должно содержать пробелы"),
+  role: yup.number()
+    .required()
+    .oneOf([1, 2]),
+}).required();
 
-export default function Register({ setSeverity, setMessage, setOpen }: RegisterProps) {
-  const { user, setUser } = useAuth();
+export default function Register({ setSeverity, setMessage, setOpen }: PageProps) {
+  const { setUser } = useAuth();
   const navigate = useNavigate();
-
-  React.useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
-
-  const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
-  const [loginError, setLoginError] = React.useState(false);
-  const [loginErrorMessage, setLoginErrorMessage] = React.useState('');
-  const [lastNameError, setLastNameError] = React.useState(false);
-  const [lastNameErrorMessage, setLastNameErrorMessage] = React.useState('');
-  const [firstNameError, setFirstNameError] = React.useState(false);
-  const [firstNameErrorMessage, setFirstNameErrorMessage] = React.useState('');
-
   const [showPassword, setShowPassword] = React.useState(false);
+
+  const { control, register, handleSubmit, formState: { errors } } = useForm<RegData>({
+    resolver: yupResolver(schema),
+  });
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const validateInputs = () => {
-    const password = document.getElementById('password') as HTMLInputElement;
-    const login = document.getElementById('login') as HTMLInputElement;
-    const lastName = document.getElementById('lastName') as HTMLInputElement;
-    const firstName = document.getElementById('firstName') as HTMLInputElement;
-    // const middleName = document.getElementById('middleName') as HTMLInputElement;
-
-    let isValid = true;
-
-    if (!password.value || password.value.length < 6) {
-      setPasswordError(true);
-      setPasswordErrorMessage('* Пароль должен содержать не менее 6 символов');
-      isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage('');
-    }
-
-    if (!login.value || login.value.length < 1) {
-      setLoginError(true);
-      setLoginErrorMessage('* Обязательное поле');
-      isValid = false;
-    } else {
-      setLoginError(false);
-      setLoginErrorMessage('');
-    }
-
-    if (!lastName.value || lastName.value.length < 1) {
-      setLastNameError(true);
-      setLastNameErrorMessage('* Обязательное поле');
-      isValid = false;
-    } else {
-      setLastNameError(false);
-      setLastNameErrorMessage('');
-    }
-
-    if (!firstName.value || firstName.value.length < 1) {
-      setFirstNameError(true);
-      setFirstNameErrorMessage('* Обязательное поле');
-      isValid = false;
-    } else {
-      setFirstNameError(false);
-      setFirstNameErrorMessage('');
-    }
-
-    return isValid;
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (loginError || passwordError || firstNameError || lastNameError) {
-      return;
-    }
-
-    const data = new FormData(event.currentTarget);
-    const login = data.get("login") as string;
-    const password = data.get("password") as string;
-    const lastName = data.get("lastName") as string;
-    const firstName = data.get("firstName") as string;
-    const middleName = data.get("middleName") as string;
-    const role = Number(data.get("role"));
-
+  const onSubmit = async (data: RegData) => {
     try {
-      await registerUser(login, password, lastName, firstName, middleName, role);
+      await registerUser(data);
       const user = await getCurrentUser();
       setUser(user);
-      setSeverity('success');
+      setSeverity("success");
       setMessage("Регисатрация и вход успешены!");
-      setOpen(true);
       navigate("/");
     } catch (e: any) {
+      console.error(e);
+      setUser(null);
       setSeverity("error");
-      setMessage(e.response.data);
+      if (e.response) {
+        setMessage(e.response.data);
+      } else if (e.request) {
+        setMessage("Сервер не отвечает, повторите попытку позже");
+      } else {
+        setMessage("Произошла неизвестная ошибка");
+      }
+    }
+    finally {
       setOpen(true);
     }
   };
 
   return (
-    <Container direction='column' justifyContent="space-between">
-      <Card variant='outlined'>
+    <Container direction="column" justifyContent="space-between">
+      <Card variant="outlined">
         <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <IconButton
             onClick={() => navigate("/")}
+            title="Вернуться на главную"
             style={{ border: 0, backgroundColor: 'transparent', paddingLeft: 0 }}
           >
-            <KeyboardBackspaceIcon sx={{ fontSize: 'clamp(2rem, 10vw, 2.15rem)' }} />
+            <KeyboardBackspaceIcon sx={{ fontSize: '2.15rem' }} />
           </IconButton>
-          <Typography
-            component='h1'
-            variant='h4'
-            sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
-          >
+          <Typography variant="h4" sx={{ width: '100%', fontSize: '2.15rem' }}>
             Регистрация
           </Typography>
         </FormControl>
         <Box
-          component='form'
-          onSubmit={handleSubmit}
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
           sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
         >
           <FormControl>
-            <FormLabel htmlFor='login'>Логин</FormLabel>
+            <FormLabel>Логин</FormLabel>
             <TextField
+              {...register("login")}
               fullWidth
-              name='login'
-              placeholder='user'
-              id='login'
-              autoComplete='login'
-              error={loginError}
-              helperText={loginErrorMessage}
+              placeholder="user"
+              autoComplete="login"
+              error={!!errors.login}
+              helperText={errors.login?.message}
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor="password">Пароль</FormLabel>
+            <FormLabel>Пароль</FormLabel>
             <TextField
+              {...register("password")}
               fullWidth
-              name="password"
               placeholder="••••••"
-              type={showPassword ? 'text' : 'password'}
-              id="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              variant="outlined"
-              error={passwordError}
-              helperText={passwordErrorMessage}
+              error={!!errors.password}
+              helperText={errors.password?.message}
               InputProps={{
                 endAdornment: (
-                  <InputAdornment position='end'>
+                  <InputAdornment position="end">
                     <IconButton
                       onClick={handleTogglePasswordVisibility}
-                      edge='end'
+                      edge="end"
+                      title={showPassword ? "Спрятать пароль" : "Отобразить пароль"}
                       style={{ border: 0, backgroundColor: 'transparent' }}
                     >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
@@ -194,77 +149,60 @@ export default function Register({ setSeverity, setMessage, setOpen }: RegisterP
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor='lastName'>Фамилия</FormLabel>
+            <FormLabel>Фамилия</FormLabel>
             <TextField
+              {...register("lastName")}
               fullWidth
-              name='lastName'
-              placeholder='Иванов'
-              id='lastName'
-              autoComplete='family-name'
-              error={lastNameError}
-              helperText={lastNameErrorMessage}
+              placeholder="Иванов"
+              autoComplete="family-name"
+              error={!!errors.lastName}
+              helperText={errors.lastName?.message}
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor='firstName'>Имя</FormLabel>
+            <FormLabel>Имя</FormLabel>
             <TextField
+              {...register("firstName")}
               fullWidth
-              name='firstName'
-              placeholder='Иван'
-              id='firstName'
-              autoComplete='given-name'
-              error={firstNameError}
-              helperText={firstNameErrorMessage}
+              placeholder="Иван"
+              autoComplete="given-name"
+              error={!!errors.firstName}
+              helperText={errors.firstName?.message}
             />
           </FormControl>
           <FormControl>
-            <FormLabel htmlFor='middleName'>Отчество</FormLabel>
+            <FormLabel>Отчество</FormLabel>
             <TextField
+              {...register("middleName")}
               fullWidth
-              name='middleName'
-              placeholder='Иванович (необязательно)'
-              id='middleName'
-              autoComplete='additional-name'
-            // error={middleNameError}
-            // helperText={middleNameErrorMessage}
+              placeholder="Иванович (необязательно)"
+              autoComplete="additional-name"
+              error={!!errors.middleName}
+              helperText={errors.middleName?.message}
             />
           </FormControl>
           <FormControl>
-            <FormLabel id='role-radio-buttons-group' sx={{ margin: 0 }}>Роль</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby='role-radio-buttons-group'
-              name='role'
-              defaultValue='1'
-            >
-              <FormControlLabel value='1' control={<Radio />} label='Студент' />
-              <FormControlLabel value='2' control={<Radio />} label='Преподаватель' />
-            </RadioGroup>
+            <FormLabel sx={{ margin: 0 }}>Роль</FormLabel>
+            <Controller
+              name="role"
+              control={control}
+              defaultValue={1}
+              render={({ field }) => (
+                <RadioGroup {...field} row>
+                  <FormControlLabel value={1} control={<Radio />} label="Студент" />
+                  <FormControlLabel value={2} control={<Radio />} label="Преподаватель" />
+                </RadioGroup>
+              )}
+            />
           </FormControl>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            onClick={validateInputs}
-          >
-            Зарегистрироваться
-          </Button>
+          <Button type="submit" fullWidth variant="contained">Зарегистрироваться</Button>
         </Box>
         <Divider>
           <Typography sx={{ color: 'text.secondary' }}>или</Typography>
         </Divider>
         <Typography sx={{ textAlign: 'center' }}>
           У вас уже есть аккаунт?{' '}
-          <Link
-            component={RouterLink}
-            to="/login"
-            variant="body2"
-            sx={{ alignSelf: 'center' }}
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/login');
-            }}
-          >
+          <Link component={RouterLink} to="/login" sx={{ alignSelf: 'center' }}>
             Войти
           </Link>
         </Typography>

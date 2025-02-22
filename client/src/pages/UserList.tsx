@@ -20,40 +20,27 @@ import Footer from '../components/Footer';
 import Pagination from '../components/Pagination';
 import UserCard from '../components/UserCard';
 import ContentContainer from '../components/ContentContainer';
-import { changeRole, getAllUsers } from '../api/userApi';
-
-interface User {
-  id: number;
-  lastName: string;
-  firstName: string;
-  middleName: string;
-  role: number;
-}
+import { changeRole, getAllUsers, UserDto } from '../api/userApi';
+import { PageProps } from '../App';
 
 const cardStyle = {
   background: 'hsl(0, 0%, 99%)',
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
 };
 
-interface UserListProps {
-  setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export default function UserList({ setSeverity, setMessage, setOpen }: UserListProps) {
+export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get('name') || '');
 
   const pageSize = 20;
 
-  const name = searchParams.get('name') || '';
-  const orderBy = (searchParams.get('orderBy') as 'Name' | 'Role') || 'Name';
-  const sortDirection = (searchParams.get('sortDirection') === '1' ? 1 : 0) as 0 | 1;
-  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+  const name = searchParams.get("name") || "";
+  const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
+  const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [totalCount, setTotalCount] = useState(0);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserDto[]>([]);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -91,12 +78,12 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
   };
 
   const handleClearSearch = () => {
-    setSearchQuery('');
-    updateSearchParams({ name: '', page: 1 });
+    setSearchQuery("");
+    updateSearchParams({ name: "", page: 1 });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery !== name) {
+    if (e.key === "Enter" && searchQuery !== name) {
       updateSearchParams({ name: searchQuery, page: 1 });
       e.currentTarget.blur();
     }
@@ -112,10 +99,8 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
       setMessage("Нельзя изменить роль администратора");
       setOpen(true);
       return;
-    }
-  
-    const newRole = role === 1 ? 2 : 1;
-  
+    }  
+    const newRole = role === 1 ? 2 : 1;  
     try {
       await changeRole(id, newRole);
       await fetchUsers();
@@ -127,25 +112,27 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
   return (
     <Page>
       <Header />
-      <ContentContainer gap='1rem' sx={{ display: 'grid', gridTemplateColumns: '1fr auto' }}>
-        <Stack gap='1rem'>
-          <Stack flexDirection='row' justifyContent='space-between'>
-            <Typography variant='h4'>Список пользователей</Typography>
+      <ContentContainer gap="1rem" sx={{ display: 'grid', gridTemplateColumns: '1fr auto' }}>
+        <Stack gap="1rem">
+          <Stack flexDirection="row" justifyContent='space-between'>
+            <Typography variant="h4">
+              Список пользователей
+            </Typography>
             <FormControl sx={{ minWidth: '10rem' }} variant='outlined'>
               <OutlinedInput
-                size='small'
-                placeholder='Поиск…'
+                size="small"
+                placeholder="Поиск…"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleKeyDown}
                 startAdornment={
-                  <InputAdornment position='start'>
-                    <SearchRoundedIcon fontSize='small' />
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon fontSize="small" />
                   </InputAdornment>
                 }
                 endAdornment={(
                   <InputAdornment position="end" sx={{ margin: 0 }}>
-                    <IconButton edge='end' onClick={handleClearSearch} style={{ border: 0, backgroundColor: 'transparent' }}>
+                    <IconButton edge="end" onClick={handleClearSearch} style={{ border: 0, backgroundColor: 'transparent' }}>
                       <ClearIcon />
                     </IconButton>
                   </InputAdornment>
@@ -155,10 +142,12 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
           </Stack>
           {users.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
             <Card sx={{ ...cardStyle, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Typography variant='h5'>Пользователей не нашлось :(</Typography>
+              <Typography variant="h5">
+                Пользователей не нашлось :(
+              </Typography>
             </Card>
           ) : (
-            <Stack gap='1rem'>
+            <Stack gap="1rem">
               <Card sx={{ ...cardStyle, padding: '0' }}>
                 {users.map((user) => (
                   <UserCard
@@ -184,8 +173,8 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
                 value={orderBy}
                 onChange={(e) => updateSearchParams({ orderBy: e.target.value, page: currentPage })}
               >
-                <FormControlLabel value='Name' control={<Radio />} label='По ФИО' />
-                <FormControlLabel value='Role' control={<Radio />} label='По роли' />
+                <FormControlLabel value="Name" control={<Radio />} label="По ФИО" />
+                <FormControlLabel value="Role" control={<Radio />} label="По роли" />
               </RadioGroup>
             </FormControl>
             <Divider />
@@ -194,8 +183,8 @@ export default function UserList({ setSeverity, setMessage, setOpen }: UserListP
                 value={sortDirection}
                 onChange={(e) => updateSearchParams({ sortDirection: Number(e.target.value), page: currentPage })}
               >
-                <FormControlLabel value='0' control={<Radio />} label='По возрастанию' />
-                <FormControlLabel value='1' control={<Radio />} label='По убыванию' />
+                <FormControlLabel value="0" control={<Radio />} label="По возрастанию" />
+                <FormControlLabel value="1" control={<Radio />} label="По убыванию" />
               </RadioGroup>
             </FormControl>
           </Card>

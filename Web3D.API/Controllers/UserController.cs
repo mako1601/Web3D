@@ -17,16 +17,22 @@ public class UserController(IUserService userService) : ControllerBase
     [Authorize]
     public IActionResult GetCurrentUser()
     {
-        var user = new
+        try
         {
-            id = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value,
-            lastName = User.Claims.FirstOrDefault(x => x.Type == "lastName")?.Value,
-            firstName = User.Claims.FirstOrDefault(x => x.Type == "firstName")?.Value,
-            middleName = User.Claims.FirstOrDefault(x => x.Type == "middleName")?.Value,
-            role = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value
-        };
-
-        return Ok(user);
+            var user = new
+            {
+                id = User.Claims.FirstOrDefault(x => x.Type == "id").Value,
+                lastName = User.Claims.FirstOrDefault(x => x.Type == "lastName").Value,
+                firstName = User.Claims.FirstOrDefault(x => x.Type == "firstName").Value,
+                middleName = User.Claims.FirstOrDefault(x => x.Type == "middleName").Value,
+                role = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value
+            };
+            return Ok(user);
+        }
+        catch (NullReferenceException)
+        {
+            return Ok(null);
+        }
     }
 
     [HttpGet("{id:long}")]

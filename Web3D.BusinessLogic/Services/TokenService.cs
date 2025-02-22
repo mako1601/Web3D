@@ -3,6 +3,7 @@
 using Web3D.Domain.Models;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
+using Web3D.Domain.Exceptions;
 
 namespace Web3D.BusinessLogic.Services;
 
@@ -24,14 +25,14 @@ internal class TokenService(ITokenRepository tokenRepository, IHttpContextAccess
     public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         var refreshToken = await tokenRepository.GetByTokenAsync(token, cancellationToken)
-            ?? throw new Exception("RefreshToken was not found");
+            ?? throw new RefreshTokenNotFoundException();
         return refreshToken;
     }
 
     public async Task<RefreshToken?> UpdateByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         var refreshToken = await tokenRepository.GetByTokenAsync(token, cancellationToken)
-            ?? throw new Exception("RefreshToken was not found");
+            ?? throw new RefreshTokenNotFoundException();
 
         refreshToken.Token = JwtService.GenerateRefreshToken();
         refreshToken.ExpiresAt = DateTime.UtcNow.AddDays(7);
@@ -45,7 +46,7 @@ internal class TokenService(ITokenRepository tokenRepository, IHttpContextAccess
     public async Task DeleteAsync(string token, CancellationToken cancellationToken = default)
     {
         var refreshToken = await tokenRepository.GetByTokenAsync(token, cancellationToken)
-            ?? throw new Exception("RefreshToken was not found");
+            ?? throw new RefreshTokenNotFoundException();
         await tokenRepository.DeleteAsync(refreshToken, cancellationToken);
     }
 }

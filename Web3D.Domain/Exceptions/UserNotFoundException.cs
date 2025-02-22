@@ -2,5 +2,5 @@
 
 public class UserNotFoundException : Exception
 {
-    public UserNotFoundException() : base("User was not found") { }
+    public UserNotFoundException() : base("User not found") { }
 }

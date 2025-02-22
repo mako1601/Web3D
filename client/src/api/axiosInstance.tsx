@@ -7,7 +7,7 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-const refreshToken = async () => {
+export const refreshToken = async () => {
   try {
     const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, { withCredentials: true });
     return response.data;

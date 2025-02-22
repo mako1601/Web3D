@@ -83,15 +83,26 @@ public class AuthController(IUserService userService, ITokenService tokenService
     [Authorize]
     public async Task<IActionResult> LogoutAsync()
     {
-        var token = Request.Cookies["refreshToken"];
-        if (token == null) return NotFound("Refresh token not found");
+        try
+        {
+            var token = Request.Cookies["refreshToken"];
+            if (token == null) return NotFound("Refresh token not found");
 
-        await tokenService.DeleteAsync(token);
+            Response.Cookies.Delete("accessToken");
+            Response.Cookies.Delete("refreshToken");
 
-        Response.Cookies.Delete("accessToken");
-        Response.Cookies.Delete("refreshToken");
+            await tokenService.DeleteAsync(token);
 
-        return Ok();
+            return Ok();
+        }
+        catch (RefreshTokenNotFoundException)
+        {
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Ошибка на сервере: " + ex.Message);
+        }
     }
 
     [HttpPost("refresh-token")]
