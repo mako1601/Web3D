@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Box, Button, Card, FormControl, FormLabel, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Box, Button, FormControl, FormLabel, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
 import Page from '../components/Page';
-// import Card from '../components/Card';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import ContentContainer from '../components/ContentContainer';
@@ -15,11 +15,7 @@ import { updatePassword, updateUser, UpdUserData, UpdUserPass } from '../api/use
 import { useAuth } from '../context/AuthContext';
 import { PageProps } from '../App';
 import { refreshToken } from '../api/axiosInstance';
-
-const cardStyle = {
-  background: 'hsl(0, 0%, 99%)',
-  boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
-};
+import PageCard from '../components/PageCard';
 
 interface UpdatePasswordData {
   oldPassword: string;
@@ -157,7 +153,7 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
           Профиль пользователя
         </Typography>
         <Box display="flex" flexDirection="column" gap="2rem">
-          <Card sx={{ ...cardStyle }}>
+          <PageCard>
             <FormControl>
               <Typography variant="h5">
                 Информация
@@ -216,9 +212,9 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
                 {loadingProfile ? "Сохранение изменений…" : "Сохранить изменения"}
               </Button>
             </Box>
-          </Card>
+          </PageCard>
 
-          <Card sx={{ ...cardStyle }}>
+          <PageCard>
             <FormControl>
               <Typography variant="h5">
                 Смена пароля
@@ -322,7 +318,7 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
                 {loadingPassword ? "Сохранение изменений…" : "Изменить пароль"}
               </Button>
             </Box>
-          </Card>
+          </PageCard>
         </Box>
       </ContentContainer>
       <Footer />

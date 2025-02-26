@@ -1,19 +1,16 @@
-import { Button, Box, FormControl, TextField, FormLabel, Card } from "@mui/material";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import ContentContainer from "../components/ContentContainer";
-import Page from "../components/Page";
-import * as yup from 'yup';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ArticleData, createArticle } from "../api/articleApi";
-import { useState } from "react";
-import { PageProps } from "../App";
+import * as yup from 'yup';
+import { Button, Box, FormControl, TextField, FormLabel } from '@mui/material';
 
-const cardStyle = {
-  background: 'hsl(0, 0%, 99%)',
-  boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
-};
+import Page from '../components/Page';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import PageCard from '../components/PageCard';
+import ContentContainer from '../components/ContentContainer';
+import { ArticleData, createArticle } from '../api/articleApi';
+import { PageProps } from '../App';
 
 const articleSchema = yup.object().shape({
   title: yup.string()
@@ -46,7 +43,6 @@ const ArticleEditor = ({ setSeverity, setMessage, setOpen }: PageProps) => {
   const onSubmit = async (data: ArticleData) => {
     try {
       setLoading(true);
-      console.log(data);
       await createArticle(data);
       setSeverity("success");
       setMessage("Учебный материал успешно создан!");
@@ -70,7 +66,7 @@ const ArticleEditor = ({ setSeverity, setMessage, setOpen }: PageProps) => {
     <Page>
       <Header />
       <ContentContainer gap="1rem">
-        <Card sx={{ ...cardStyle }}>
+        <PageCard>
           <Box
             component="form"
             onSubmit={handleSubmit(onSubmit)}
@@ -114,7 +110,7 @@ const ArticleEditor = ({ setSeverity, setMessage, setOpen }: PageProps) => {
               {loading ? "Сохранение…" : "Сохранить"}
             </Button>
           </Box>
-        </Card>
+        </PageCard>
       </ContentContainer>
       <Footer />
     </Page>

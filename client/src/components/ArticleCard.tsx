@@ -3,26 +3,12 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { ArticleDto } from "../api/articleApi";
 import { getUserById } from "../api/userApi";
+import { formatDate } from "../utils/dateUtils";
 
 interface ArticleCardProps {
   article: ArticleDto;
   onClick: () => void;
 }
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
-    .format(date)
-    .replace(" г.", "");
-};
 
 const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
   const [expanded, setExpanded] = useState(false);

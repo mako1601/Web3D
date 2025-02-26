@@ -5,6 +5,7 @@ export interface ArticleDto {
   userId: number;
   title: string;
   description: string;
+  content: string;
   createdAt: string;
   updatedAt?: string;
 }

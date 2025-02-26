@@ -19,7 +19,8 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import Card from '../components/Card';
+
+import SignCard from '../components/SignCard';
 import Container from '../components/Container';
 import { RegData, registerUser } from '../api/authApi';
 import { getCurrentUser } from '../api/userApi';
@@ -93,7 +94,7 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
 
   return (
     <Container direction="column" justifyContent="space-between">
-      <Card variant="outlined">
+      <SignCard variant="outlined">
         <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <IconButton
             onClick={() => navigate("/")}
@@ -206,7 +207,7 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
             Войти
           </Link>
         </Typography>
-      </Card>
+      </SignCard>
     </Container>
   );
 }

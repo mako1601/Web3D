@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Radio from '@mui/material/Radio';
 import Divider from '@mui/material/Divider';
@@ -17,16 +16,12 @@ import ClearIcon from '@mui/icons-material/Clear';
 import Page from '../components/Page';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Pagination from '../components/Pagination';
+import PageCard from '../components/PageCard';
 import UserCard from '../components/UserCard';
+import Pagination from '../components/Pagination';
 import ContentContainer from '../components/ContentContainer';
 import { changeRole, getAllUsers, UserDto } from '../api/userApi';
 import { PageProps } from '../App';
-
-const cardStyle = {
-  background: 'hsl(0, 0%, 99%)',
-  boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
-};
 
 export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -142,14 +137,14 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
             </FormControl>
           </Stack>
           {users.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
-            <Card sx={{ ...cardStyle, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <PageCard sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
                 Пользователей не нашлось :(
               </Typography>
-            </Card>
+            </PageCard>
           ) : (
             <Stack gap="1rem">
-              <Card sx={{ ...cardStyle, padding: '0' }}>
+              <PageCard sx={{ padding: '0' }}>
                 {users.map((user) => (
                   <UserCard
                     key={user.id}
@@ -158,7 +153,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
                     onRoleChange={() => handleRoleChange(user.id, user.role)}
                   />
                 ))}
-              </Card>
+              </PageCard>
               <Pagination
                 currentPage={currentPage}
                 totalPages={Math.ceil(totalCount / pageSize)}
@@ -168,7 +163,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
           )}
         </Stack>
         <Stack>
-          <Card sx={{ ...cardStyle, position: 'sticky', top: '1rem', padding: '0.3rem 1rem' }}>
+          <PageCard sx={{ position: 'sticky', top: '1rem', padding: '0.3rem 1rem' }}>
             <FormControl>
               <RadioGroup
                 value={orderBy}
@@ -188,7 +183,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
                 <FormControlLabel value="1" control={<Radio />} label="По убыванию" />
               </RadioGroup>
             </FormControl>
-          </Card>
+          </PageCard>
         </Stack>
       </ContentContainer>
       <Footer />

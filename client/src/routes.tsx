@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Model from './pages/Model';
 import Profile from './pages/Profile';
+import Article from './pages/Article';
 import Register from './pages/Register';
 import UserList from './pages/UserList';
 import ArticleList from './pages/ArticleList';
@@ -26,6 +27,7 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
         <Route path="/article/create" element={<ArticleEditor setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
       <Route path="/articles" element={<ArticleList />} />
+      <Route path="/articles/:id" element={<Article />} />
       <Route path="/model" element={<Model />} />
       <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
     </Routes>
