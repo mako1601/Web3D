@@ -81,10 +81,18 @@ internal class UserService(
         }
     }
 
-    public async Task<User> GetByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<UserDTO> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(id, cancellationToken) ?? throw new UserNotFoundException();
-        return user;
+
+        return new UserDTO
+        {
+            Id = user.Id,
+            LastName = user.LastName,
+            FirstName = user.FirstName,
+            MiddleName = user.MiddleName,
+            Role = user.Role
+        };
     }
 
     public async Task<PageResult<UserDTO>> GetAllAsync(UserFilter userFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)

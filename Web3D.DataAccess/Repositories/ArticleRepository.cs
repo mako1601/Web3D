@@ -25,7 +25,7 @@ internal class ArticleRepository(Web3DDbContext context) : IArticleRepository
     public async Task<PageResult<Article>> GetAllAsync(ArticleFilter articleFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         return await context.Articles
-            .Filter(articleFilter)
+            .Filter(articleFilter, context)
             .Sort(sortParams, context)
             .ToPagedAsync(pageParams, cancellationToken);
     }

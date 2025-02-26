@@ -99,11 +99,11 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasKey(x => x.Id);
         modelBuilder.Entity<Article>()
             .Property(x => x.Title)
-            .HasMaxLength(128)
+            .HasMaxLength(60)
             .IsRequired();
         modelBuilder.Entity<Article>()
             .Property(x => x.Description)
-            .HasMaxLength(512);
+            .HasMaxLength(250);
         modelBuilder.Entity<Article>()
             .HasOne<User>()
             .WithMany()

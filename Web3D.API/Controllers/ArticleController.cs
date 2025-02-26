@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
@@ -14,12 +13,11 @@ public class ArticleController(IArticleService articleService) : ControllerBase
 {
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] string title)
+    public async Task<IActionResult> CreateAsync([FromBody] ArticleCreateRequest request)
     {
-        var authorId = User.FindFirstValue("id");
-        if (!long.TryParse(authorId, out var parsedAuthorId)) return Forbid();
+        var authorId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
 
-        await articleService.CreateAsync(parsedAuthorId, title);
+        await articleService.CreateAsync(authorId, request.Title, request.Description, request.Content);
         return NoContent();
     }
 

@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
-using Web3D.Domain;
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
 using Web3D.DataAccess.Contexts;
@@ -10,16 +9,30 @@ namespace Web3D.DataAccess.Extensions;
 
 public static class ArticleExtension
 {
-    public static IQueryable<Article> Filter(this IQueryable<Article> query, ArticleFilter articleFilter)
+    public static IQueryable<Article> Filter(this IQueryable<Article> query, ArticleFilter articleFilter, Web3DDbContext context)
     {
-        if (!string.IsNullOrEmpty(articleFilter.Title))
+        if (!string.IsNullOrWhiteSpace(articleFilter.SearchText))
         {
-            query = query.Where(x => x.Title.Contains(articleFilter.Title));
-        }
+            var searchText = articleFilter.SearchText.Trim();
+            var keywords = searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(x => x.ToLower())
+                                     .ToList();
 
-        if (!string.IsNullOrEmpty(articleFilter.Description))
-        {
-            query = query.Where(x => x.Description.Contains(articleFilter.Description));
+            query = query
+                .Join(
+                    context.Users,
+                    article => article.UserId,
+                    user => user.Id,
+                    (article, user) => new { article, user }
+                )
+                .Where(x => keywords.All(y =>
+                    x.article.Title.ToLower().Contains(y) ||
+                    x.article.Description.ToLower().Contains(y) ||
+                    string.Join(" ", x.user.LastName, x.user.FirstName, x.user.MiddleName)
+                        .ToLower()
+                        .Contains(y)
+                ))
+                .Select(x => x.article);
         }
 
         return query;

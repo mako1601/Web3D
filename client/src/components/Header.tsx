@@ -31,14 +31,17 @@ export default function Header() {
         </Stack>
         {/* right */}
         {user ? (
-          <Stack direction='row' justifyContent='flex-end' spacing={2}>
+          <Stack direction="row" justifyContent="flex-end" spacing={2}>
+            <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/article/create"); }}>
+              Создать учебный материалы
+            </Button>
             <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={() => navigate("/profile")}>
               {user.lastName ? user.lastName[0].toUpperCase() : "?"}
             </Avatar>
             <HeaderMenu />
           </Stack>
         ) : (
-          <Stack direction='row' justifyContent='flex-end' spacing={2}>
+          <Stack direction="row" justifyContent="flex-end" spacing={2}>
             <Button variant="contained" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>
               Войти
             </Button>

@@ -5,7 +5,8 @@ import Model from './pages/Model';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import UserList from './pages/UserList';
-import TiptapEditor from './pages/ArticleEditor';
+import ArticleList from './pages/ArticleList';
+import ArticleEditor from './pages/ArticleEditor';
 import PublicRoute from './components/PublicRoute';
 import ProtectedRoute from './components/ProtectedRoute';
 import { PageProps } from './App';
@@ -21,7 +22,10 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
       <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
         <Route path="/users" element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
-      <Route path="/articles" element={<TiptapEditor />} />
+      <Route element={<ProtectedRoute allowedRoles={["Teacher"]} />} >
+        <Route path="/article/create" element={<ArticleEditor setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+      </Route>
+      <Route path="/articles" element={<ArticleList />} />
       <Route path="/model" element={<Model />} />
       <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
     </Routes>

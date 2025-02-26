@@ -1,61 +1,59 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import Radio from '@mui/material/Radio';
-import Divider from '@mui/material/Divider';
-import Typography from '@mui/material/Typography';
-import RadioGroup from '@mui/material/RadioGroup';
-import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import Page from "../components/Page";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import ContentContainer from "../components/ContentContainer";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import FormControl from "@mui/material/FormControl";
+import InputAdornment from "@mui/material/InputAdornment";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Divider from "@mui/material/Divider";
+import Radio from "@mui/material/Radio";
+import Pagination from "../components/Pagination";
+import OutlinedInput from "@mui/material/OutlinedInput";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { ArticleDto, getAllArticles } from "../api/articleApi";
+import { Card, IconButton } from "@mui/material";
 import ClearIcon from '@mui/icons-material/Clear';
-
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Pagination from '../components/Pagination';
-import UserCard from '../components/UserCard';
-import ContentContainer from '../components/ContentContainer';
-import { changeRole, getAllUsers, UserDto } from '../api/userApi';
-import { PageProps } from '../App';
+import ArticleCard from "../components/ArticleCard";
 
 const cardStyle = {
   background: 'hsl(0, 0%, 99%)',
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px'
 };
 
-export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
+export default function ArticleList() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('name') || '');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("searchText") || "");
 
-  const pageSize = 20;
+  const pageSize = 10;
 
-  const name = searchParams.get("name") || "";
-  const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
+  const searchText = searchParams.get("searchText") || "";
+  const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [totalCount, setTotalCount] = useState(0);
-  const [users, setUsers] = useState<UserDto[]>([]);
+  const [articles, setArticles] = useState<ArticleDto[]>([]);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchArticles = useCallback(async () => {
     try {
-      const data = await getAllUsers(name, orderBy, sortDirection, currentPage, pageSize);
-      setUsers(data.data);
+      const data = await getAllArticles(searchText, orderBy, sortDirection, currentPage, pageSize);
+      console.log(data);
+      setArticles(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
-      setUsers([]);
+      setArticles([]);
       setTotalCount(0);
     }
-  }, [name, orderBy, sortDirection, currentPage, pageSize]);
+  }, [searchText, orderBy, sortDirection, currentPage, pageSize]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchArticles();
+  }, [fetchArticles]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {
     window.scrollTo(0, 0);
@@ -79,35 +77,19 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
 
   const handleClearSearch = () => {
     setSearchQuery("");
-    updateSearchParams({ name: "", page: 1 });
+    updateSearchParams({ searchText: "", page: 1 });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery !== name) {
-      updateSearchParams({ name: searchQuery, page: 1 });
+    if (e.key === "Enter" && searchQuery !== searchText) {
+      updateSearchParams({ searchText: searchQuery, page: 1 });
       e.currentTarget.blur();
     }
   };
 
-  const handleProfileClick = useCallback((id: number) => {
-    console.log(`Просмотр профиля пользователя с ID: ${id}`);
+  const handleClick = useCallback((id: number) => {
+    console.log(`Просмотр учебного материала с ID: ${id}`);
   }, []);
-
-  const handleRoleChange = useCallback(async (id: number, role: number) => {
-    if (role === 0) {
-      setSeverity("error");
-      setMessage("Нельзя изменить роль администратора");
-      setOpen(true);
-      return;
-    }
-    const newRole = role === 1 ? 2 : 1;
-    try {
-      await changeRole(id, newRole);
-      await fetchUsers();
-    } catch (e: any) {
-      console.error("Ошибка при изменении роли:", e);
-    }
-  }, [fetchUsers]);
 
   return (
     <Page>
@@ -116,9 +98,9 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
         <Stack gap="1rem">
           <Stack flexDirection="row" justifyContent='space-between'>
             <Typography variant="h4">
-              Список пользователей
+              Список учебных материалов
             </Typography>
-            <FormControl sx={{ minWidth: '10rem' }} variant='outlined'>
+            <FormControl sx={{ minWidth: '10rem' }} variant="outlined">
               <OutlinedInput
                 sx={{ maxHeight: '2rem' }}
                 size="small"
@@ -141,21 +123,20 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
               />
             </FormControl>
           </Stack>
-          {users.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
+          {articles.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
             <Card sx={{ ...cardStyle, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
-                Пользователей не нашлось :(
+                Учебные материалы не нашлись :(
               </Typography>
             </Card>
           ) : (
             <Stack gap="1rem">
               <Card sx={{ ...cardStyle, padding: '0' }}>
-                {users.map((user) => (
-                  <UserCard
-                    key={user.id}
-                    user={user}
-                    onProfileClick={() => handleProfileClick(user.id)}
-                    onRoleChange={() => handleRoleChange(user.id, user.role)}
+                {articles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    onClick={() => handleClick(article.id)}
                   />
                 ))}
               </Card>
@@ -174,8 +155,10 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
                 value={orderBy}
                 onChange={(e) => updateSearchParams({ orderBy: e.target.value, page: currentPage })}
               >
-                <FormControlLabel value="Name" control={<Radio />} label="По ФИО" />
-                <FormControlLabel value="Role" control={<Radio />} label="По роли" />
+                <FormControlLabel value="Title" control={<Radio />} label="По названию" />
+                <FormControlLabel value="UserId" control={<Radio />} label="По автору" />
+                <FormControlLabel value="CreatedAt" control={<Radio />} label="По дате создания" />
+                <FormControlLabel value="UpdatedAt" control={<Radio />} label="По дате обновления" />
               </RadioGroup>
             </FormControl>
             <Divider />
