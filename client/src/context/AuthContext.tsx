@@ -12,6 +12,7 @@ type User = {
 type AuthContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
+  loading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,12 +25,14 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getCurrentUser()
       .then(setUser)
-      .catch(console.error);
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, setUser, loading }}>{children}</AuthContext.Provider>;
 };

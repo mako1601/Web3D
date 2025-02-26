@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import PageCard from '../components/PageCard';
-import ContentContainer from '../components/ContentContainer';
-import { ArticleDto, getArticleById } from '../api/articleApi';
-import { getUserById } from '../api/userApi';
-import { formatDate } from '../utils/dateUtils';
+import Page from '../../components/Page';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import PageCard from '../../components/PageCard';
+import ContentContainer from '../../components/ContentContainer';
+import { ArticleDto, getArticleById } from '../../api/articleApi';
+import { getUserById } from '../../api/userApi';
+import { formatDate } from '../../utils/dateUtils';
 
-export default function Article() {
+export default function ViewArticle() {
   const { id } = useParams();
   const articleId = Number(id);
   const [article, setArticle] = useState<ArticleDto | null>(null);

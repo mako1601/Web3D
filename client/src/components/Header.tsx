@@ -32,7 +32,7 @@ export default function Header() {
         {/* right */}
         {user ? (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/article/create"); }}>
+            <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/articles/create"); }}>
               Создать учебный материалы
             </Button>
             <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={() => navigate("/profile")}>

@@ -4,13 +4,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Button, Box, FormControl, TextField, FormLabel } from '@mui/material';
 
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import PageCard from '../components/PageCard';
-import ContentContainer from '../components/ContentContainer';
-import { ArticleData, createArticle } from '../api/articleApi';
-import { PageProps } from '../App';
+import Page from '../../components/Page';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import PageCard from '../../components/PageCard';
+import ContentContainer from '../../components/ContentContainer';
+import { ArticleData, createArticle } from '../../api/articleApi';
+import { PageProps } from '../../App';
 
 const articleSchema = yup.object().shape({
   title: yup.string()
@@ -29,7 +29,7 @@ const articleSchema = yup.object().shape({
     .default("")
 });
 
-const ArticleEditor = ({ setSeverity, setMessage, setOpen }: PageProps) => {
+export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const [loading, setLoading] = useState(false);
 
   const {
@@ -116,5 +116,3 @@ const ArticleEditor = ({ setSeverity, setMessage, setOpen }: PageProps) => {
     </Page>
   );
 };
-
-export default ArticleEditor;

@@ -13,14 +13,14 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import PageCard from '../components/PageCard';
-import Pagination from '../components/Pagination';
-import ArticleCard from '../components/ArticleCard';
-import ContentContainer from '../components/ContentContainer';
-import { ArticleDto, getAllArticles } from '../api/articleApi';
+import Page from '../../components/Page';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import PageCard from '../../components/PageCard';
+import Pagination from '../../components/Pagination';
+import ArticleCard from '../../components/ArticleCard';
+import ContentContainer from '../../components/ContentContainer';
+import { ArticleDto, getAllArticles } from '../../api/articleApi';
 
 export default function ArticleList() {
   const navigate = useNavigate();
