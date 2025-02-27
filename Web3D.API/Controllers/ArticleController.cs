@@ -11,12 +11,11 @@ namespace Web3D.API.Controllers;
 [Route("api/articles")]
 public class ArticleController(IArticleService articleService) : ControllerBase
 {
-    [Authorize]
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] ArticleCreateRequest request)
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> CreateAsync([FromBody] ArticleRequest request)
     {
         var authorId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
-
         await articleService.CreateAsync(authorId, request.Title, request.Description, request.Content);
         return NoContent();
     }
@@ -29,22 +28,22 @@ public class ArticleController(IArticleService articleService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync([FromQuery] ArticleFilter sort, [FromQuery] SortParams order, [FromQuery] PageParams page)
+    public async Task<IActionResult> GetAllAsync([FromQuery] Filter sort, [FromQuery] SortParams order, [FromQuery] PageParams page)
     {
         var result = await articleService.GetAllAsync(sort, order, page);
         return Ok(result);
     }
 
-    [Authorize]
     [HttpPut("{id:long}")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromBody] ArticleRequest request)
     {
         await articleService.UpdateAsync(id, request.Title, request.Description, request.Content);
         return NoContent();
     }
 
-    [Authorize]
     [HttpDelete("{id:long}")]
+    [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> DeleteAsync([FromRoute] long id)
     {
         await articleService.DeleteAsync(id);

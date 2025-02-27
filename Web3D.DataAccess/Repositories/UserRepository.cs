@@ -32,10 +32,10 @@ internal class UserRepository(Web3DDbContext context) : IUserRepository
         return await context.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
     }
 
-    public async Task<PageResult<UserDTO>> GetAllAsync(UserFilter userFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<UserDTO>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         return await context.Users
-            .Filter(userFilter)
+            .Filter(filter)
             .Sort(sortParams)
             .ToPagedAsync(pageParams, cancellationToken);
     }

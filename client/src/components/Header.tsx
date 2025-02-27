@@ -6,6 +6,7 @@ import HeaderMenu from './HeaderMenu';
 import HeaderInner from './HeaderInner';
 import HeaderContainer from './HeaderContainer';
 import { useAuth } from '../context/AuthContext';
+import CreateMenu from './CreateMenu';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -25,6 +26,9 @@ export default function Header() {
           <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/articles"); }}>
             Учебные материалы
           </Button>
+          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/tests"); }}>
+            Тесты
+          </Button>
           <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/model"); }}>
             3D
           </Button>
@@ -32,9 +36,7 @@ export default function Header() {
         {/* right */}
         {user ? (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/articles/create"); }}>
-              Создать учебный материалы
-            </Button>
+            {user.role === "Teacher" && (<CreateMenu />)}
             <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={() => navigate("/profile")}>
               {user.lastName ? user.lastName[0].toUpperCase() : "?"}
             </Avatar>

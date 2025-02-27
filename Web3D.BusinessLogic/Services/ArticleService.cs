@@ -28,9 +28,9 @@ internal class ArticleService(IArticleRepository articleRepository) : IArticleSe
         return article;
     }
 
-    public async Task<PageResult<Article>> GetAllAsync(ArticleFilter articleFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<Article>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
-        var articles = await articleRepository.GetAllAsync(articleFilter, sortParams, pageParams, cancellationToken);
+        var articles = await articleRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return articles;
     }
 

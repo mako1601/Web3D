@@ -1,4 +1,5 @@
 ﻿using Web3D.Domain.Models;
+using Web3D.Domain.Filters;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
 
@@ -10,12 +11,14 @@ internal class TestService(
     IAnswerResultRepository answerResultRepository)
     : ITestService
 {
-    public async Task CreateAsync(long userId, string title, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(long userId, string title, string description, ICollection<Question> questions, CancellationToken cancellationToken = default)
     {
         var test = new Test
         {
-            Title = title,
             UserId = userId,
+            Title = title,
+            Description = description,
+            Questions = questions,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -24,25 +27,19 @@ internal class TestService(
 
     public async Task<Test?> GetByIdAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
-                   ?? throw new Exception("Test was not found");
-
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
         return test;
     }
 
-    public async Task<List<Test>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<PageResult<Test>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
-        var tests = await testRepository.GetAllAsync(cancellationToken);
-
+        var tests = await testRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return tests;
     }
 
-    public async Task UpdateAsync(long testId, long userId, string newTitle, ICollection<Question> questions, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(long testId, string newTitle, ICollection<Question> questions, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
-                   ?? throw new Exception("Test was not found");
-
-        if (test.UserId != userId) throw new Exception("Test can only be changed by the author");
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
 
         test.Title = newTitle;
         test.Questions = questions;
@@ -51,20 +48,15 @@ internal class TestService(
         await testRepository.UpdateAsync(test, cancellationToken);
     }
 
-    public async Task DeleteAsync(long testId, long userId, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
-                   ?? throw new Exception("Test was not found");
-
-        if (test.UserId != userId) throw new Exception("Test can only be deleted by the author");
-
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
         await testRepository.DeleteAsync(test, cancellationToken);
     }
 
     public async Task<long> StartTestAsync(long testId, long userId, CancellationToken cancellationToken = default)
     {
-        _ = await testRepository.GetByIdAsync(testId, cancellationToken)
-            ?? throw new Exception("Test was not found");
+        _ = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
         var attempt = await testResultRepository.GetAttemptAsync(testId, userId, cancellationToken);
 
         var testResult = new TestResult
@@ -101,9 +93,7 @@ internal class TestService(
 
     public async Task<TestResult?> GetTestResultByIdAsync(long testResultId, CancellationToken cancellationToken = default)
     {
-        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken)
-                         ?? throw new Exception("TestResult was not found");
-
+        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken) ?? throw new Exception("TestResult was not found");
         return testResult;
     }
 }

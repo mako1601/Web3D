@@ -44,7 +44,7 @@ public class UserController(IUserService userService) : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetAllAsync([FromQuery] UserFilter sort, [FromQuery] PageParams page, [FromQuery] SortParams order)
+    public async Task<IActionResult> GetAllAsync([FromQuery] Filter sort, [FromQuery] PageParams page, [FromQuery] SortParams order)
     {
         var result = await userService.GetAllAsync(sort, order, page);
         return Ok(result);

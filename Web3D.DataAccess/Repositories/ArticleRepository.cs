@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-using Web3D.Domain;
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
 using Web3D.DataAccess.Contexts;
@@ -22,10 +21,10 @@ internal class ArticleRepository(Web3DDbContext context) : IArticleRepository
         return await context.Articles.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
     }
 
-    public async Task<PageResult<Article>> GetAllAsync(ArticleFilter articleFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<Article>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         return await context.Articles
-            .Filter(articleFilter, context)
+            .Filter(filter, context)
             .Sort(sortParams, context)
             .ToPagedAsync(pageParams, cancellationToken);
     }

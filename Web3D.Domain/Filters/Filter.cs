@@ -1,6 +1,6 @@
 ﻿namespace Web3D.Domain.Filters;
 
-public class ArticleFilter
+public class Filter
 {
     public string? SearchText { get; set; }
 }

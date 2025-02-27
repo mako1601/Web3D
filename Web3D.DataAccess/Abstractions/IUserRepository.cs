@@ -10,7 +10,7 @@ public interface IUserRepository
     public Task<User?> LoginAsync(string login, CancellationToken cancellationToken = default);
     public Task<bool> IsLoginTakenAsync(string login, CancellationToken cancellationToken = default);
     public Task<User?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
-    public Task<PageResult<UserDTO>> GetAllAsync(UserFilter userFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default);
+    public Task<PageResult<UserDTO>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default);
     public Task<List<User>> GetAllAsync(DateTime cutoffDate, CancellationToken cancellationToken = default);
     public Task UpdateAsync(User user, CancellationToken cancellationToken = default);
     public Task DeleteAsync(User user, CancellationToken cancellationToken = default);

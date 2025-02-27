@@ -1,17 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Radio from '@mui/material/Radio';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import RadioGroup from '@mui/material/RadioGroup';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import CircularProgress from '@mui/material/CircularProgress';
+import { useSearchParams } from 'react-router-dom';
+import { Box, CircularProgress, Divider, FormControl, FormControlLabel, IconButton, InputAdornment, OutlinedInput, Radio, RadioGroup, Stack, Typography } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
@@ -19,13 +8,62 @@ import Page from '../../components/Page';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PageCard from '../../components/PageCard';
+import TestCard from '../../components/TestCard';
 import Pagination from '../../components/Pagination';
-import ArticleCard from '../../components/ArticleCard';
 import ContentContainer from '../../components/ContentContainer';
-import { ArticleDto, getAllArticles } from '../../api/articleApi';
+import { getAllTests, Test } from '../../api/testApi';
 
-export default function ArticleList() {
-  const navigate = useNavigate();
+export default function TestList() {
+  // const [tests, setTests] = useState<Test[]>([]);
+
+  // const fetchTests = useCallback(async () => {
+  //   try {
+  //     const data = await getAllTests();
+  //     setTests(data);
+  //     // console.log(data);
+  //   } catch (e: any) {
+  //     setTests([]);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   fetchTests();
+  // }, [fetchTests]);
+
+  // return (
+  //   <Page>
+  //     <Header />
+  //     <ContentContainer gap="1rem">
+  //       {tests.map((test) =>
+  //         <div key={test.id}>
+  //           <Typography>
+  //             Название теста: "{test.title}"
+  //           </Typography>
+  //           <Typography>
+  //             Описание теста: "{test.description}"
+  //           </Typography>
+  //           {test.questions.map((question) =>
+  //             <div key={question.id}>
+  //               <Typography>
+  //                 Вопрос теста {question.index + 1}: "{question.text}"
+  //               </Typography>
+  //               {question.answerOptions.map((answerOption) =>
+  //                 <div key={answerOption.id}>
+  //                   <Typography>
+  //                     Вариант ответа {answerOption.index + 1}: "{answerOption.text}"
+  //                   </Typography>
+  //                 </div>
+  //               )}
+  //             </div>
+  //           )}
+  //         </div>
+  //       )}
+  //     </ContentContainer>
+  //     <Footer />
+  //   </Page>
+  // );
+
+  // const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("searchText") || "");
 
@@ -36,16 +74,16 @@ export default function ArticleList() {
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
+  const [tests, setTests] = useState<Test[] | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [articles, setArticles] = useState<ArticleDto[] | null>(null);
 
   const fetchArticles = useCallback(async () => {
     try {
-      const data = await getAllArticles(searchText, orderBy, sortDirection, currentPage, pageSize);
-      setArticles(data.data);
+      const data = await getAllTests(searchText, orderBy, sortDirection, currentPage, pageSize);
+      setTests(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
-      setArticles(null);
+      setTests(null);
       setTotalCount(0);
     }
   }, [searchText, orderBy, sortDirection, currentPage, pageSize]);
@@ -86,7 +124,7 @@ export default function ArticleList() {
     }
   };
 
-  if (!articles) {
+  if (!tests) {
     return (
       <Page>
         <Header />
@@ -107,7 +145,7 @@ export default function ArticleList() {
         <Stack gap="1rem">
           <Stack flexDirection="row" justifyContent="space-between">
             <Typography variant="h4">
-              Список учебных материалов
+              Список тестов
             </Typography>
             <FormControl sx={{ minWidth: '10rem' }} variant="outlined">
               <OutlinedInput
@@ -132,20 +170,21 @@ export default function ArticleList() {
               />
             </FormControl>
           </Stack>
-          {articles.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
+          {tests.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
             <PageCard sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
-                Учебные материалы не нашлись :(
+                Тесты не нашлись :(
               </Typography>
             </PageCard>
           ) : (
             <Stack gap="1rem">
               <PageCard sx={{ padding: 0 }}>
-                {articles.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onClick={() => navigate(`${article.id}`)}
+                {tests.map((test) => (
+                  <TestCard
+                    key={test.id}
+                    test={test}
+                    onClick={() => console.log(test.id)}
+                  // onClick={() => navigate(`${test.id}`)}
                   />
                 ))}
               </PageCard>

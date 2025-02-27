@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Radio from '@mui/material/Radio';
 import Divider from '@mui/material/Divider';
@@ -10,8 +11,9 @@ import FormControl from '@mui/material/FormControl';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import CircularProgress from '@mui/material/CircularProgress';
 import ClearIcon from '@mui/icons-material/Clear';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 import Page from '../components/Page';
 import Header from '../components/Header';
@@ -35,7 +37,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [totalCount, setTotalCount] = useState(0);
-  const [users, setUsers] = useState<UserDto[]>([]);
+  const [users, setUsers] = useState<UserDto[] | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -103,6 +105,20 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
       console.error("Ошибка при изменении роли:", e);
     }
   }, [fetchUsers]);
+
+  if (!users) {
+    return (
+      <Page>
+        <Header />
+        <ContentContainer>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+            <CircularProgress />
+          </Box>
+        </ContentContainer>
+        <Footer />
+      </Page>
+    );
+  }
 
   return (
     <Page>

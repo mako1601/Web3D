@@ -9,11 +9,12 @@ namespace Web3D.DataAccess.Extensions;
 
 public static class UserExtension
 {
-    public static IQueryable<User> Filter(this IQueryable<User> query, UserFilter userFilter)
+    public static IQueryable<User> Filter(this IQueryable<User> query, Filter filter)
     {
-        if (!string.IsNullOrEmpty(userFilter.Name))
+        // TODO: improve search
+        if (!string.IsNullOrEmpty(filter.SearchText))
         {
-            string nameLower = userFilter.Name.ToLower();
+            string nameLower = filter.SearchText.ToLower();
             query = query.Where(x => (x.LastName + " " + x.FirstName + (x.MiddleName != null ? " " + x.MiddleName : ""))
                 .ToLower()
                 .Contains(nameLower));

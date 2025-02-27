@@ -95,9 +95,9 @@ internal class UserService(
         };
     }
 
-    public async Task<PageResult<UserDTO>> GetAllAsync(UserFilter userFilter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<UserDTO>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
-        var users = await userRepository.GetAllAsync(userFilter, sortParams, pageParams, cancellationToken);
+        var users = await userRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return users;
     }
 
