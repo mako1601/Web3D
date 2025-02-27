@@ -13,6 +13,7 @@ import CreateArticle from './pages/articles/Create';
 import PublicRoute from './components/PublicRoute';
 import ProtectedRoute from './components/ProtectedRoute';
 import { PageProps } from './App';
+import CreateTest from './pages/tests/Create';
 
 const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) => {
   return (
@@ -32,11 +33,11 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
         <Route path="/articles/:id/edit" element={<EditArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
       <Route path="/tests" element={<TestList />} />
-      {/* <Route path="/tests/:id" element={<??? />} />
+      {/* <Route path="/tests/:id" element={<??? />} /> */}
       <Route element={<ProtectedRoute allowedRoles={["Teacher"]} />} >
-        <Route path="/tests/create" element={<??? setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/tests/:id/edit" element={<??? setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route> */}
+        <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+        {/* <Route path="/tests/:id/edit" element={<??? setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} /> */}
+      </Route>
       <Route path="/model" element={<Model />} />
       <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
     </Routes>

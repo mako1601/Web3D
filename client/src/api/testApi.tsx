@@ -51,8 +51,8 @@ export interface AnswerOption {
   isCorrect: boolean;
 }
 
-export const createTest = async (data: TestDto) => {
-  const response = await api.post("/tests", data);
+export const createTest = async (data: TestDto): Promise<TestDto> => {
+  const response = await api.post<TestDto>("/tests", data);
   return response.data;
 };
 
