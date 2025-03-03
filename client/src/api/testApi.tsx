@@ -51,7 +51,22 @@ export interface AnswerOption {
   isCorrect: boolean;
 }
 
+export interface TestForCreate {
+  title: string;
+  description: string;
+  questions: QuestionForCreate[];
+}
+
+export interface QuestionForCreate  {
+  id: string;
+  index: number;
+  text: string;
+  imageUrl?: string;
+  answerOptions: AnswerOptionDto[];
+}
+
 export const createTest = async (data: TestDto): Promise<TestDto> => {
+  console.log(data);
   const response = await api.post<TestDto>("/tests", data);
   return response.data;
 };
@@ -63,11 +78,10 @@ export const getTestById = async (id: number) => {
 
 export const getAllTests = async (searchText: string, orderBy: string, sortDirection: number, currentPage: number, pageSize: number): Promise<PageResult<Test>> => {
   const response = await api.get<PageResult<Test>>("/tests", { params: { searchText, orderBy, sortDirection, currentPage, pageSize } });
-  console.log(response);
   return response.data;
 };
 
-export const updateTest = async (id: number, data: Test) => {
+export const updateTest = async (id: number, data: TestDto) => {
   const response = await api.put(`/tests/${id}`, data);
   return response.data;
 };

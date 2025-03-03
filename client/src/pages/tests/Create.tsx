@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import uuid from 'react-native-uuid';
 import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
@@ -10,8 +11,9 @@ import Page from '../../components/Page';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import PageCard from '../../components/PageCard';
+import DraggableGrid from '../../components/DraggableGrid';
 import ContentContainer from '../../components/ContentContainer';
-import { createTest, TestDto, QuestionDto, AnswerOptionDto } from '../../api/testApi';
+import { createTest, AnswerOptionDto, QuestionForCreate, TestForCreate, TestDto } from '../../api/testApi';
 import { PageProps } from '../../App';
 
 const testSchema = yup.object().shape({
@@ -26,19 +28,20 @@ const testSchema = yup.object().shape({
     .default(""),
   questions: yup.array().of(
     yup.object().shape({
-      index: yup.number().optional().default(0),
+      id: yup.string().default(uuid.v4()),
+      index: yup.number().default(1),
       text: yup.string()
         .trim()
         .required("Обязательное поле")
         .max(128, "Максимум 128 символов"),
       answerOptions: yup.array().of(
         yup.object().shape({
-          index: yup.number().optional().default(0),
+          index: yup.number().default(1),
           text: yup.string()
             .trim()
             .required("Обязательное поле")
             .max(30, "Максимум 30 символов"),
-          isCorrect: yup.boolean().default(false)
+          isCorrect: yup.boolean().default(true)
         })
       ).max(4, "Максимум 4 варианта ответа").required()
     })
@@ -46,101 +49,161 @@ const testSchema = yup.object().shape({
 });
 
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
-  const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState<QuestionDto[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [questions, setQuestions] = React.useState<QuestionForCreate[]>([
+    {
+      id: uuid.v4(),
+      index: 0,
+      text: "",
+      answerOptions: [
+        { index: 0, text: "", isCorrect: true },
+        { index: 1, text: "", isCorrect: false }
+      ]
+    }
+  ]);
+  const [activeQuestion, setActiveQuestion] = React.useState<string>(questions[0].id);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset
-  } = useForm<TestDto>({
+  } = useForm<TestForCreate>({
     resolver: yupResolver(testSchema)
   });
 
-  const addQuestion = () => {
-    if (questions.length < 50) {
-      const newQuestion: QuestionDto = {
-        index: questions.length,
-        text: "",
-        answerOptions: [
-          { index: 0, text: "", isCorrect: true },
-          { index: 1, text: "", isCorrect: false },
-        ]
-      };
-      setQuestions([...questions, newQuestion]);
-    }
-  };
-
-  const updateQuestion = (index: number, field: keyof QuestionDto, value: string) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
-    setQuestions(updatedQuestions);
-  };
-
-  const removeQuestion = (index: number) => {
-    if (questions.length > 1) {
-      setQuestions(questions.filter((_, i) => i !== index));
-    }
-    else{
+  React.useEffect(() => {
+    if (Object.keys(errors).length > 0) {
       setSeverity("error");
-      setMessage("Минимум 1 вопрос");
+      setMessage("Заполнены не все обязательные поля");
       setOpen(true);
     }
+  }, [errors]);
+
+  const updateQuestion = (id: string, field: keyof QuestionForCreate, value: string) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
+    );
   };
 
-  const addAnswerOption = (questionIndex: number) => {
-    const updatedQuestions = [...questions];
-    const question = updatedQuestions[questionIndex];
-    if (question.answerOptions.length < 4) {
-      question.answerOptions.push({
-        index: question.answerOptions.length,
-        text: "",
-        isCorrect: false
+  const addAnswerOption = (questionId: string) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.id === questionId && q.answerOptions.length < 4
+          ? {
+            ...q,
+            answerOptions: [
+              ...q.answerOptions,
+              {
+                index: q.answerOptions.length,
+                text: "",
+                isCorrect: false
+              },
+            ].map((opt, idx) => ({
+              ...opt,
+              index: idx,
+            })),
+          }
+          : q
+      )
+    );
+  };
+
+  const updateAnswerOption = (
+    questionId: string,
+    optionIndex: number,
+    field: keyof AnswerOptionDto,
+    value: string
+  ) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.id === questionId
+          ? {
+            ...q,
+            answerOptions: q.answerOptions.map((opt, i) =>
+              i === optionIndex ? { ...opt, [field]: value } : opt
+            ),
+          }
+          : q
+      )
+    );
+  };
+
+  const setCorrectAnswer = (questionId: string, correctIndex: number) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.id === questionId
+          ? {
+            ...q,
+            answerOptions: q.answerOptions.map((opt, idx) => ({
+              ...opt,
+              isCorrect: idx === correctIndex,
+            })),
+          }
+          : q
+      )
+    );
+  };
+
+  const removeAnswerOption = (questionId: string, optionIndex: number) => {
+    setQuestions((prevQuestions) => {
+      return prevQuestions.map((q) => {
+        if (q.id === questionId) {
+          if (q.answerOptions.length > 2) {
+            return {
+              ...q,
+              answerOptions: q.answerOptions
+                .filter((_, i) => i !== optionIndex)
+                .map((opt, idx) => ({
+                  ...opt,
+                  index: idx,
+                })),
+            };
+          } else {
+            setSeverity("error");
+            setMessage("Минимум 2 варианта ответа");
+            setOpen(true);
+            return q;
+          }
+        }
+        return q;
       });
-      setQuestions(updatedQuestions);
-    }
+    });
   };
 
-  const updateAnswerOption = (questionIndex: number, optionIndex: number, field: keyof AnswerOptionDto, value: string) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[questionIndex].answerOptions[optionIndex] = {
-      ...updatedQuestions[questionIndex].answerOptions[optionIndex],
-      [field]: value
-    };
-    setQuestions(updatedQuestions);
-  };
-
-  const setCorrectAnswer = (questionIndex: number, correctIndex: number) => {
-    const updatedQuestions = [...questions];
-    updatedQuestions[questionIndex].answerOptions = updatedQuestions[questionIndex].answerOptions.map((option, idx) => ({
-      ...option,
-      isCorrect: idx === correctIndex
-    }));
-    setQuestions(updatedQuestions);
-  };
-
-  const removeAnswerOption = (questionIndex: number, optionIndex: number) => {
-    const updatedQuestions = [...questions];
-    if (updatedQuestions[questionIndex].answerOptions.length > 2) {
-      updatedQuestions[questionIndex].answerOptions = updatedQuestions[questionIndex].answerOptions.filter((_, i) => i !== optionIndex);
-      setQuestions(updatedQuestions);
-    }
-    else{
-      setSeverity("error");
-      setMessage("Минимум 2 варианта ответа");
-      setOpen(true);
-    }
-  };
-
-  const onSubmit = async (data: TestDto) => {
+  const onSubmit = async (data: TestForCreate) => {
+    console.log(data);
     try {
       setLoading(true);
-      await createTest({ ...data, questions });
+      const testData: TestDto = {
+        title: data.title,
+        description: data.description,
+        questions: questions.map((question) => ({
+          index: question.index,
+          text: question.text,
+          imageUrl: question.imageUrl,
+          answerOptions: question.answerOptions.map((answerOption) => ({
+            index: answerOption.index,
+            text: answerOption.text,
+            isCorrect: answerOption.isCorrect,
+          })),
+        })),
+      };
+      await createTest(testData);
       setSeverity("success");
-      setMessage("Учебный материал успешно создан!");
+      setMessage("Тест успешно создан!");
       reset();
-      setQuestions([]);
+      setQuestions([
+        {
+          id: uuid.v4(),
+          index: 0,
+          text: "",
+          answerOptions: [
+            { index: 0, text: "", isCorrect: true },
+            { index: 1, text: "", isCorrect: false }
+          ]
+        }
+      ]);
     } catch (e: any) {
       console.error(e);
       setSeverity("error");
@@ -151,10 +214,19 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
     }
   };
 
+  const activeQuestionIndex = questions.findIndex((q) => q.id === activeQuestion);
+  const activeQuestionObj = questions[activeQuestionIndex] ?? null;
+
   return (
     <Page>
       <Header />
       <ContentContainer gap="1rem">
+        <DraggableGrid
+          questions={questions}
+          setQuestions={setQuestions}
+          activeQuestion={activeQuestion}
+          setActiveQuestion={setActiveQuestion}
+        />
         <PageCard>
           <Box
             component="form"
@@ -181,74 +253,58 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               />
             </FormControl>
             <FormControl>
-              <FormLabel>Вопросы</FormLabel>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {questions.map((question, qIndex) => (
-                  <Box key={qIndex} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <Box sx={{ display: "flex", gap: 2 }}>
-                      <TextField
-                        {...register(`questions.${qIndex}.text`)}
-                        fullWidth
-                        value={question.text}
-                        onChange={(e) => updateQuestion(qIndex, "text", e.target.value)}
-                        placeholder={`Вопрос ${qIndex + 1}`}
-                        error={!!errors.questions?.[qIndex]?.text}
-                        helperText={errors.questions?.[qIndex]?.text?.message}
-                      />
-                      <IconButton onClick={() => removeQuestion(qIndex)} color="error">
-                        <ClearRoundedIcon />
-                      </IconButton>
-                    </Box>
-                    <RadioGroup
-                      sx={{ display: "flex", gap: 2 }}
-                      value={question.answerOptions.findIndex((opt) => opt.isCorrect)}
-                      onChange={(e) => setCorrectAnswer(qIndex, parseInt(e.target.value))}
-                    >
-                      {question.answerOptions.map((option, aIndex) => (
-                        <Box key={aIndex} sx={{ display: "flex", gap: 2 }}>
-                          <TextField
-                            {...register(`questions.${qIndex}.answerOptions.${aIndex}.text`)}
-                            fullWidth
-                            value={option.text}
-                            onChange={(e) => updateAnswerOption(qIndex, aIndex, "text", e.target.value)}
-                            placeholder={`Ответ ${aIndex + 1}`}
-                            error={!!errors.questions?.[qIndex]?.answerOptions?.[aIndex]?.text}
-                            helperText={errors.questions?.[qIndex]?.answerOptions?.[aIndex]?.text?.message}
+              <FormLabel>Вопрос</FormLabel>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    {...register(`questions.${activeQuestionIndex}.text`)}
+                    fullWidth
+                    value={activeQuestionObj ? activeQuestionObj.text : ''}
+                    onChange={(e) => updateQuestion(activeQuestion, "text", e.target.value)}
+                    placeholder="Вопрос"
+                    error={!!errors.questions?.[activeQuestionIndex]?.text}
+                    helperText={errors.questions?.[activeQuestionIndex]?.text?.message}
+                  />
+                  <RadioGroup
+                    sx={{ display: 'flex', gap: 2 }}
+                    value={activeQuestionObj ? activeQuestionObj.answerOptions.findIndex((opt) => opt.isCorrect) : -1}
+                    onChange={(e) => setCorrectAnswer(activeQuestion, parseInt(e.target.value))}
+                  >
+                    {activeQuestionObj?.answerOptions.map((option, aIndex) => (
+                      <Box key={aIndex} sx={{ display: 'flex', gap: 2 }}>
+                        <TextField
+                          {...register(`questions.${activeQuestionIndex}.answerOptions.${aIndex}.text`)}
+                          fullWidth
+                          value={option.text}
+                          onChange={(e) => updateAnswerOption(activeQuestion, aIndex, "text", e.target.value)}
+                          placeholder={`Ответ ${aIndex + 1}`}
+                          error={!!errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text}
+                          helperText={errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text?.message}
+                        />
+                        <Box>
+                          <FormControlLabel
+                            sx={{ margin: 0 }}
+                            value={aIndex}
+                            control={<Radio />}
+                            label="Правильный"
                           />
-                          <Box>
-                            <FormControlLabel
-                              sx={{ margin: 0 }}
-                              value={aIndex}
-                              control={<Radio />}
-                              label="Правильный"
-                            />
-                          </Box>
-                          <IconButton onClick={() => removeAnswerOption(qIndex, aIndex)} color="error">
-                            <ClearRoundedIcon />
-                          </IconButton>
                         </Box>
-                      ))}
-                    </RadioGroup>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddRoundedIcon />}
-                      onClick={() => addAnswerOption(qIndex)}
-                      disabled={question.answerOptions.length >= 4}
-                      sx={{ display: question.answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
-                    >
-                      Добавить вариант ответа
-                    </Button>
-                  </Box>
-                ))}
-                <Button
-                  variant="outlined"
-                  startIcon={<AddRoundedIcon />}
-                  onClick={addQuestion}
-                  disabled={questions.length >= 50}
-                  sx={{ display: questions.length >= 50 ? 'none' : 'inline-flex' }}
-                >
-                  Добавить вопрос
-                </Button>
+                        <IconButton onClick={() => removeAnswerOption(activeQuestion, aIndex)} color="error">
+                          <ClearRoundedIcon />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </RadioGroup>
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddRoundedIcon />}
+                    onClick={() => addAnswerOption(activeQuestion)}
+                    disabled={activeQuestionObj === null || activeQuestionObj.answerOptions.length >= 4}
+                    sx={{ display: activeQuestionObj?.answerOptions?.length >= 4 ? 'none' : 'inline-flex' }}
+                  >
+                    Добавить вариант ответа
+                  </Button>
+                </Box>
               </Box>
             </FormControl>
             <Button

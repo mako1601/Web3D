@@ -52,6 +52,7 @@ export default function ArticleList() {
 
   useEffect(() => {
     fetchArticles();
+    console.error("Оптимизировать запросы!");
   }, [fetchArticles]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {

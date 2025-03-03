@@ -14,56 +14,6 @@ import ContentContainer from '../../components/ContentContainer';
 import { getAllTests, Test } from '../../api/testApi';
 
 export default function TestList() {
-  // const [tests, setTests] = useState<Test[]>([]);
-
-  // const fetchTests = useCallback(async () => {
-  //   try {
-  //     const data = await getAllTests();
-  //     setTests(data);
-  //     // console.log(data);
-  //   } catch (e: any) {
-  //     setTests([]);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchTests();
-  // }, [fetchTests]);
-
-  // return (
-  //   <Page>
-  //     <Header />
-  //     <ContentContainer gap="1rem">
-  //       {tests.map((test) =>
-  //         <div key={test.id}>
-  //           <Typography>
-  //             Название теста: "{test.title}"
-  //           </Typography>
-  //           <Typography>
-  //             Описание теста: "{test.description}"
-  //           </Typography>
-  //           {test.questions.map((question) =>
-  //             <div key={question.id}>
-  //               <Typography>
-  //                 Вопрос теста {question.index + 1}: "{question.text}"
-  //               </Typography>
-  //               {question.answerOptions.map((answerOption) =>
-  //                 <div key={answerOption.id}>
-  //                   <Typography>
-  //                     Вариант ответа {answerOption.index + 1}: "{answerOption.text}"
-  //                   </Typography>
-  //                 </div>
-  //               )}
-  //             </div>
-  //           )}
-  //         </div>
-  //       )}
-  //     </ContentContainer>
-  //     <Footer />
-  //   </Page>
-  // );
-
-  // const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("searchText") || "");
 
@@ -90,6 +40,7 @@ export default function TestList() {
 
   useEffect(() => {
     fetchArticles();
+    console.error("Оптимизировать запросы!");
   }, [fetchArticles]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {

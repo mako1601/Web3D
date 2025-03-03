@@ -105,7 +105,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
       setLoading(true);
       await updateArticle(article.id, data);
       setSeverity("success");
-      setMessage("Учебный материал успешно создан!");
+      setMessage("Учебный материал успешно обновлён!");
     } catch (e: any) {
       console.error(e);
       setSeverity("error");
