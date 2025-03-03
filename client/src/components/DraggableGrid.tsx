@@ -1,8 +1,8 @@
 import * as React from "react";
+import uuid from 'react-native-uuid';
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, Modifier } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { restrictToParentElement, restrictToWindowEdges } from "@dnd-kit/modifiers";
-import uuid from 'react-native-uuid';
 import { Paper } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import AddIcon from "@mui/icons-material/Add";
@@ -16,7 +16,7 @@ const DraggableGrid = ({
   questions,
   setQuestions,
   activeQuestion,
-  setActiveQuestion
+  setActiveQuestion,
 }: {
   questions: QuestionForCreate[];
   setQuestions: React.Dispatch<React.SetStateAction<QuestionForCreate[]>>;
@@ -26,17 +26,8 @@ const DraggableGrid = ({
   const modifiers: Modifier[] = [restrictToParentElement, restrictToWindowEdges];
 
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 5
-      }
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5
-      }
-    })
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
   const handleDragEnd = (event: any) => {
@@ -46,10 +37,7 @@ const DraggableGrid = ({
         const oldIndex = prevQuestions.findIndex((q) => q.id === active.id);
         const newIndex = prevQuestions.findIndex((q) => q.id === over.id);
         const newOrder = arrayMove(prevQuestions, oldIndex, newIndex);
-        const updatedQuestions = newOrder.map((q, index) => ({
-          ...q,
-          index: index
-        }));
+        const updatedQuestions = newOrder.map((q, index) => ({ ...q, index: index }));
         return updatedQuestions;
       });
       setActiveQuestion(active.id);
@@ -123,6 +111,6 @@ const DraggableGrid = ({
       </SortableContext>
     </DndContext>
   );
-};
+}
 
 export default DraggableGrid;

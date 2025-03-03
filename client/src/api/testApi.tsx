@@ -66,7 +66,6 @@ export interface QuestionForCreate  {
 }
 
 export const createTest = async (data: TestDto): Promise<TestDto> => {
-  console.log(data);
   const response = await api.post<TestDto>("/tests", data);
   return response.data;
 };

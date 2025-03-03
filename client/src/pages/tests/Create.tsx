@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import uuid from 'react-native-uuid';
@@ -50,35 +50,41 @@ const testSchema = yup.object().shape({
 
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
   const [loading, setLoading] = React.useState(false);
-  const [questions, setQuestions] = React.useState<QuestionForCreate[]>([
-    {
-      id: uuid.v4(),
-      index: 0,
-      text: "",
-      answerOptions: [
-        { index: 0, text: "", isCorrect: true },
-        { index: 1, text: "", isCorrect: false }
-      ]
-    }
-  ]);
+  const [questions, setQuestions] = React.useState<QuestionForCreate[]>([{
+    id: uuid.v4(),
+    index: 0,
+    text: "",
+    answerOptions: [
+      { index: 0, text: "", isCorrect: true },
+      { index: 1, text: "", isCorrect: false }
+    ]
+  }]);
   const [activeQuestion, setActiveQuestion] = React.useState<string>(questions[0].id);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    control
   } = useForm<TestForCreate>({
-    resolver: yupResolver(testSchema)
+    resolver: yupResolver(testSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      questions: []
+    }
   });
 
-  React.useEffect(() => {
-    if (Object.keys(errors).length > 0) {
-      setSeverity("error");
-      setMessage("Заполнены не все обязательные поля");
-      setOpen(true);
-    }
-  }, [errors]);
+  // React.useEffect(() => {
+  //   console.log(errors);
+  //   console.log(questions);
+  //   // if (Object.keys(errors).length > 0) {
+  //   //   setSeverity("error");
+  //   //   setMessage("Заполнены не все обязательные поля");
+  //   //   setOpen(true);
+  //   // }
+  // }, [errors]);
 
   const updateQuestion = (id: string, field: keyof QuestionForCreate, value: string) => {
     setQuestions((prevQuestions) =>
@@ -256,14 +262,23 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               <FormLabel>Вопрос</FormLabel>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField
-                    {...register(`questions.${activeQuestionIndex}.text`)}
-                    fullWidth
-                    value={activeQuestionObj ? activeQuestionObj.text : ''}
-                    onChange={(e) => updateQuestion(activeQuestion, "text", e.target.value)}
-                    placeholder="Вопрос"
-                    error={!!errors.questions?.[activeQuestionIndex]?.text}
-                    helperText={errors.questions?.[activeQuestionIndex]?.text?.message}
+                  <Controller
+                    name={`questions.${activeQuestionIndex}.text`}
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        value={activeQuestionObj ? activeQuestionObj.text : ""}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          updateQuestion(activeQuestion, "text", e.target.value);
+                        }}
+                        placeholder="Вопрос"
+                        error={!!errors.questions?.[activeQuestionIndex]?.text}
+                        helperText={errors.questions?.[activeQuestionIndex]?.text?.message}
+                      />
+                    )}
                   />
                   <RadioGroup
                     sx={{ display: 'flex', gap: 2 }}
@@ -272,14 +287,23 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                   >
                     {activeQuestionObj?.answerOptions.map((option, aIndex) => (
                       <Box key={aIndex} sx={{ display: 'flex', gap: 2 }}>
-                        <TextField
-                          {...register(`questions.${activeQuestionIndex}.answerOptions.${aIndex}.text`)}
-                          fullWidth
-                          value={option.text}
-                          onChange={(e) => updateAnswerOption(activeQuestion, aIndex, "text", e.target.value)}
-                          placeholder={`Ответ ${aIndex + 1}`}
-                          error={!!errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text}
-                          helperText={errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text?.message}
+                        <Controller
+                          name={`questions.${activeQuestionIndex}.answerOptions.${aIndex}.text`}
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              value={option.text}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                updateAnswerOption(activeQuestion, aIndex, "text", e.target.value);
+                              }}
+                              placeholder={`Ответ ${aIndex + 1}`}
+                              error={!!errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text}
+                              helperText={errors.questions?.[activeQuestionIndex]?.answerOptions?.[aIndex]?.text?.message}
+                            />
+                          )}
                         />
                         <Box>
                           <FormControlLabel
