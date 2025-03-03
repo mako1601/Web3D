@@ -1,6 +1,7 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import * as ReactDOM from "react-router-dom";
 import { CircularProgress, Box } from "@mui/material";
+
+import { useAuth } from "@context/AuthContext";
 
 interface ProtectedRouteProps {
   allowedRoles: string[];
@@ -11,17 +12,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
   }
 
   if (!user || !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <ReactDOM.Navigate to="/" replace />;
   }
 
-  return <Outlet />;
+  return <ReactDOM.Outlet />;
 };
 
 export default ProtectedRoute;

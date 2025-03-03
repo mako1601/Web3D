@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
@@ -15,4 +16,16 @@ export default defineConfig({
     host: true,
     origin: "http://localhost:3000",
   },
+  resolve: {
+    alias: {
+      '@api': path.resolve(__dirname, 'src/api'),
+      '@components': path.resolve(__dirname, 'src/components'),
+      '@context': path.resolve(__dirname, 'src/context'),
+      '@pages': path.resolve(__dirname, 'src/pages'),
+      '@schemas': path.resolve(__dirname, 'src/schemas'),
+      '@types': path.resolve(__dirname, 'src/types'),
+      '@theme': path.resolve(__dirname, 'src/theme'),
+      '@utils': path.resolve(__dirname, 'src/utils')
+    }
+  }
 })

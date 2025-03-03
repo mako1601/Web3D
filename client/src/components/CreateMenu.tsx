@@ -1,15 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Menu from '@mui/material/Menu';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
+import * as React from 'react';
+import * as ReactDOM from 'react-router-dom';
+import { Menu, Button, MenuItem } from '@mui/material';
 import QuizIcon from '@mui/icons-material/Quiz';
 import ArticleIcon from '@mui/icons-material/Article';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 const CreateMenu = () => {
-  const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const navigate = ReactDOM.useNavigate();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {

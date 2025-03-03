@@ -1,44 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import * as React from 'react';
+import * as ReactDOM from 'react-router-dom';
 import { Box, CircularProgress, Divider, FormControl, FormControlLabel, IconButton, InputAdornment, OutlinedInput, Radio, RadioGroup, Stack, Typography } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import TestCard from '../../components/TestCard';
-import Pagination from '../../components/Pagination';
-import ContentContainer from '../../components/ContentContainer';
-import { getAllTests, Test } from '../../api/testApi';
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import TestCard from '@components/TestCard';
+import Pagination from '@components/Pagination';
+import ContentContainer from '@components/ContentContainer';
+import { getAllTests } from '@api/testApi';
+import { Test } from '../../types/testTypes';
+
+const PAGE_SIZE = 10;
 
 export default function TestList() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("searchText") || "");
+  const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("searchText") || "");
 
-  const pageSize = 10;
 
   const searchText = searchParams.get("searchText") || "";
   const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  const [tests, setTests] = useState<Test[] | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  const [tests, setTests] = React.useState<Test[] | null>(null);
+  const [totalCount, setTotalCount] = React.useState(0);
 
-  const fetchArticles = useCallback(async () => {
+  const fetchArticles = React.useCallback(async () => {
     try {
-      const data = await getAllTests(searchText, orderBy, sortDirection, currentPage, pageSize);
+      const data = await getAllTests(searchText, orderBy, sortDirection, currentPage, PAGE_SIZE);
       setTests(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
       setTests(null);
       setTotalCount(0);
     }
-  }, [searchText, orderBy, sortDirection, currentPage, pageSize]);
+  }, [searchText, orderBy, sortDirection, currentPage, PAGE_SIZE]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchArticles();
     console.error("Оптимизировать запросы!");
   }, [fetchArticles]);
@@ -54,7 +56,6 @@ export default function TestList() {
           updatedParams.delete(key);
         }
       });
-      updatedParams.set("page", "1");
       return updatedParams;
     });
   };
@@ -121,7 +122,7 @@ export default function TestList() {
               />
             </FormControl>
           </Stack>
-          {tests.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
+          {tests.length === 0 || currentPage > Math.ceil(totalCount / PAGE_SIZE) ? (
             <PageCard sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
                 Тесты не нашлись :(
@@ -141,7 +142,7 @@ export default function TestList() {
               </PageCard>
               <Pagination
                 currentPage={currentPage}
-                totalPages={Math.ceil(totalCount / pageSize)}
+                totalPages={Math.ceil(totalCount / PAGE_SIZE)}
                 onPageChange={(page) => updateSearchParams({ page })}
               />
             </Stack>

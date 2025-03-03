@@ -1,6 +1,6 @@
-import Box from "@mui/material/Box";
-import { styled } from "@mui/material/styles";
-import { gray } from '../theme/themePrimitives';
+import { Box, styled } from '@mui/material';
+
+import { gray } from '@theme/themePrimitives';
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
   width: '100%',

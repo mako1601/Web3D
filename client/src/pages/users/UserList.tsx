@@ -1,56 +1,46 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Radio from '@mui/material/Radio';
-import Divider from '@mui/material/Divider';
-import Typography from '@mui/material/Typography';
-import RadioGroup from '@mui/material/RadioGroup';
-import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import CircularProgress from '@mui/material/CircularProgress';
+import * as React from 'react';
+import * as ReactDOM from 'react-router-dom';
+import { Box, Stack, Radio, Divider, Typography, RadioGroup, IconButton, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import PageCard from '../components/PageCard';
-import UserCard from '../components/UserCard';
-import Pagination from '../components/Pagination';
-import ContentContainer from '../components/ContentContainer';
-import { changeRole, getAllUsers, UserDto } from '../api/userApi';
-import { PageProps } from '../App';
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import UserCard from '@components/UserCard';
+import Pagination from '@components/Pagination';
+import ContentContainer from '@components/ContentContainer';
+import { changeRole, getAllUsers } from '@api/userApi';
+import { UserDto } from '../../types/userTypes';
+import { PageProps } from '../../types/commonTypes';
+
+const PAGE_SIZE = 20;
 
 export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('name') || '');
-
-  const pageSize = 20;
+  const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('name') || '');
 
   const name = searchParams.get("name") || "";
   const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  const [totalCount, setTotalCount] = useState(0);
-  const [users, setUsers] = useState<UserDto[] | null>(null);
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [users, setUsers] = React.useState<UserDto[] | null>(null);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = React.useCallback(async () => {
     try {
-      const data = await getAllUsers(name, orderBy, sortDirection, currentPage, pageSize);
+      const data = await getAllUsers(name, orderBy, sortDirection, currentPage, PAGE_SIZE);
       setUsers(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
       setUsers([]);
       setTotalCount(0);
     }
-  }, [name, orderBy, sortDirection, currentPage, pageSize]);
+  }, [name, orderBy, sortDirection, currentPage, PAGE_SIZE]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
@@ -65,7 +55,6 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
           updatedParams.delete(key);
         }
       });
-      updatedParams.set("page", "1");
       return updatedParams;
     });
   };
@@ -86,11 +75,11 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
     }
   };
 
-  const handleProfileClick = useCallback((id: number) => {
+  const handleProfileClick = React.useCallback((id: number) => {
     console.log(`Просмотр профиля пользователя с ID: ${id}`);
   }, []);
 
-  const handleRoleChange = useCallback(async (id: number, role: number) => {
+  const handleRoleChange = React.useCallback(async (id: number, role: number) => {
     if (role === 0) {
       setSeverity("error");
       setMessage("Нельзя изменить роль администратора");
@@ -152,7 +141,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
               />
             </FormControl>
           </Stack>
-          {users.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
+          {users.length === 0 || currentPage > Math.ceil(totalCount / PAGE_SIZE) ? (
             <PageCard sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
                 Пользователей не нашлось :(
@@ -172,7 +161,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
               </PageCard>
               <Pagination
                 currentPage={currentPage}
-                totalPages={Math.ceil(totalCount / pageSize)}
+                totalPages={Math.ceil(totalCount / PAGE_SIZE)}
                 onPageChange={(page) => updateSearchParams({ page })}
               />
             </Stack>

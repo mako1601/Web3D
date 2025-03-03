@@ -1,7 +1,6 @@
-import { styled } from '@mui/material/styles';
-import MuiCard from '@mui/material/Card';
+import { Card, styled } from '@mui/material';
 
-const PageCard = styled(MuiCard)(({ theme }) => ({
+const PageCard = styled(Card)(({ theme }) => ({
   background: 'hsl(0, 0%, 99%)',
   boxShadow: 'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
   ...theme.applyStyles('dark', {

@@ -1,7 +1,6 @@
-import { styled } from '@mui/material/styles';
-import MuiCard from '@mui/material/Card';
+import { Card, styled } from '@mui/material';
 
-const SignCard = styled(MuiCard)(({ theme }) => ({
+const SignCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignSelf: 'center',

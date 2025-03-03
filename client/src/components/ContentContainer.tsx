@@ -1,6 +1,6 @@
-import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import { gray } from '../theme/themePrimitives';
+import { Box, styled } from '@mui/material';
+
+import { gray } from '@theme/themePrimitives';
 
 const ContentContainer = styled(Box)(({ theme }) => ({
   marginBottom: 'auto',

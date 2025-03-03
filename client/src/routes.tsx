@@ -1,20 +1,21 @@
 import { Route, Routes } from 'react-router-dom';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Model from './pages/Model';
-import Profile from './pages/Profile';
-import Register from './pages/Register';
-import UserList from './pages/UserList';
-import TestList from './pages/tests/List';
-import EditTest from './pages/tests/Edit';
-import CreateTest from './pages/tests/Create';
-import ViewArticle from './pages/articles/View';
-import ArticleList from './pages/articles/List';
-import EditArticle from './pages/articles/Edit';
-import CreateArticle from './pages/articles/Create';
-import PublicRoute from './components/PublicRoute';
-import ProtectedRoute from './components/ProtectedRoute';
-import { PageProps } from './App';
+
+import Home from '@pages/Home';
+import Model from '@pages/Model';
+import Login from '@pages/users/Login';
+import Profile from '@pages/users/Profile';
+import Register from '@pages/users/Register';
+import UserList from '@pages/users/UserList';
+import CreateTest from '@pages/tests/Create';
+// import EditTest from '@pages/tests/Edit';
+import TestList from '@pages/tests/List';
+import ViewArticle from '@pages/articles/View';
+import ArticleList from '@pages/articles/List';
+import EditArticle from '@pages/articles/Edit';
+import CreateArticle from '@pages/articles/Create';
+import PublicRoute from '@components/PublicRoute';
+import ProtectedRoute from '@components/ProtectedRoute';
+import { PageProps } from './types/commonTypes';
 
 const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) => {
   return (
@@ -37,7 +38,7 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
       {/* <Route path="/tests/:id" element={<??? />} /> */}
       <Route element={<ProtectedRoute allowedRoles={["Teacher"]} />} >
         <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+        {/* <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} /> */}
       </Route>
       <Route path="/model" element={<Model />} />
       <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />

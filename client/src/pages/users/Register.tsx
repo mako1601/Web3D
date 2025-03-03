@@ -2,57 +2,19 @@ import * as React from 'react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import Radio from '@mui/material/Radio';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
-import TextField from '@mui/material/TextField';
-import RadioGroup from '@mui/material/RadioGroup';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import { Box, Link, Radio, Button, Divider, FormLabel, TextField, RadioGroup, IconButton, Typography, FormControl, InputAdornment, FormControlLabel } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
-import SignCard from '../components/SignCard';
-import Container from '../components/Container';
-import { RegData, registerUser } from '../api/authApi';
-import { getCurrentUser } from '../api/userApi';
-import { useAuth } from '../context/AuthContext';
-import { PageProps } from '../App';
-
-const schema = yup.object({
-  login: yup.string()
-    .trim()
-    .required("Обязательное поле")
-    .max(64, "Логин не может превышать 64 символа")
-    .matches(/^\S*$/, "Логин не должен содержать пробелы"),
-  password: yup.string()
-    .required("Пароль должен содержать не менее 6 символов")
-    .min(6, "Пароль должен содержать не менее 6 символов")
-    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-  lastName: yup.string()
-    .required("Обязательное поле")
-    .max(64, "Фамилия не может превышать 64 символа")
-    .matches(/^\S*$/, "Фамилия не должна содержать пробелы"),
-  firstName: yup.string()
-    .required("Обязательное поле")
-    .max(64, "Имя не может превышать 64 символа")
-    .matches(/^\S*$/, "Имя не должно содержать пробелы"),
-  middleName: yup.string()
-    .optional()
-    .max(64, "Отчество не может превышать 64 символа")
-    .matches(/^\S*$/, "Отчество не должно содержать пробелы"),
-  role: yup.number()
-    .required()
-    .oneOf([1, 2]),
-}).required();
+import SignCard from '@components/SignCard';
+import Container from '@components/Container';
+import { registerUser } from '@api/authApi';
+import { getCurrentUser } from '@api/userApi';
+import { useAuth } from '@context/AuthContext';
+import { regSchema } from '@schemas/userSchemas';
+import { RegData } from '../../types/userTypes';
+import { PageProps } from '../../types/commonTypes';
 
 export default function Register({ setSeverity, setMessage, setOpen }: PageProps) {
   const { setUser } = useAuth();
@@ -60,7 +22,7 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
   const [showPassword, setShowPassword] = React.useState(false);
 
   const { control, register, handleSubmit, formState: { errors } } = useForm<RegData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(regSchema),
   });
 
   const handleTogglePasswordVisibility = () => {

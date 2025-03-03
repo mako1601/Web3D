@@ -1,21 +1,21 @@
 import * as React from 'react';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Box, Button, FormControl, FormLabel, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
-import Page from '../components/Page';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import ContentContainer from '../components/ContentContainer';
-import { updatePassword, updateUser, UpdUserData, UpdUserPass } from '../api/userApi';
-import { useAuth } from '../context/AuthContext';
-import { PageProps } from '../App';
-import { refreshToken } from '../api/axiosInstance';
-import PageCard from '../components/PageCard';
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import ContentContainer from '@components/ContentContainer';
+import PageCard   from '@components/PageCard';
+import { updatePassword, updateUser } from '@api/userApi';
+import { useAuth } from '@context/AuthContext';
+import { refreshToken } from '@api/axiosInstance';
+import { PageProps } from '../../types/commonTypes';
+import { UpdUserData, UpdUserPass } from '../../types/userTypes';
+import { passwordSchema, profileSchema } from '@schemas/userSchemas';
 
 interface UpdatePasswordData {
   oldPassword: string;
@@ -23,40 +23,10 @@ interface UpdatePasswordData {
   confirmNewPassword: string;
 }
 
-const profileSchema = yup.object().shape({
-  lastName: yup.string()
-    .required("Обязательное поле")
-    .max(64, "Фамилия не может превышать 64 символа")
-    .matches(/^\S*$/, "Фамилия не должна содержать пробелы"),
-  firstName: yup.string()
-    .required("Обязательное поле")
-    .max(64, "Имя не может превышать 64 символа")
-    .matches(/^\S*$/, "Имя не должно содержать пробелы"),
-  middleName: yup.string()
-    .optional()
-    .max(64, "Отчество не может превышать 64 символа")
-    .matches(/^\S*$/, "Отчество не должно содержать пробелы")
-});
-
-const passwordSchema = yup.object().shape({
-  oldPassword: yup.string()
-    .required("Введите старый пароль")
-    .min(6, "Пароль не может содержать не менее 6 символов")
-    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-  newPassword: yup.string()
-    .required("Введите новый пароль")
-    .min(6, "Пароль должен содержать не менее 6 символов")
-    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-  confirmNewPassword: yup
-    .string()
-    .oneOf([yup.ref("newPassword")], "Пароли не совпадают")
-    .required("Подтвердите новый пароль"),
-});
-
 const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
   const { user, setUser } = useAuth();
-  const [loadingProfile, setLoadingProfile] = useState(false);
-  const [loadingPassword, setLoadingPassword] = useState(false);
+  const [loadingProfile, setLoadingProfile] = React.useState(false);
+  const [loadingPassword, setLoadingPassword] = React.useState(false);
   const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = React.useState(false);
@@ -324,6 +294,6 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
       <Footer />
     </Page>
   );
-};
+}
 
 export default Profile;

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, Paper, IconButton, Typography } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import { Box, Grid2, Paper, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 
 const SortableItem = ({
@@ -26,7 +25,7 @@ const SortableItem = ({
   const isActive = activeId === id;
 
   return (
-    <Grid size={{ xs: 3, sm: 2, md: 1 }} ref={setNodeRef}>
+    <Grid2 size={{ xs: 3, sm: 2, md: 1 }} ref={setNodeRef}>
       <Box
         sx={{
           position: 'relative',
@@ -105,7 +104,7 @@ const SortableItem = ({
           </Typography>
         </Paper>
       </Box>
-    </Grid>
+    </Grid2>
   );
 }
 

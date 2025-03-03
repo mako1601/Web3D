@@ -2,39 +2,19 @@ import * as React from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputAdornment from '@mui/material/InputAdornment';
+import { Box, Link, Button, Divider, FormLabel, TextField, IconButton, Typography, FormControl, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
-import SignCard from '../components/SignCard';
-import Container from '../components/Container';
-import { LogData, loginUser } from '../api/authApi';
-import { getCurrentUser } from '../api/userApi';
-import { useAuth } from '../context/AuthContext';
-import { PageProps } from '../App';
-
-const schema = yup.object({
-  login: yup.string()
-    .trim()
-    .required("Обязательное поле")
-    .max(64, "Логин не может превышать 64 символа")
-    .matches(/^\S*$/, "Логин не должен содержать пробелы"),
-  password: yup.string()
-    .required("Пароль должен содержать не менее 6 символов")
-    .min(6, "Пароль должен содержать не менее 6 символов")
-    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-}).required();
+import SignCard from '@components/SignCard';
+import Container from '@components/Container';
+import { loginUser } from '@api/authApi';
+import { getCurrentUser } from '@api/userApi';
+import { useAuth } from '@context/AuthContext';
+import { LogData } from '../../types/userTypes';
+import { PageProps } from '../../types/commonTypes';
+import { logSchema } from '@schemas/userSchemas';
 
 export default function Login({ setSeverity, setMessage, setOpen }: PageProps) {
   const { setUser } = useAuth();
@@ -42,7 +22,7 @@ export default function Login({ setSeverity, setMessage, setOpen }: PageProps) {
   const [showPassword, setShowPassword] = React.useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<LogData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(logSchema),
   });
 
   const handleTogglePasswordVisibility = () => {

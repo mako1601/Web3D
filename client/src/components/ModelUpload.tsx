@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Button, Typography } from '@mui/material';
 
 interface ModelUploadProps {
@@ -6,7 +6,7 @@ interface ModelUploadProps {
 }
 
 export default function ModelUpload({ onModelUpload }: ModelUploadProps) {
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = React.useState<File | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];

@@ -1,35 +1,19 @@
-import { useEffect, useState } from 'react';
+import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Button, Box, FormControl, TextField, FormLabel, CircularProgress } from '@mui/material';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import ContentContainer from '../../components/ContentContainer';
-import { ArticleData, ArticleDto, getArticleById, updateArticle } from '../../api/articleApi';
-import { useAuth } from '../../context/AuthContext';
-import { PageProps } from '../../App';
-
-const articleSchema = yup.object().shape({
-  title: yup.string()
-    .trim()
-    .required("Обязательное поле")
-    .max(60, "Название не может превышать 60 символов"),
-  description: yup.string()
-    .trim()
-    .optional()
-    .max(250, "Описание не может превышать 250 символов")
-    .default(""),
-  content: yup.string()
-    .trim()
-    .optional()
-    .max(10000, "Привышен лимит 10000 символов")
-    .default("")
-});
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import ContentContainer from '@components/ContentContainer';
+import { getArticleById, updateArticle } from '@api/articleApi';
+import { useAuth } from '@context/AuthContext';
+import { articleSchema } from '@schemas/articleSchemas';
+import { PageProps } from '../../types/commonTypes';
+import { Article, ArticleDto } from '../../types/articleTypes';
 
 export default function EditArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = useNavigate();
@@ -37,10 +21,10 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
   const articleId = Number(id);
 
   const { user, loading: userLoading } = useAuth();
-  const [article, setArticle] = useState<ArticleDto | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [article, setArticle] = React.useState<Article | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ArticleData>({
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ArticleDto>({
     resolver: yupResolver(articleSchema),
     defaultValues: {
       title: "",
@@ -49,7 +33,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     }
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (userLoading) return;
     if (!user) { navigate("/", { replace: true }); return; }
     if (isNaN(articleId)) { navigate("/", { replace: true }); return; }
@@ -74,7 +58,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     fetchArticle();
   }, [articleId, user, userLoading]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (article) {
       reset({
         title: article.title,
@@ -100,7 +84,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
 
   if (!article) return null;
 
-  const onSubmit = async (data: ArticleData) => {
+  const onSubmit = async (data: ArticleDto) => {
     try {
       setLoading(true);
       await updateArticle(article.id, data);

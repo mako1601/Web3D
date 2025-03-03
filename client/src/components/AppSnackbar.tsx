@@ -1,6 +1,5 @@
-import React from 'react';
-import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
+import * as React from 'react';
+import { Alert, Snackbar, SnackbarCloseReason } from '@mui/material';
 
 interface AppSnackbarProps {
   open: boolean;

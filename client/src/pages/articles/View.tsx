@@ -1,23 +1,24 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import * as React from 'react';
+import * as ReactDOM from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import ContentContainer from '../../components/ContentContainer';
-import { ArticleDto, getArticleById } from '../../api/articleApi';
-import { getUserById } from '../../api/userApi';
-import { formatDate } from '../../utils/dateUtils';
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import ContentContainer from '@components/ContentContainer';
+import { getArticleById } from '@api/articleApi';
+import { getUserById } from '@api/userApi';
+import { formatDate } from '@utils/dateUtils';
+import { Article } from '../../types/articleTypes';
 
 export default function ViewArticle() {
-  const { id } = useParams();
+  const { id } = ReactDOM.useParams();
   const articleId = Number(id);
-  const [article, setArticle] = useState<ArticleDto | null>(null);
-  const [author, setAuthor] = useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
+  const [article, setArticle] = React.useState<Article | null>(null);
+  const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isNaN(articleId)) return;
     console.error("Оптимизировать запросы!");
     const fetchArticle = async () => {

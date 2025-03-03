@@ -1,46 +1,30 @@
-import { useState } from 'react';
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { Button, Box, FormControl, TextField, FormLabel } from '@mui/material';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import ContentContainer from '../../components/ContentContainer';
-import { ArticleData, createArticle } from '../../api/articleApi';
-import { PageProps } from '../../App';
-
-const articleSchema = yup.object().shape({
-  title: yup.string()
-    .trim()
-    .required("Обязательное поле")
-    .max(60, "Название не может превышать 60 символов"),
-  description: yup.string()
-    .trim()
-    .optional()
-    .max(250, "Описание не может превышать 250 символов")
-    .default(""),
-  content: yup.string()
-    .trim()
-    .optional()
-    .max(10000, "Привышен лимит 10000 символов")
-    .default("")
-});
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import ContentContainer from '@components/ContentContainer';
+import { createArticle } from '@api/articleApi';
+import { PageProps } from '../../types/commonTypes';
+import { ArticleDto } from '../../types/articleTypes';
+import { articleSchema } from '@schemas/articleSchemas';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = React.useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors: articleErrors }
-  } = useForm<ArticleData>({
+  } = useForm<ArticleDto>({
     resolver: yupResolver(articleSchema)
   });
 
-  const onSubmit = async (data: ArticleData) => {
+  const onSubmit = async (data: ArticleDto) => {
     try {
       setLoading(true);
       await createArticle(data);
@@ -115,4 +99,4 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
       <Footer />
     </Page>
   );
-};
+}

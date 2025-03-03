@@ -1,30 +1,19 @@
 import { api } from './axiosInstance';
+import { LogData, RegData } from '../types/userTypes';
 
-export interface RegData {
-  login: string;
-  password: string;
-  lastName: string;
-  firstName: string;
-  middleName?: string;
-  role: number;
-};
-
-export interface LogData {
-  login: string;
-  password: string;
-};
+const ROUTE = "/auth";
 
 export const registerUser = async (data: RegData) => {
-  const response = await api.post("/auth/register", data);
+  const response = await api.post(`${ROUTE}/register`, data);
   return response.data;
 };
 
 export const loginUser = async (data: LogData) => {
-  const response = await api.post("/auth/login", data);
+  const response = await api.post(`${ROUTE}/login`, data);
   return response.data;
 };
 
 export const logoutUser = async () => {
-  const response = await api.post("/auth/logout");
+  const response = await api.post(`${ROUTE}/logout`);
   return response.data;
 };

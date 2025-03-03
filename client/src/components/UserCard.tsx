@@ -1,11 +1,8 @@
-import { useMemo } from 'react';
-import Tooltip from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import CardActions from '@mui/material/CardActions';
-import CardActionArea from '@mui/material/CardActionArea';
+import * as React from 'react';
+import { Tooltip, IconButton, Typography, CardActions, CardActionArea } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { UserDto } from '../api/userApi';
+
+import { UserDto } from '../types/userTypes';
 
 interface UserCardProps {
   user: UserDto;
@@ -30,7 +27,7 @@ const styles = {
 };
 
 const UserCard = ({ user, onProfileClick, onRoleChange }: UserCardProps) => {
-  const roleLabel = useMemo(() => roleLabels[user.role] || '', [user.role]);
+  const roleLabel = React.useMemo(() => roleLabels[user.role] || '', [user.role]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', borderRadius: '8px' }}>

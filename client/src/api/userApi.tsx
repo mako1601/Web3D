@@ -1,49 +1,33 @@
 import { api } from './axiosInstance';
+import { UpdUserData, UpdUserPass } from '../types/userTypes';
 
-export interface UserDto {
-  id: number;
-  lastName: string;
-  firstName: string;
-  middleName?: string;
-  role: number;
-}
-
-export interface UpdUserData {
-  lastName: string;
-  firstName: string;
-  middleName?: string;
-}
-
-export interface UpdUserPass {
-  oldPassword: string;
-  newPassword: string;
-}
+const ROUTE = "/users";
 
 export const getCurrentUser = async () => {
-  const response = await api.get("/users/me");
+  const response = await api.get(`${ROUTE}/me`);
   return response.data;
 };
 
 export const getUserById = async (id: number) => {
-  const response = await api.get(`/users/${id}`);
+  const response = await api.get(`${ROUTE}/${id}`);
   return response.data;
 };
 
 export const getAllUsers = async (name: string, orderBy: string, sortDirection: number, currentPage: number, pageSize: number) => {
-  const response = await api.get("/users", { params: { name, orderBy, sortDirection, currentPage, pageSize } });
+  const response = await api.get(`${ROUTE}`, { params: { name, orderBy, sortDirection, currentPage, pageSize } });
   return response.data;
 };
 
 export const updateUser = async (id: number, data: UpdUserData) => {
-  const response = await api.put(`/users/${id}`, data );
+  const response = await api.put(`${ROUTE}/${id}`, data );
   return response.data;
 };
 
 export const changeRole = async (id: number, role: number) => {
-  const response = await api.put(`/users/${id}/change-role`, { NewRole: role });
+  const response = await api.put(`${ROUTE}/${id}/change-role`, { NewRole: role });
   return response.data;
 };
 
 export const updatePassword = async (id: number, data: UpdUserPass) => {
-  await api.put(`users/${id}/update-password`, data);
+  await api.put(`${ROUTE}/${id}/update-password`, data);
 };

@@ -1,7 +1,5 @@
-import { useMemo } from 'react';
-import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import * as React from 'react';
+import { Stack, Button, Typography } from '@mui/material';
 import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
 import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
 
@@ -16,7 +14,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
   const firstPage = 1;
   const lastPage = totalPages;
 
-  const pageNumbers = useMemo(() => {
+  const pageNumbers = React.useMemo(() => {
     const pages: (number | '...')[] = [];
     const leftBound = Math.max(firstPage + 1, currentPage - Math.floor(maxVisiblePages / 2));
     const rightBound = Math.min(lastPage - 1, currentPage + Math.floor(maxVisiblePages / 2));
@@ -49,7 +47,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
         </Button>
       )}
       {pageNumbers.map((page, index) =>
-        page === '...' ? (
+        page === "..." ? (
           <Button key={`ellipsis-${index}`} disabled variant="text" sx={buttonStyles}>
             <MoreHorizRoundedIcon />
           </Button>

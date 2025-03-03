@@ -1,12 +1,11 @@
-import { useState } from 'react';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import ModelViewer from '../components/ModelViewer';
-import ModelUpload from '../components/ModelUpload';
+import * as React from 'react';
+import { Box, Stack, Container } from '@mui/material';
+
+import ModelViewer from '@components/ModelViewer';
+import ModelUpload from '@components/ModelUpload';
 
 export default function Model() {
-  const [modelPath, setModelPath] = useState<string | null>(null);
+  const [modelPath, setModelPath] = React.useState<string | null>(null);
 
   return (
     <Container maxWidth="xl">
@@ -18,4 +17,4 @@ export default function Model() {
       </Box>
     </Container>
   );
-};
+}

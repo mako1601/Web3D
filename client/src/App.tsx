@@ -1,17 +1,12 @@
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarCloseReason } from '@mui/material/Snackbar';
-import AppTheme from './theme/AppTheme';
-import ColorModeIconToggleButton from './theme/ColorModeIconToggleButton';
-import AppRoutes from './routes';
-import AppSnackbar from './components/AppSnackbar';
-import { AuthProvider } from './context/AuthContext';
 
-export interface PageProps {
-  setSeverity: React.Dispatch<React.SetStateAction<'success' | 'error' | 'info' | 'warning'>>;
-  setMessage: React.Dispatch<React.SetStateAction<string>>;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+import AppTheme from '@theme/AppTheme';
+import ColorModeIconToggleButton from '@theme/ColorModeIconToggleButton';
+import AppRoutes from './routes';
+import AppSnackbar from '@components/AppSnackbar';
+import { AuthProvider } from '@context/AuthContext';
 
 export default function App(props: { disableCustomTheme?: boolean }) {
   const [open, setOpen] = React.useState(false);

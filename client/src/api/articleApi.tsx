@@ -1,42 +1,29 @@
 import { api } from './axiosInstance';
+import { ArticleDto } from '../types/articleTypes';
 
-export interface ArticleDto {
-  id: number;
-  userId: number;
-  title: string;
-  description: string;
-  content: string;
-  createdAt: string;
-  updatedAt?: string;
-}
+const ROUTE = "/articles";
 
-export interface ArticleData {
-  title: string;
-  description: string;
-  content: string;
-}
-
-export const createArticle = async (data: ArticleData) => {
-  const response = await api.post("/articles", data);
+export const createArticle = async (data: ArticleDto) => {
+  const response = await api.post(`${ROUTE}`, data);
   return response.data;
 };
 
 export const getArticleById = async (id: number) => {
-  const response = await api.get(`/articles/${id}`);
+  const response = await api.get(`${ROUTE}/${id}`);
   return response.data;
 };
 
 export const getAllArticles = async (searchText: string, orderBy: string, sortDirection: number, currentPage: number, pageSize: number) => {
-  const response = await api.get("/articles", { params: { searchText, orderBy, sortDirection, currentPage, pageSize } });
+  const response = await api.get(`${ROUTE}`, { params: { searchText, orderBy, sortDirection, currentPage, pageSize } });
   return response.data;
 };
 
-export const updateArticle = async (id: number, data: ArticleData) => {
-  const response = await api.put(`/articles/${id}`, data);
+export const updateArticle = async (id: number, data: ArticleDto) => {
+  const response = await api.put(`${ROUTE}/${id}`, data);
   return response.data;
 };
 
 export const deleteArticle = async (id: number) => {
-  const response = await api.delete(`/articles/${id}`);
+  const response = await api.delete(`${ROUTE}/${id}`);
   return response.data;
 };

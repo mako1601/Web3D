@@ -1,5 +1,4 @@
-import { styled } from '@mui/material/styles';
-import Stack from "@mui/material/Stack";
+import { Stack, styled } from '@mui/material';
 
 const Container = styled(Stack)(({ theme }) => ({
   height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',

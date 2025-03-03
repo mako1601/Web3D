@@ -1,15 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import Stack from '@mui/material/Stack';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import HeaderMenu from './HeaderMenu';
-import HeaderInner from './HeaderInner';
-import HeaderContainer from './HeaderContainer';
-import { useAuth } from '../context/AuthContext';
-import CreateMenu from './CreateMenu';
+import * as ReactDOM from 'react-router-dom';
+import { Stack, Avatar, Button } from '@mui/material';
+
+import HeaderMenu from '@components/HeaderMenu';
+import CreateMenu from '@components/CreateMenu';
+import HeaderInner from '@components/HeaderInner';
+import HeaderContainer from '@components/HeaderContainer';
+import { useAuth } from '@context/AuthContext';
 
 export default function Header() {
-  const navigate = useNavigate();
+  const navigate = ReactDOM.useNavigate();
   const { user } = useAuth();
 
   return (

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import { Test } from "../api/testApi";
-import { getUserById } from "../api/userApi";
-import { formatDate } from "../utils/dateUtils";
+import * as React from 'react';
+import { Box, Typography } from '@mui/material';
+
+import { getUserById } from "@api/userApi";
+import { formatDate } from "@utils/dateUtils";
+import { Test } from '../types/testTypes';
 
 interface TestCardProps {
   test: Test;
@@ -11,13 +11,13 @@ interface TestCardProps {
 }
 
 const TestCard = ({ test, onClick }: TestCardProps) => {
-  const [expanded, setExpanded] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [author, setAuthor] = useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
+  const [expanded, setExpanded] = React.useState(false);
+  const [hovered, setHovered] = React.useState(false);
+  const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
 
   const isLongText = test.description.split("\n").length > 3;
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchAuthor = async () => {
       try {
         const userData = await getUserById(test.userId);
@@ -41,17 +41,17 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        borderRadius: "8px",
-        transition: "background-color 0.3s ease",
-        backgroundColor: hovered ? "#f0f0f0" : "transparent",
+        display: 'flex',
+        flexDirection: 'column',
+        borderRadius: '8px',
+        transition: 'background-color 0.3s ease',
+        backgroundColor: hovered ? '#f0f0f0' : 'transparent',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Box sx={{ padding: "1rem", cursor: 'pointer' }} onClick={onClick}>
-        <Typography variant="h6" sx={{ color: "text.primary" }}>
+      <Box sx={{ padding: '1rem', cursor: 'pointer' }} onClick={onClick}>
+        <Typography variant="h6" sx={{ color: 'text.primary' }}>
           {test.title}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -70,19 +70,19 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
       </Box>
       {test.description !== "" && (
         <Box
-          sx={{ padding: "0 1rem 1rem 1rem", cursor: 'pointer', position: "relative", overflow: "hidden" }}
+          sx={{ padding: '0 1rem 1rem 1rem', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}
           onClick={handleDescriptionClick}
         >
           <Typography
             sx={{
-              color: "text.secondary",
-              whiteSpace: "pre-line",
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: expanded ? "unset" : 3,
-              overflow: "hidden",
-              transition: "max-height 0.3s ease",
-              wordBreak: "break-word",
+              color: 'text.secondary',
+              whiteSpace: 'pre-line',
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: expanded ? 'unset' : 3,
+              overflow: 'hidden',
+              transition: 'max-height 0.3s ease',
+              wordBreak: 'break-word',
             }}
           >
             {test.description}
@@ -90,13 +90,13 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
           {!expanded && isLongText && (
             <Box
               sx={{
-                position: "absolute",
+                position: 'absolute',
                 bottom: 0,
                 left: 0,
-                width: "100%",
-                height: "3rem",
-                background: "linear-gradient(transparent, grey)",
-                borderRadius: "8px",
+                width: '100%',
+                height: '3rem',
+                background: 'linear-gradient(transparent, grey)',
+                borderRadius: '8px',
               }}
             />
           )}

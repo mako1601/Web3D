@@ -1,52 +1,21 @@
 import * as React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import uuid from 'react-native-uuid';
 import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import DraggableGrid from '../../components/DraggableGrid';
-import ContentContainer from '../../components/ContentContainer';
-import { createTest, AnswerOptionDto, QuestionForCreate, TestForCreate, TestDto } from '../../api/testApi';
-import { PageProps } from '../../App';
-
-const testSchema = yup.object().shape({
-  title: yup.string()
-    .trim()
-    .required("Обязательное поле")
-    .max(60, "Название не может превышать 60 символов"),
-  description: yup.string()
-    .trim()
-    .optional()
-    .max(250, "Описание не может превышать 250 символов")
-    .default(""),
-  questions: yup.array().of(
-    yup.object().shape({
-      id: yup.string().default(uuid.v4()),
-      index: yup.number().default(1),
-      text: yup.string()
-        .trim()
-        .required("Обязательное поле")
-        .max(128, "Максимум 128 символов"),
-      answerOptions: yup.array().of(
-        yup.object().shape({
-          index: yup.number().default(1),
-          text: yup.string()
-            .trim()
-            .required("Обязательное поле")
-            .max(30, "Максимум 30 символов"),
-          isCorrect: yup.boolean().default(true)
-        })
-      ).max(4, "Максимум 4 варианта ответа").required()
-    })
-  ).max(50, "Максимум 50 вопросов").required()
-});
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import DraggableGrid from '@components/DraggableGrid';
+import ContentContainer from '@components/ContentContainer';
+import { createTest } from '@api/testApi';
+import { PageProps } from '../../types/commonTypes';
+import { AnswerOptionDto, QuestionForCreate, TestDto, TestForCreate } from '../../types/testTypes';
+import { testSchema } from '@schemas/testSchemas';
 
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
   const [loading, setLoading] = React.useState(false);

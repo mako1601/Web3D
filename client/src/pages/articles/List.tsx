@@ -1,56 +1,47 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Radio from '@mui/material/Radio';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import RadioGroup from '@mui/material/RadioGroup';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import InputAdornment from '@mui/material/InputAdornment';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import CircularProgress from '@mui/material/CircularProgress';
+import * as React from 'react';
+import * as ReactDOM from 'react-router-dom';
+import { Box, Stack, Radio, Divider, IconButton, RadioGroup, Typography, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
-import Page from '../../components/Page';
-import Header from '../../components/Header';
-import Footer from '../../components/Footer';
-import PageCard from '../../components/PageCard';
-import Pagination from '../../components/Pagination';
-import ArticleCard from '../../components/ArticleCard';
-import ContentContainer from '../../components/ContentContainer';
-import { ArticleDto, getAllArticles } from '../../api/articleApi';
+import Page from '@components/Page';
+import Header from '@components/Header';
+import Footer from '@components/Footer';
+import PageCard from '@components/PageCard';
+import Pagination from '@components/Pagination';
+import ArticleCard from '@components/ArticleCard';
+import ContentContainer from '@components/ContentContainer';
+import { getAllArticles } from '@api/articleApi';
+import { Article } from '../../types/articleTypes';
+
+const PAGE_SIZE = 10;
 
 export default function ArticleList() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("searchText") || "");
+  const navigate = ReactDOM.useNavigate();
+  const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("searchText") || "");
 
-  const pageSize = 10;
 
   const searchText = searchParams.get("searchText") || "";
   const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
-  const [totalCount, setTotalCount] = useState(0);
-  const [articles, setArticles] = useState<ArticleDto[] | null>(null);
+  const [totalCount, setTotalCount] = React.useState(0);
+  const [articles, setArticles] = React.useState<Article[] | null>(null);
 
-  const fetchArticles = useCallback(async () => {
+  const fetchArticles = React.useCallback(async () => {
     try {
-      const data = await getAllArticles(searchText, orderBy, sortDirection, currentPage, pageSize);
+      const data = await getAllArticles(searchText, orderBy, sortDirection, currentPage, PAGE_SIZE);
       setArticles(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
       setArticles(null);
       setTotalCount(0);
     }
-  }, [searchText, orderBy, sortDirection, currentPage, pageSize]);
+  }, [searchText, orderBy, sortDirection, currentPage, PAGE_SIZE]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchArticles();
     console.error("Оптимизировать запросы!");
   }, [fetchArticles]);
@@ -66,7 +57,6 @@ export default function ArticleList() {
           updatedParams.delete(key);
         }
       });
-      updatedParams.set("page", "1");
       return updatedParams;
     });
   };
@@ -133,7 +123,7 @@ export default function ArticleList() {
               />
             </FormControl>
           </Stack>
-          {articles.length === 0 || currentPage > Math.ceil(totalCount / pageSize) ? (
+          {articles.length === 0 || currentPage > Math.ceil(totalCount / PAGE_SIZE) ? (
             <PageCard sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Typography variant="h5">
                 Учебные материалы не нашлись :(
@@ -152,7 +142,7 @@ export default function ArticleList() {
               </PageCard>
               <Pagination
                 currentPage={currentPage}
-                totalPages={Math.ceil(totalCount / pageSize)}
+                totalPages={Math.ceil(totalCount / PAGE_SIZE)}
                 onPageChange={(page) => updateSearchParams({ page })}
               />
             </Stack>
