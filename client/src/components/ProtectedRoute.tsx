@@ -4,11 +4,12 @@ import { CircularProgress, Box } from "@mui/material";
 import { useAuth } from "@context/AuthContext";
 
 interface ProtectedRouteProps {
-  allowedRoles: string[];
+  allowedRoles: number[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
+  const allowedRolesSet = new Set(allowedRoles);
 
   if (loading) {
     return (
@@ -18,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     );
   }
 
-  if (!user || !allowedRoles.includes(user.role)) {
+  if (!user || !allowedRolesSet.has(user.role)) {
     return <ReactDOM.Navigate to="/" replace />;
   }
 

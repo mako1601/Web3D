@@ -2,19 +2,14 @@ import * as React from 'react';
 import { Tooltip, IconButton, Typography, CardActions, CardActionArea } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
-import { UserDto } from '../types/userTypes';
+import { UserDto } from '@mytypes/userTypes';
+import { roleLabels } from '@utils/roleLabels';
 
 interface UserCardProps {
   user: UserDto;
   onProfileClick: () => void;
   onRoleChange: () => void;
 }
-
-const roleLabels: Record<number, string> = {
-  0: 'Администратор',
-  1: 'Студент',
-  2: 'Преподаватель',
-};
 
 const styles = {
   cardArea: {
@@ -27,7 +22,7 @@ const styles = {
 };
 
 const UserCard = ({ user, onProfileClick, onRoleChange }: UserCardProps) => {
-  const roleLabel = React.useMemo(() => roleLabels[user.role] || '', [user.role]);
+  const roleLabel = React.useMemo(() => roleLabels[user.role] || "", [user.role]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', borderRadius: '8px' }}>

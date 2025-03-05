@@ -29,7 +29,7 @@
       "@context/*": ["context/*"],
       "@pages/*": ["pages/*"],
       "@schemas/*": ["schemas/*"],
-      "@types/*": ["types/*"],
+      "@mytypes/*": ["mytypes/*"],
       "@theme/*": ["theme/*"],
       "@utils/*": ["utils/*"]
     }

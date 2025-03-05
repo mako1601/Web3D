@@ -10,7 +10,7 @@ import ContentContainer from '@components/ContentContainer';
 import { getArticleById } from '@api/articleApi';
 import { getUserById } from '@api/userApi';
 import { formatDate } from '@utils/dateUtils';
-import { Article } from '../../types/articleTypes';
+import { Article } from '@mytypes/articleTypes';
 
 export default function ViewArticle() {
   const { id } = ReactDOM.useParams();
@@ -72,9 +72,7 @@ export default function ViewArticle() {
               </Typography>
             </Box>
           </Box>
-          <Typography variant="body1" color="text.primary" sx={{ whiteSpace: 'pre-line' }}>
-            {article.content}
-          </Typography>
+          <div dangerouslySetInnerHTML={{ __html: article.content }} />
         </PageCard>
       </ContentContainer>
       <Footer />

@@ -35,7 +35,7 @@ export default function Header() {
         {/* right */}
         {user ? (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            {user.role === "Teacher" && (<CreateMenu />)}
+            {user.role === 2 && (<CreateMenu />)}
             <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={() => navigate("/profile")}>
               {user.lastName ? user.lastName[0].toUpperCase() : "?"}
             </Avatar>

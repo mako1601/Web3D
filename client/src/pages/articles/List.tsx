@@ -12,7 +12,7 @@ import Pagination from '@components/Pagination';
 import ArticleCard from '@components/ArticleCard';
 import ContentContainer from '@components/ContentContainer';
 import { getAllArticles } from '@api/articleApi';
-import { Article } from '../../types/articleTypes';
+import { Article } from '@mytypes/articleTypes';
 
 const PAGE_SIZE = 10;
 

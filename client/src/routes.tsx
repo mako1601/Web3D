@@ -11,11 +11,11 @@ import CreateTest from '@pages/tests/Create';
 import TestList from '@pages/tests/List';
 import ViewArticle from '@pages/articles/View';
 import ArticleList from '@pages/articles/List';
-import EditArticle from '@pages/articles/Edit';
+// import EditArticle from '@pages/articles/Edit';
 import CreateArticle from '@pages/articles/Create';
 import PublicRoute from '@components/PublicRoute';
 import ProtectedRoute from '@components/ProtectedRoute';
-import { PageProps } from './types/commonTypes';
+import { PageProps } from '@mytypes/commonTypes';
 
 const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) => {
   return (
@@ -25,23 +25,25 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
         <Route path="/register" element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
         <Route path="/login" element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
-      <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+      <Route element={<ProtectedRoute allowedRoles={[0, 1, 2]} />}>
+        <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={[0]} />}> {/*Only for Admin*/}
         <Route path="/users" element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
       <Route path="/articles" element={<ArticleList />} />
       <Route path="/articles/:id" element={<ViewArticle />} />
-      <Route element={<ProtectedRoute allowedRoles={["Teacher"]} />} >
+      <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
         <Route path="/articles/create" element={<CreateArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/articles/:id/edit" element={<EditArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+        {/* <Route path="/articles/:id/edit" element={<EditArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} /> */}
       </Route>
       <Route path="/tests" element={<TestList />} />
       {/* <Route path="/tests/:id" element={<??? />} /> */}
-      <Route element={<ProtectedRoute allowedRoles={["Teacher"]} />} >
+      <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
         <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
         {/* <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} /> */}
       </Route>
       <Route path="/model" element={<Model />} />
-      <Route path="/profile" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
     </Routes>
   );
 };

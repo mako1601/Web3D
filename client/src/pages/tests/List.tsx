@@ -12,7 +12,7 @@ import TestCard from '@components/TestCard';
 import Pagination from '@components/Pagination';
 import ContentContainer from '@components/ContentContainer';
 import { getAllTests } from '@api/testApi';
-import { Test } from '../../types/testTypes';
+import { Test } from '@mytypes/testTypes';
 
 const PAGE_SIZE = 10;
 

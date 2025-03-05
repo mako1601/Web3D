@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Box, Typography } from '@mui/material';
 
+import { Test } from '@mytypes/testTypes';
 import { getUserById } from "@api/userApi";
 import { formatDate } from "@utils/dateUtils";
-import { Test } from '../types/testTypes';
 
 interface TestCardProps {
   test: Test;
@@ -15,8 +15,6 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
   const [hovered, setHovered] = React.useState(false);
   const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
 
-  const isLongText = test.description.split("\n").length > 3;
-
   React.useEffect(() => {
     const fetchAuthor = async () => {
       try {
@@ -24,11 +22,17 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
         setAuthor(userData);
       } catch (error) {
         console.error("Ошибка загрузки автора: ", error);
+        setAuthor(null);
       }
     };
-
     fetchAuthor();
   }, [test.userId]);
+
+  const isLongText = React.useMemo(() => test.description.split("\n").length > 3, [test.description]);
+
+  const authorName = React.useMemo(() => {
+    return author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…";
+  }, [author]);
 
   const handleDescriptionClick = () => {
     if (isLongText) {
@@ -60,7 +64,7 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <Typography sx={{ color: 'text.secondary' }}>
-              {author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…"}
+              {authorName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               {test.updatedAt ? "Обновлено" : "Создано"}: {test.updatedAt ? formatDate(test.updatedAt) : formatDate(test.createdAt)}

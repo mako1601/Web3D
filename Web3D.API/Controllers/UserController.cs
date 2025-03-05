@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
+using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Models.DTO;
 using Web3D.Domain.Exceptions;
 using Web3D.BusinessLogic.Abstractions;
 
@@ -13,28 +15,6 @@ namespace Web3D.API.Controllers;
 [Route("api/users")]
 public class UserController(IUserService userService) : ControllerBase
 {
-    [HttpGet("me")]
-    [Authorize]
-    public IActionResult GetCurrentUser()
-    {
-        try
-        {
-            var user = new
-            {
-                id = User.Claims.FirstOrDefault(x => x.Type == "id").Value,
-                lastName = User.Claims.FirstOrDefault(x => x.Type == "lastName").Value,
-                firstName = User.Claims.FirstOrDefault(x => x.Type == "firstName").Value,
-                middleName = User.Claims.FirstOrDefault(x => x.Type == "middleName").Value,
-                role = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value
-            };
-            return Ok(user);
-        }
-        catch (NullReferenceException)
-        {
-            return Ok(null);
-        }
-    }
-
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetAsync([FromRoute] long id)
     {
@@ -50,10 +30,11 @@ public class UserController(IUserService userService) : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id:long}")]
+    [HttpPut]
     [Authorize]
-    public async Task<IActionResult> UpdateAsync([FromRoute] long id, [FromBody] UpdateUserNameRequest request)
+    public async Task<IActionResult> UpdateAsync([FromBody] UpdateUserNameRequest request)
     {
+        var id = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
         await userService.UpdateAsync(id, request.LastName, request.FirstName, request.MiddleName);
         return NoContent();
     }
@@ -66,12 +47,13 @@ public class UserController(IUserService userService) : ControllerBase
     //    return NoContent();
     //}
 
-    [HttpPut("{id:long}/update-password")]
+    [HttpPut("update-password")]
     [Authorize]
-    public async Task<IActionResult> UpdatePasswordAsync([FromRoute] long id, [FromBody] UpdatePasswordRequest request)
+    public async Task<IActionResult> UpdatePasswordAsync([FromBody] UpdatePasswordRequest request)
     {
         try
         {
+            var id = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
             await userService.UpdatePasswordAsync(id, request.OldPassword, request.NewPassword);
             return NoContent();
         }
@@ -89,14 +71,14 @@ public class UserController(IUserService userService) : ControllerBase
         }
     }
 
-    [HttpPut("{id:long}/change-role")]
+    [HttpPut("change-role")]
     [Authorize]
-    public async Task<IActionResult> ChangeRoleAsync([FromRoute] long id, [FromBody] ChangeRoleRequest request)
+    public async Task<IActionResult> ChangeRoleAsync([FromBody] ChangeRoleRequest request)
     {
         try
         {
             var callerId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
-            await userService.UpdateRoleAsync(callerId, id, request.NewRole);
+            await userService.UpdateRoleAsync(callerId, request.UserId, request.NewRole);
             return NoContent();
         }
         catch (UserNotFoundException)

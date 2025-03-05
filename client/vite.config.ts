@@ -23,7 +23,7 @@ export default defineConfig({
       '@context': path.resolve(__dirname, 'src/context'),
       '@pages': path.resolve(__dirname, 'src/pages'),
       '@schemas': path.resolve(__dirname, 'src/schemas'),
-      '@types': path.resolve(__dirname, 'src/types'),
+      '@mytypes': path.resolve(__dirname, 'src/mytypes'),
       '@theme': path.resolve(__dirname, 'src/theme'),
       '@utils': path.resolve(__dirname, 'src/utils')
     }

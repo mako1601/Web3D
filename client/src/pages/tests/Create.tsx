@@ -13,8 +13,8 @@ import PageCard from '@components/PageCard';
 import DraggableGrid from '@components/DraggableGrid';
 import ContentContainer from '@components/ContentContainer';
 import { createTest } from '@api/testApi';
-import { PageProps } from '../../types/commonTypes';
-import { AnswerOptionDto, QuestionForCreate, TestDto, TestForCreate } from '../../types/testTypes';
+import { PageProps } from '@mytypes/commonTypes';
+import { AnswerOptionDto, QuestionForCreate, TestDto, TestForCreate } from '@mytypes/testTypes';
 import { testSchema } from '@schemas/testSchemas';
 
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {

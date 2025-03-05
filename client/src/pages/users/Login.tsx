@@ -10,10 +10,10 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import SignCard from '@components/SignCard';
 import Container from '@components/Container';
 import { loginUser } from '@api/authApi';
-import { getCurrentUser } from '@api/userApi';
+import { getCurrentUser } from '@api/authApi';
 import { useAuth } from '@context/AuthContext';
-import { LogData } from '../../types/userTypes';
-import { PageProps } from '../../types/commonTypes';
+import { LogData } from '@mytypes/userTypes';
+import { PageProps } from '@mytypes/commonTypes';
 import { logSchema } from '@schemas/userSchemas';
 
 export default function Login({ setSeverity, setMessage, setOpen }: PageProps) {

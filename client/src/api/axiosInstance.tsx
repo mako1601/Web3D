@@ -7,30 +7,27 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-export const refreshToken = async () => {
+export const refreshToken = async (): Promise<void> => {
   try {
-    const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, { withCredentials: true });
-    return response.data;
+    await axios.post(`${API_URL}/auth/refresh-token`, {}, { withCredentials: true });
   } catch (e) {
-    console.error("Ошибка обновления токена", e);
+    console.error("Ошибка обновления токена: ", e);
     throw e;
   }
 };
 
-// Добавляем interceptor для автоматического обновления токена
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // Флаг, чтобы не зациклиться
+      originalRequest._retry = true;
       try {
-        // В данном случае просто пытаемся обновить токен
-        await refreshToken(); // Этот запрос автоматически обновит куки
-        return api(originalRequest); // Повторяем оригинальный запрос
+        await refreshToken();
+        return api(originalRequest);
       } catch (refreshError) {
         console.error("Не удалось обновить токен", refreshError);
-        //window.location.href = "/login";
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

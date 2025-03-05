@@ -3,6 +3,13 @@ import { Stack, Button, Typography } from '@mui/material';
 import MoreHorizRoundedIcon from '@mui/icons-material/MoreHorizRounded';
 import NavigateNextRoundedIcon from '@mui/icons-material/NavigateNextRounded';
 
+const buttonStyles = {
+  borderRadius: '50px',
+  width: '40px',
+  minWidth: '28px',
+  color: 'text.primary',
+};
+
 const Pagination = ({ currentPage, totalPages, onPageChange }: {
   currentPage: number;
   totalPages: number;
@@ -14,35 +21,37 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
   const firstPage = 1;
   const lastPage = totalPages;
 
-  const pageNumbers = React.useMemo(() => {
+  const getPageNumbers = React.useCallback(() => {
     const pages: (number | '...')[] = [];
     const leftBound = Math.max(firstPage + 1, currentPage - Math.floor(maxVisiblePages / 2));
     const rightBound = Math.min(lastPage - 1, currentPage + Math.floor(maxVisiblePages / 2));
 
-    if (leftBound > firstPage + 1) pages.push(firstPage, '...');
-    else pages.push(firstPage);
+    if (leftBound > firstPage + 1) {
+      pages.push(firstPage, '...');
+    } else {
+      pages.push(firstPage);
+    }
 
     for (let i = leftBound; i <= rightBound; i++) {
       pages.push(i);
     }
 
-    if (rightBound < lastPage - 1) pages.push('...', lastPage);
-    else if (rightBound === lastPage - 1) pages.push(lastPage);
+    if (rightBound < lastPage - 1) {
+      pages.push('...', lastPage);
+    } else if (rightBound === lastPage - 1) {
+      pages.push(lastPage);
+    }
 
     return pages;
   }, [currentPage, totalPages]);
 
-  const buttonStyles = {
-    borderRadius: '50px',
-    width: '40px',
-    minWidth: '28px',
-    color: 'text.primary',
-  };
+  const pageNumbers = React.useMemo(getPageNumbers, [getPageNumbers]);
+  const handlePageChange = (page: number) => { onPageChange(page); };
 
   return (
     <Stack display="flex" flexDirection="row" justifyContent="center">
       {currentPage > 1 && (
-        <Button variant="text" onClick={() => onPageChange(currentPage - 1)} sx={buttonStyles}>
+        <Button variant="text" onClick={() => handlePageChange(currentPage - 1)} sx={buttonStyles}>
           <NavigateNextRoundedIcon sx={{ transform: 'rotate(180deg)', fontSize: '2rem' }} />
         </Button>
       )}
@@ -55,7 +64,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
           <Button
             key={page}
             variant={page === currentPage ? 'outlined' : 'text'}
-            onClick={() => onPageChange(page as number)}
+            onClick={() => handlePageChange(page)}
             sx={buttonStyles}
           >
             <Typography variant="h6">{page}</Typography>
@@ -63,7 +72,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
         )
       )}
       {currentPage < totalPages && (
-        <Button variant="text" onClick={() => onPageChange(currentPage + 1)} sx={buttonStyles}>
+        <Button variant="text" onClick={() => handlePageChange(currentPage + 1)} sx={buttonStyles}>
           <NavigateNextRoundedIcon sx={{ fontSize: '2rem' }} />
         </Button>
       )}

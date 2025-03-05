@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 using Web3D.API.Requests;
+using Web3D.Domain.Models;
+using Web3D.Domain.Models.DTO;
 using Web3D.Domain.Exceptions;
 using Web3D.BusinessLogic.Abstractions;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Web3D.API.Controllers;
 
@@ -11,6 +14,27 @@ namespace Web3D.API.Controllers;
 [Route("api/auth")]
 public class AuthController(IUserService userService, ITokenService tokenService) : ControllerBase
 {
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        try
+        {
+            var user = new UserDTO
+            {
+                Id = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id").Value),
+                LastName = User.Claims.FirstOrDefault(x => x.Type == "lastName").Value,
+                FirstName = User.Claims.FirstOrDefault(x => x.Type == "firstName").Value,
+                MiddleName = User.Claims.FirstOrDefault(x => x.Type == "middleName").Value,
+                Role = Converter.ConvertStringToRole(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role).Value)
+            };
+            return Ok(user);
+        }
+        catch (NullReferenceException)
+        {
+            return Ok(null);
+        }
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
     {
@@ -33,7 +57,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
                 Expires = DateTime.UtcNow.AddDays(7),
             });
 
-            return Ok();
+            return NoContent();
         }
         catch (LoginAlreadyTakenException)
         {
@@ -67,7 +91,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
                 Expires = DateTime.UtcNow.AddDays(7),
             });
 
-            return Ok();
+            return NoContent();
         }
         catch (InvalidLoginOrPasswordException)
         {
@@ -93,11 +117,11 @@ public class AuthController(IUserService userService, ITokenService tokenService
 
             await tokenService.DeleteAsync(token);
 
-            return Ok();
+            return NoContent();
         }
         catch (RefreshTokenNotFoundException)
         {
-            return Ok();
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -109,10 +133,10 @@ public class AuthController(IUserService userService, ITokenService tokenService
     public async Task<IActionResult> RefreshAccessToken()
     {
         var token = Request.Cookies["refreshToken"];
-        if (token == null) return Unauthorized("Refresh token not found");
+        if (token == null) return Unauthorized("Refresh token not found in Cookies");
 
         var refreshToken = await tokenService.UpdateByTokenAsync(token);
-        if (refreshToken == null) return NotFound("Refresh token not found");
+        if (refreshToken == null) return NotFound("Refresh token not found on Server");
 
         var newAccessToken = await userService.RefreshAccessTokenAsync(refreshToken.UserId);
         if (newAccessToken == null) return NotFound("Access token was not generated");
@@ -132,6 +156,6 @@ public class AuthController(IUserService userService, ITokenService tokenService
             Expires = DateTime.UtcNow.AddDays(7),
         });
 
-        return Ok();
+        return NoContent();
     }
 }

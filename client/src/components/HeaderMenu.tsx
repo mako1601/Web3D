@@ -34,7 +34,7 @@ const HeaderMenu = () => {
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem onClick={() => { navigate("/profile"); handleClose(); }}>Профиль</MenuItem>
-        {user?.role === "Admin" && (
+        {user?.role === 0 && (
           <MenuItem onClick={() => { navigate("/users"); handleClose(); }}>Пользователи</MenuItem>
         )}
         <Divider />

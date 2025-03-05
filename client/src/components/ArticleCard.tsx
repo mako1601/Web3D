@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Box, Typography } from '@mui/material';
 
-import { Article } from '../types/articleTypes'
 import { getUserById } from '@api/userApi';
 import { formatDate } from '@utils/dateUtils';
+import { Article } from '@mytypes/articleTypes';
 
 interface ArticleCardProps {
   article: Article;
@@ -15,8 +15,7 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
   const [hovered, setHovered] = React.useState(false);
   const [author, setAuthor] = React.useState<{ lastName: string;firstName: string; middleName?: string } | null>(null);
 
-  const isLongText = article.description.split("\n").length > 3;
-
+  
   React.useEffect(() => {
     const fetchAuthor = async () => {
       try {
@@ -24,11 +23,13 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
         setAuthor(userData);
       } catch (error) {
         console.error("Ошибка загрузки автора: ", error);
+        setAuthor(null);
       }
     };
-
     fetchAuthor();
   }, [article.userId]);
+
+  const isLongText = React.useMemo(() => article.description.split("\n").length > 3, [article.description]);
 
   const handleDescriptionClick = () => {
     if (isLongText) {

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { Box, Stack, Radio, Divider, Typography, RadioGroup, IconButton, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress } from '@mui/material';
+import { Box, Stack, Radio, Divider, Typography, RadioGroup, IconButton, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
@@ -12,22 +12,23 @@ import UserCard from '@components/UserCard';
 import Pagination from '@components/Pagination';
 import ContentContainer from '@components/ContentContainer';
 import { changeRole, getAllUsers } from '@api/userApi';
-import { UserDto } from '../../types/userTypes';
-import { PageProps } from '../../types/commonTypes';
+import { ChangeUserRole, UserDto } from '@mytypes/userTypes';
+import { PageProps } from '@mytypes/commonTypes';
+import { roleLabels } from '@utils/roleLabels';
 
 const PAGE_SIZE = 20;
 
 export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
   const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
-  const [searchQuery, setSearchQuery] = React.useState(searchParams.get('name') || '');
-
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("name") || "");
   const name = searchParams.get("name") || "";
   const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
-
   const [totalCount, setTotalCount] = React.useState(0);
   const [users, setUsers] = React.useState<UserDto[] | null>(null);
+  const [openDialog, setOpenDialog] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState<UserDto | null>(null);
 
   const fetchUsers = React.useCallback(async () => {
     try {
@@ -35,28 +36,26 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
       setUsers(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
-      setUsers([]);
+      setUsers(null);
       setTotalCount(0);
     }
-  }, [name, orderBy, sortDirection, currentPage, PAGE_SIZE]);
+  }, [name, orderBy, sortDirection, currentPage]);
 
   React.useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {
-    window.scrollTo(0, 0);
-    setSearchParams((prev) => {
-      const updatedParams = new URLSearchParams(prev);
-      Object.entries(newParams).forEach(([key, value]) => {
-        if (value) {
-          updatedParams.set(key, value.toString());
-        } else {
-          updatedParams.delete(key);
-        }
-      });
-      return updatedParams;
+    const updatedParams = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value) {
+        updatedParams.set(key, value.toString());
+      } else {
+        updatedParams.delete(key);
+      }
     });
+    setSearchParams(updatedParams);
+    window.scrollTo(0, 0);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,21 +78,27 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
     console.log(`Просмотр профиля пользователя с ID: ${id}`);
   }, []);
 
-  const handleRoleChange = React.useCallback(async (id: number, role: number) => {
-    if (role === 0) {
-      setSeverity("error");
-      setMessage("Нельзя изменить роль администратора");
-      setOpen(true);
-      return;
-    }
-    const newRole = role === 1 ? 2 : 1;
-    try {
-      await changeRole(id, newRole);
-      await fetchUsers();
-    } catch (e: any) {
-      console.error("Ошибка при изменении роли:", e);
+  const handleRoleChange = React.useCallback(async (user: UserDto | null) => {
+    if (user) {
+      if (user.role === 0) {
+        setSeverity("error");
+        setMessage("Нельзя изменить роль администратора");
+        setOpen(true);
+        return;
+      }
+      const newRole = user.role === 1 ? 2 : 1;
+      try {
+        const changeUserRole: ChangeUserRole = { userId: user.id, newRole: newRole };
+        await changeRole(changeUserRole);
+        fetchUsers();
+      } catch (e: any) {
+        console.error("Ошибка при изменении роли: ", e);
+      }
     }
   }, [fetchUsers]);
+
+  const handleDialogClickOpen = (user: UserDto) => { setSelectedUser(user); setOpenDialog(true); };
+  const handleDialogClose = () => { setOpenDialog(false); setSelectedUser(null); };
 
   if (!users) {
     return (
@@ -111,14 +116,34 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
 
   return (
     <Page>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>
+          Подтверждение изменения роли пользователя
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Вы действительно хотите изменить роль пользователя{" "}
+            <em>
+              {selectedUser &&
+                `${selectedUser.lastName} ${selectedUser.firstName}${selectedUser.middleName ? " " + selectedUser.middleName : ""
+                }`}
+            </em>{" "}
+            на <strong>{roleLabels[selectedUser?.role === 1 ? 2 : 1]}</strong>?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Нет</Button>
+          <Button onClick={() => { handleDialogClose(); handleRoleChange(selectedUser) }}>Да</Button>
+        </DialogActions>
+      </Dialog>
       <Header />
       <ContentContainer gap="1rem" sx={{ display: 'grid', gridTemplateColumns: '1fr auto' }}>
         <Stack gap="1rem">
-          <Stack flexDirection="row" justifyContent='space-between'>
+          <Stack flexDirection="row" justifyContent="space-between">
             <Typography variant="h4">
               Список пользователей
             </Typography>
-            <FormControl sx={{ minWidth: '10rem' }} variant='outlined'>
+            <FormControl sx={{ minWidth: '10rem' }} variant="outlined">
               <OutlinedInput
                 sx={{ maxHeight: '2rem' }}
                 size="small"
@@ -155,7 +180,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
                     key={user.id}
                     user={user}
                     onProfileClick={() => handleProfileClick(user.id)}
-                    onRoleChange={() => handleRoleChange(user.id, user.role)}
+                    onRoleChange={() => handleDialogClickOpen(user)}
                   />
                 ))}
               </PageCard>

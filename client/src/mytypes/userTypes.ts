@@ -30,3 +30,8 @@ export interface UpdUserPass {
   oldPassword: string;
   newPassword: string;
 }
+
+export interface ChangeUserRole {
+  userId: number;
+  newRole: number;
+}

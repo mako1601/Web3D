@@ -7,7 +7,7 @@ import { Paper, Grid2 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
 import SortableItem from '@components/SortableItem';
-import { QuestionForCreate } from '../types/testTypes';
+import { QuestionForCreate } from '@mytypes/testTypes';
 
 const MAX_ITEMS = 50;
 const GRID_COLS = 10;

@@ -10,9 +10,16 @@ export const articleSchema = yup.object().shape({
     .optional()
     .max(250, "Описание не может превышать 250 символов")
     .default(""),
+  // TODO: Протестировать
   content: yup.string()
-    .trim()
-    .optional()
-    .max(10000, "Привышен лимит 10000 символов")
-    .default("")
+  .transform((value) => {
+    const cleaned = value
+      .replace(/<p><\/p>/g, "")
+      .replace(/<br>/g, "")
+      .trim();
+    return cleaned === "" ? null : cleaned;
+  })
+  .nullable()
+  .required("Обязательное поле")
+  .max(10000, "Превышен лимит 10000 символов"),
 });

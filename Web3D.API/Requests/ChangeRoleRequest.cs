@@ -1,2 +1,2 @@
 ﻿namespace Web3D.API.Requests;
-public record ChangeRoleRequest(Domain.Models.Role NewRole);
+public record ChangeRoleRequest(long UserId, Domain.Models.Role NewRole);

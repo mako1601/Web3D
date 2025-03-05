@@ -1,6 +1,6 @@
 import * as yup from 'yup';
 
-export const regSchema = yup.object({
+export const regSchema = yup.object().shape({
   login: yup.string()
     .trim()
     .required("Обязательное поле")
@@ -25,9 +25,9 @@ export const regSchema = yup.object({
   role: yup.number()
     .required()
     .oneOf([1, 2]),
-}).required();
+});
 
-export const logSchema = yup.object({
+export const logSchema = yup.object().shape({
   login: yup.string()
     .trim()
     .required("Обязательное поле")
@@ -37,7 +37,7 @@ export const logSchema = yup.object({
     .required("Пароль должен содержать не менее 6 символов")
     .min(6, "Пароль должен содержать не менее 6 символов")
     .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-}).required();
+});
 
 export const profileSchema = yup.object().shape({
   lastName: yup.string()
@@ -62,9 +62,9 @@ export const passwordSchema = yup.object().shape({
   newPassword: yup.string()
     .required("Введите новый пароль")
     .min(6, "Пароль должен содержать не менее 6 символов")
-    .matches(/^\S*$/, "Пароль не должен содержать пробелы"),
-  confirmNewPassword: yup
-    .string()
+    .matches(/^\S*$/, "Пароль не должен содержать пробелы")
+    .notOneOf([yup.ref('oldPassword')], "Новый пароль не должен совпадать со старым паролем"),
+  confirmNewPassword: yup.string()
     .oneOf([yup.ref("newPassword")], "Пароли не совпадают")
     .required("Подтвердите новый пароль"),
 });

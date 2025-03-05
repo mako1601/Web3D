@@ -2,27 +2,52 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Box, FormControl, TextField, FormLabel } from '@mui/material';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
+import { useEditor, EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
 import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
+import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
+import StyledEditorContainer from '@components/StyledEditorContainer';
 import { createArticle } from '@api/articleApi';
-import { PageProps } from '../../types/commonTypes';
-import { ArticleDto } from '../../types/articleTypes';
+import { PageProps } from '@mytypes/commonTypes';
+import { ArticleDto } from '@mytypes/articleTypes';
 import { articleSchema } from '@schemas/articleSchemas';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const [loading, setLoading] = React.useState(false);
+  const content = "<p></p>";
 
   const {
     register,
     handleSubmit,
-    formState: { errors: articleErrors }
+    setValue,
+    formState: { errors }
   } = useForm<ArticleDto>({
-    resolver: yupResolver(articleSchema)
+    resolver: yupResolver(articleSchema),
   });
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+    ],
+    content
+  });
+
+  React.useEffect(() => {
+    if (editor) {
+      setValue("content", editor.getHTML());
+    }
+  }, [editor?.getHTML()]);
 
   const onSubmit = async (data: ArticleDto) => {
     try {
@@ -48,6 +73,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
 
   return (
     <Page>
+      {editor && <BubbleMenu editor={editor}/>}
       <Header />
       <ContentContainer gap="1rem">
         <PageCard>
@@ -61,8 +87,8 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
               <TextField
                 {...register("title")}
                 fullWidth
-                error={!!articleErrors.title}
-                helperText={articleErrors.title?.message}
+                error={!!errors.title}
+                helperText={errors.title?.message}
               />
             </FormControl>
             <FormControl>
@@ -71,19 +97,20 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
                 {...register("description")}
                 fullWidth
                 multiline
-                error={!!articleErrors.description}
-                helperText={articleErrors.description?.message}
+                error={!!errors.description}
+                helperText={errors.description?.message}
               />
             </FormControl>
             <FormControl>
               <FormLabel>Текст</FormLabel>
-              <TextField
-                {...register("content")}
-                fullWidth
-                multiline
-                error={!!articleErrors.content}
-                helperText={articleErrors.content?.message}
-              />
+              <StyledEditorContainer>
+                <EditorContent editor={editor} />
+              </StyledEditorContainer>
+              {errors.content && (
+                <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.375, ml: 1.75, mr: 1.75 }}>
+                  {errors.content.message}
+                </Box>
+              )}
             </FormControl>
             <Button
               type="submit"

@@ -13,8 +13,8 @@ import PageCard   from '@components/PageCard';
 import { updatePassword, updateUser } from '@api/userApi';
 import { useAuth } from '@context/AuthContext';
 import { refreshToken } from '@api/axiosInstance';
-import { PageProps } from '../../types/commonTypes';
-import { UpdUserData, UpdUserPass } from '../../types/userTypes';
+import { PageProps } from '@mytypes/commonTypes';
+import { UpdUserData, UpdUserPass } from '@mytypes/userTypes';
 import { passwordSchema, profileSchema } from '@schemas/userSchemas';
 
 interface UpdatePasswordData {
@@ -57,7 +57,7 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
   const onSubmitProfile = async (data: UpdUserData) => {
     try {
       setLoadingProfile(true);
-      await updateUser(user!.id, data);
+      await updateUser(data);
       await refreshToken();
       setUser({ ...user!, ...data });
       resetProfile(data);
@@ -83,7 +83,7 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
     try {
       setLoadingPassword(true);
       const updUserPass: UpdUserPass = { oldPassword: data.oldPassword, newPassword: data.newPassword };
-      await updatePassword(user!.id, updUserPass);
+      await updatePassword(updUserPass);
       resetPassword();
       setSeverity("success");
       setMessage("Пароль успешно изменен!");

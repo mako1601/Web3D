@@ -1,33 +1,35 @@
 import { api } from './axiosInstance';
-import { UpdUserData, UpdUserPass } from '../types/userTypes';
+import { PageResult } from '@mytypes/commonTypes';
+import { ChangeUserRole, UpdUserData, UpdUserPass, UserDto } from '@mytypes/userTypes';
 
 const ROUTE = "/users";
 
-export const getCurrentUser = async () => {
-  const response = await api.get(`${ROUTE}/me`);
+export const getUserById = async (id: number): Promise<UserDto> => {
+  const response = await api.get<UserDto>(`${ROUTE}/${id}`);
   return response.data;
 };
 
-export const getUserById = async (id: number) => {
-  const response = await api.get(`${ROUTE}/${id}`);
+export const getAllUsers = async (
+  name: string,
+  orderBy: string,
+  sortDirection: number,
+  currentPage: number,
+  pageSize: number
+): Promise<PageResult<UserDto>> => {
+  const response = await api.get<PageResult<UserDto>>(`${ROUTE}`, {
+    params: { name, orderBy, sortDirection, currentPage, pageSize }
+  });
   return response.data;
 };
 
-export const getAllUsers = async (name: string, orderBy: string, sortDirection: number, currentPage: number, pageSize: number) => {
-  const response = await api.get(`${ROUTE}`, { params: { name, orderBy, sortDirection, currentPage, pageSize } });
-  return response.data;
+export const updateUser = async (data: UpdUserData): Promise<void> => {
+  await api.put(`${ROUTE}`, data);
 };
 
-export const updateUser = async (id: number, data: UpdUserData) => {
-  const response = await api.put(`${ROUTE}/${id}`, data );
-  return response.data;
+export const updatePassword = async (data: UpdUserPass): Promise<void> => {
+  await api.put(`${ROUTE}/update-password`, data);
 };
 
-export const changeRole = async (id: number, role: number) => {
-  const response = await api.put(`${ROUTE}/${id}/change-role`, { NewRole: role });
-  return response.data;
-};
-
-export const updatePassword = async (id: number, data: UpdUserPass) => {
-  await api.put(`${ROUTE}/${id}/update-password`, data);
+export const changeRole = async (data: ChangeUserRole): Promise<void> => {
+  await api.put(`${ROUTE}/change-role`, data);
 };

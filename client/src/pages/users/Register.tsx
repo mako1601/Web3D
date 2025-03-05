@@ -10,11 +10,11 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import SignCard from '@components/SignCard';
 import Container from '@components/Container';
 import { registerUser } from '@api/authApi';
-import { getCurrentUser } from '@api/userApi';
+import { getCurrentUser } from '@api/authApi';
 import { useAuth } from '@context/AuthContext';
 import { regSchema } from '@schemas/userSchemas';
-import { RegData } from '../../types/userTypes';
-import { PageProps } from '../../types/commonTypes';
+import { RegData } from '@mytypes/userTypes';
+import { PageProps } from '@mytypes/commonTypes';
 
 export default function Register({ setSeverity, setMessage, setOpen }: PageProps) {
   const { setUser } = useAuth();

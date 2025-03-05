@@ -1,19 +1,21 @@
 import { api } from './axiosInstance';
-import { LogData, RegData } from '../types/userTypes';
+import { LogData, RegData, UserDto } from '@mytypes/userTypes';
 
 const ROUTE = "/auth";
 
-export const registerUser = async (data: RegData) => {
-  const response = await api.post(`${ROUTE}/register`, data);
+export const getCurrentUser = async (): Promise<UserDto> => {
+  const response = await api.get<UserDto>(`${ROUTE}/me`);
   return response.data;
 };
 
-export const loginUser = async (data: LogData) => {
-  const response = await api.post(`${ROUTE}/login`, data);
-  return response.data;
+export const registerUser = async (data: RegData): Promise<void> => {
+  await api.post(`${ROUTE}/register`, data);
 };
 
-export const logoutUser = async () => {
-  const response = await api.post(`${ROUTE}/logout`);
-  return response.data;
+export const loginUser = async (data: LogData): Promise<void>  => {
+  await api.post(`${ROUTE}/login`, data);
+};
+
+export const logoutUser = async (): Promise<void>  => {
+  await api.post(`${ROUTE}/logout`);
 };

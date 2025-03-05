@@ -1,17 +1,10 @@
 import * as React from 'react';
-import { getCurrentUser } from '@api/userApi';
-
-type User = {
-  id: number;
-  lastName: string;
-  firstName: string;
-  middleName?: string;
-  role: string;
-};
+import { UserDto } from '@mytypes/userTypes';
+import { getCurrentUser } from '@api/authApi';
 
 type AuthContextType = {
-  user: User | null;
-  setUser: (user: User | null) => void;
+  user: UserDto | null;
+  setUser: (user: UserDto | null) => void;
   loading: boolean;
 };
 
@@ -24,7 +17,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = React.useState<User | null>(null);
+  const [user, setUser] = React.useState<UserDto | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
