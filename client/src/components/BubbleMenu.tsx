@@ -13,15 +13,15 @@ interface Props {
 
 const CustomBubbleMenu = ({ editor }: Props) => {
   return (
-    <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'bottom' }}>
+    <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'bottom', maxWidth: "1000px" }}>
       <Box
         sx={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
           border: '1px solid',
           borderColor: 'divider',
           borderRadius: 1,
-          bgcolor: 'background.paper',
+          bgcolor: 'background.paper'
         }}
       >
         <StyledIconButton onClick={() => editor.chain().focus().toggleBold().run()}><FormatBold /></StyledIconButton>
@@ -34,9 +34,9 @@ const CustomBubbleMenu = ({ editor }: Props) => {
         <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("right").run()}><FormatAlignRight /></StyledIconButton>
         <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("justify").run()}><FormatAlignJustify /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}><Title style={{ fontSize: 24 }}/></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}><Title style={{ fontSize: 24 }} /></StyledIconButton>
         <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}><Title /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().setParagraph().run()}><Title style={{ fontSize: 16 }}/></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setParagraph().run()}><Title style={{ fontSize: 16 }} /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
         <StyledIconButton onClick={() => editor.chain().focus().toggleBulletList().run()}><FormatListBulleted /></StyledIconButton>
         <StyledIconButton onClick={() => editor.chain().focus().toggleOrderedList().run()}><FormatListNumbered /></StyledIconButton>

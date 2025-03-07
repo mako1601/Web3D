@@ -43,6 +43,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
   } = useForm<ArticleDto>({
     resolver: yupResolver(articleSchema),
   });
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -97,7 +98,6 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
 
   return (
     <Page>
-      {editor && <BubbleMenu editor={editor} />}
       <Header />
       <ContentContainer gap="1rem">
         <Box
@@ -158,6 +158,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
                 Текст
                 <Box>{contentLength}/{CONTENT_MAX_LENGTH}</Box>
               </FormLabel>
+              {editor && <BubbleMenu editor={editor} />}
               <StyledEditorContainer>
                 <EditorContent editor={editor} />
               </StyledEditorContainer>

@@ -2,7 +2,7 @@ import { Box, styled } from "@mui/material";
 import { gray } from "@theme/themePrimitives";
 
 const StyledEditorContainer = styled(Box)(({ theme }) => ({
-  padding: '0 1rem ',
+  padding: '0 1rem',
   color: theme.palette.text.primary,
   borderRadius: theme.shape.borderRadius,
   border: `1px solid ${theme.palette.divider}`,
@@ -19,7 +19,6 @@ const StyledEditorContainer = styled(Box)(({ theme }) => ({
     color: '#ffffff',
     padding: theme.spacing(1),
     borderRadius: theme.shape.borderRadius,
-    overflowX: 'auto',
   },
 }));
 

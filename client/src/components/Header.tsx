@@ -14,29 +14,32 @@ export default function Header() {
   return (
     <HeaderContainer>
       <HeaderInner gridTemplateColumns="auto 1fr auto">
+
         {/* left */}
         <Stack direction="row" spacing={2}>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/"); }}>
+          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/"; }}>
             Главная
           </Button>
         </Stack>
+
         {/* middle */}
         <Stack direction="row" justifyContent="center" spacing={1}>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/articles"); }}>
+          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/articles"; }}>
             Учебные материалы
           </Button>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/tests"); }}>
+          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/tests"; }}>
             Тесты
           </Button>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); navigate("/model"); }}>
+          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/model"; }}>
             3D
           </Button>
         </Stack>
+
         {/* right */}
         {user ? (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
             {user.role === 2 && (<CreateMenu />)}
-            <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={() => navigate("/profile")}>
+            <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); window.location.href = "/profile"; }}>
               {user.lastName ? user.lastName[0].toUpperCase() : "?"}
             </Avatar>
             <HeaderMenu />
