@@ -72,7 +72,13 @@ export default function ViewArticle() {
               </Typography>
             </Box>
           </Box>
-          <div dangerouslySetInnerHTML={{ __html: article.content }} />
+          <div
+            dangerouslySetInnerHTML={{ __html: article.content }}
+            style={{
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word'
+            }}
+          />
         </PageCard>
       </ContentContainer>
       <Footer />

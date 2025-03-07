@@ -21,5 +21,5 @@ export const articleSchema = yup.object().shape({
   })
   .nullable()
   .required("Обязательное поле")
-  .max(10000, "Превышен лимит 10000 символов"),
+  .max(30007, "Превышен лимит 30000 символов"),
 });
