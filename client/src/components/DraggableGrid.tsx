@@ -32,7 +32,7 @@ const DraggableGrid = ({
 
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (over && over.id !== active.id) {
       setQuestions((prevQuestions) => {
         const oldIndex = prevQuestions.findIndex((q) => q.id === active.id);
         const newIndex = prevQuestions.findIndex((q) => q.id === over.id);
@@ -40,10 +40,8 @@ const DraggableGrid = ({
         const updatedQuestions = newOrder.map((q, index) => ({ ...q, index: index }));
         return updatedQuestions;
       });
-      setActiveQuestion(active.id);
-    } else {
-      setActiveQuestion(active.id);
     }
+    setActiveQuestion(active.id);
   };
 
   const addQuestion = () => {

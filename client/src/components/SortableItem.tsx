@@ -92,12 +92,12 @@ const SortableItem = ({
         >
           <Typography
             sx={{
-              padding: '0.1rem',
+              padding: '0.3rem',
               overflow: 'hidden',
               wordBreak: 'break-word',
               display: '-webkit-box',
               WebkitBoxOrient: 'vertical',
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 4,
             }}
           >
             {text}

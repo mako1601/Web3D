@@ -1,26 +1,21 @@
 services:
   backend:
-    image: ${DOCKER_REGISTRY-}api:1.0.0
+    image: ${DOCKER_REGISTRY-}api:latest
     build:
       context: .
       dockerfile: Web3D.API/Dockerfile
     depends_on:
       - postgres_db
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
 
   client:
-    image: client:1.0.0
+    image: client:latest
     build:
-      context: ./Client
+      context: ./client
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
     volumes:
-      - ./Client:/app
+      - ./client:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
@@ -29,7 +24,7 @@ services:
 
   postgres_db:
     container_name: postgres
-    image: postgres:14.1
+    image: postgres:latest
     ports:
       - "5433:5432"
     restart: always
@@ -39,11 +34,6 @@ services:
       - POSTGRES_DB=web3ddb
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
 
 volumes:
   postgres-data:

@@ -1,11 +1,8 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
-using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
-using Web3D.Domain.Models.DTO;
 using Web3D.Domain.Exceptions;
 using Web3D.BusinessLogic.Abstractions;
 

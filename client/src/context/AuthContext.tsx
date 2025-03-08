@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { UserDto } from '@mytypes/userTypes';
 import { getCurrentUser } from '@api/authApi';
+import { refreshToken } from '@api/axiosInstance';
 
 type AuthContextType = {
   user: UserDto | null;
@@ -21,10 +22,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    getCurrentUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    const fetchUser = async () => {
+      try {
+        let currentUser = await getCurrentUser();
+        if (!currentUser) {
+          await refreshToken();
+          currentUser = await getCurrentUser();
+        }
+        setUser(currentUser);
+      } catch (e: any) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
   return <AuthContext.Provider value={{ user, setUser, loading }}>{children}</AuthContext.Provider>;

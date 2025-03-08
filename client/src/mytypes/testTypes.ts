@@ -17,7 +17,6 @@ export interface TestDto {
 export interface TestForCreate {
   title: string;
   description: string;
-  questions: QuestionForCreate[];
 }
 
 export interface Question {

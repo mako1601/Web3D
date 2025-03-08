@@ -132,30 +132,41 @@ public class AuthController(IUserService userService, ITokenService tokenService
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshAccessToken()
     {
-        var token = Request.Cookies["refreshToken"];
-        if (token == null) return Unauthorized("Refresh token not found in Cookies");
-
-        var refreshToken = await tokenService.UpdateByTokenAsync(token);
-        if (refreshToken == null) return NotFound("Refresh token not found on Server");
-
-        var newAccessToken = await userService.RefreshAccessTokenAsync(refreshToken.UserId);
-        if (newAccessToken == null) return NotFound("Access token was not generated");
-
-        Response.Cookies.Append("accessToken", newAccessToken, new CookieOptions
+        try
         {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddMinutes(10),
-        });
-        Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddDays(7),
-        });
+            var token = Request.Cookies["refreshToken"];
+            if (token == null) return Unauthorized("Refresh token not found in Cookies");
 
-        return NoContent();
+            var refreshToken = await tokenService.UpdateByTokenAsync(token);
+            if (refreshToken == null) return Unauthorized("Refresh token not found on Server");
+
+            var newAccessToken = await userService.RefreshAccessTokenAsync(refreshToken.UserId);
+            if (newAccessToken == null) return Unauthorized("Access token was not generated");
+
+            Response.Cookies.Append("accessToken", newAccessToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddMinutes(10),
+            });
+            Response.Cookies.Append("refreshToken", refreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7),
+            });
+
+            return NoContent();
+        }
+        catch (RefreshTokenNotFoundException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Ошибка на сервере: " + ex.Message);
+        }
     }
 }
