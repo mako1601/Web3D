@@ -6,9 +6,9 @@ import Login from '@pages/users/Login';
 import Profile from '@pages/users/Profile';
 import Register from '@pages/users/Register';
 import UserList from '@pages/users/UserList';
-import CreateTest from '@pages/tests/Create';
-// import EditTest from '@pages/tests/Edit';
+import EditTest from '@pages/tests/Edit';
 import TestList from '@pages/tests/List';
+import CreateTest from '@pages/tests/Create';
 import ViewArticle from '@pages/articles/View';
 import ArticleList from '@pages/articles/List';
 import EditArticle from '@pages/articles/Edit';
@@ -41,7 +41,7 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
       {/* <Route path="/tests/:id" element={<??? />} /> */}
       <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
         <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        {/* <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} /> */}
+        <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
       <Route path="/model" element={<Model />} />
     </Routes>

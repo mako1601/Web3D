@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import uuid from 'react-native-uuid';
 import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
@@ -15,26 +14,30 @@ import DraggableGrid from '@components/DraggableGrid';
 import ContentContainer from '@components/ContentContainer';
 import { createTest } from '@api/testApi';
 import { PageProps } from '@mytypes/commonTypes';
-import { AnswerOptionDto, QuestionForCreate, TestDto, TestForCreate } from '@mytypes/testTypes';
+import { TestDto, TestForSchemas } from '@mytypes/testTypes';
 import { testSchema } from '@schemas/testSchemas';
+import { useTestQuestions } from "@hooks/useTestQuestions";
+import usePreventUnload from "@hooks/usePreventUnload";
 
 // TODO: add question validation
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
-  const createDefaultQuestion = () => ({
-    id: uuid.v4(),
-    index: 0,
-    text: "",
-    answerOptions: [
-      { index: 0, text: "", isCorrect: true },
-      { index: 1, text: "", isCorrect: false }
-    ]
-  });
-
   const navigate = ReactDOM.useNavigate();
   const [loading, setLoading] = React.useState(false);
   const [formDirty, setFormDirty] = React.useState(false);
-  const [questions, setQuestions] = React.useState<QuestionForCreate[]>([createDefaultQuestion()]);
-  const [activeQuestion, setActiveQuestion] = React.useState<string>(questions[0].id);
+  usePreventUnload(formDirty);
+  const {
+    questions,
+    activeQuestion,
+    setActiveQuestion,
+    addQuestion,
+    updateQuestion,
+    removeQuestion,
+    handleDragEnd,
+    addAnswerOption,
+    updateAnswerOption,
+    setCorrectAnswer,
+    removeAnswerOption
+  } = useTestQuestions();
 
   const TITLE_MAX_LENGTH = 60;
   const DESCRIPTION_MAX_LENGTH = 250;
@@ -45,119 +48,50 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
     register,
     handleSubmit,
     formState: { errors }
-  } = useForm<TestForCreate>({
+  } = useForm<TestForSchemas>({
     resolver: yupResolver(testSchema)
   });
 
-  const updateQuestion = (id: string, field: keyof QuestionForCreate, value: string) => {
-    setQuestions(prevQuestions => {
-      const updatedQuestions = prevQuestions.map(q => q.id === id ? { ...q, [field]: value } : q);
-      return updatedQuestions;
-    });
-  };
-
-  const addAnswerOption = (questionId: string) => {
-    setQuestions(prevQuestions => {
-      return prevQuestions.map(q => {
-        if (q.id === questionId && q.answerOptions.length < 4) {
-          const newAnswerOptions = [...q.answerOptions, { index: q.answerOptions.length, text: "", isCorrect: false }];
-          return { ...q, answerOptions: newAnswerOptions.map((opt, idx) => ({ ...opt, index: idx })) };
-        }
-        return q;
-      });
-    });
-  };
-
-  const updateAnswerOption = (questionId: string, optionIndex: number, field: keyof AnswerOptionDto, value: string) => {
-    setQuestions(prevQuestions => {
-      return prevQuestions.map(q => {
-        if (q.id === questionId) {
-          const updatedOptions = q.answerOptions.map((opt, i) => i === optionIndex ? { ...opt, [field]: value } : opt);
-          return { ...q, answerOptions: updatedOptions };
-        }
-        return q;
-      });
-    });
-  };
-
-  const setCorrectAnswer = (questionId: string, correctIndex: number) => {
-    setQuestions(prevQuestions => {
-      return prevQuestions.map(q => {
-        if (q.id === questionId) {
-          const updatedOptions = q.answerOptions.map((opt, idx) => ({ ...opt, isCorrect: idx === correctIndex }));
-          return { ...q, answerOptions: updatedOptions };
-        }
-        return q;
-      });
-    });
-  };
-
-  const removeAnswerOption = (questionId: string, optionIndex: number) => {
-    setQuestions(prevQuestions => {
-      return prevQuestions.map(q => {
-        if (q.id === questionId) {
-          if (q.answerOptions.length > 2) {
-            const newOptions = q.answerOptions.filter((_, i) => i !== optionIndex);
-            if (q.answerOptions[optionIndex].isCorrect) {
-              newOptions[0] = { ...newOptions[0], isCorrect: true };
-            }
-            return { ...q, answerOptions: newOptions.map((opt, idx) => ({ ...opt, index: idx })) };
-          } else {
-            setSeverity("error");
-            setMessage("Минимум 2 варианта ответа");
-            setOpen(true);
-          }
-        }
-        return q;
-      });
-    });
-  };
-
-  const onSubmit = async (data: TestForCreate) => {
+  const onSubmit = async (data: TestForSchemas) => {
     try {
       setLoading(true);
       const testData: TestDto = {
         title: data.title,
         description: data.description,
-        questions: questions.map(question => ({
-          index: question.index,
+        questions: Object.values(questions).map((question, qIndex) => ({
+          id: question.id,
+          testId: question.testId,
+          index: qIndex,
           text: question.text,
           imageUrl: question.imageUrl,
-          answerOptions: question.answerOptions.map(answerOption => ({
-            index: answerOption.index,
+          answerOptions: question.answerOptions.map((answerOption, aIndex) => ({
+            id: answerOption.id,
+            questionId: answerOption.questionId,
+            index: aIndex,
             text: answerOption.text,
-            isCorrect: answerOption.isCorrect,
-          })),
-        })),
+            isCorrect: answerOption.isCorrect
+          }))
+        }))
       };
       await createTest(testData);
       setSeverity("success");
       setMessage("Тест успешно создан!");
       navigate("/");
     } catch (e: any) {
+      console.error(e);
       setSeverity("error");
-      setMessage(e.response?.data || "Произошла ошибка");
+      if (e.response) {
+        setMessage(e.response.data);
+      } else if (e.request) {
+        setMessage("Сервер не отвечает, повторите попытку позже");
+      } else {
+        setMessage("Произошла неизвестная ошибка");
+      }
     } finally {
       setOpen(true);
       setLoading(false);
     }
   };
-
-  const activeQuestionIndex = questions.findIndex(q => q.id === activeQuestion);
-  const activeQuestionObj = questions[activeQuestionIndex] ?? null;
-
-  React.useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (formDirty) {
-        event.preventDefault();
-        return "";
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [formDirty]);
 
   return (
     <Page>
@@ -218,12 +152,14 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
 
           {/* Draggable grid for questions */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography color='text.secondary'>Вопросы {questions.length}/50</Typography>
+            <Typography color='text.secondary'>Вопросы {Object.keys(questions).length}/50</Typography>
             <DraggableGrid
               questions={questions}
-              setQuestions={setQuestions}
               activeQuestion={activeQuestion}
               setActiveQuestion={setActiveQuestion}
+              handleDragEnd={handleDragEnd}
+              addQuestion={addQuestion}
+              removeQuestion={removeQuestion}
             />
           </Box>
 
@@ -232,28 +168,28 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
             <FormControl sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
                 fullWidth
-                value={activeQuestionObj ? activeQuestionObj.text : ""}
+                value={questions[activeQuestion].text}
                 onChange={(e) => {
-                  updateQuestion(activeQuestion, "text", e.target.value);
+                  updateQuestion(activeQuestion, e.target.value);
                   setFormDirty(true);
                 }}
                 placeholder="Текст вопроса"
               />
               <RadioGroup
                 sx={{ display: 'flex', gap: 2 }}
-                value={activeQuestionObj ? activeQuestionObj.answerOptions.findIndex(opt => opt.isCorrect) : -1}
+                value={questions[activeQuestion].answerOptions.findIndex(opt => opt.isCorrect)}
                 onChange={(e) => {
                   setCorrectAnswer(activeQuestion, parseInt(e.target.value));
                   setFormDirty(true);
                 }}
               >
-                {activeQuestionObj?.answerOptions.map((option, aIndex) => (
+                {questions[activeQuestion].answerOptions.map((option, aIndex) => (
                   <Box key={aIndex} sx={{ display: 'flex', gap: 2 }}>
                     <TextField
                       fullWidth
                       value={option.text}
                       onChange={(e) => {
-                        updateAnswerOption(activeQuestion, aIndex, "text", e.target.value);
+                        updateAnswerOption(activeQuestion, aIndex, e.target.value);
                         setFormDirty(true);
                       }}
                       placeholder={`Вариант ответа ${aIndex + 1}`}
@@ -266,7 +202,10 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                         label="Правильный"
                       />
                     </Box>
-                    <IconButton onClick={() => removeAnswerOption(activeQuestion, aIndex)} color="error">
+                    <IconButton
+                      onClick={() => removeAnswerOption(activeQuestion, aIndex)}
+                      disabled={questions[activeQuestion].answerOptions.length < 3}
+                    >
                       <ClearRoundedIcon />
                     </IconButton>
                   </Box>
@@ -279,8 +218,8 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                   addAnswerOption(activeQuestion);
                   setFormDirty(true);
                 }}
-                disabled={activeQuestionObj === null || activeQuestionObj.answerOptions.length >= 4}
-                sx={{ display: activeQuestionObj?.answerOptions?.length >= 4 ? 'none' : 'inline-flex' }}
+                disabled={questions[activeQuestion].answerOptions.length >= 4}
+                sx={{ display: questions[activeQuestion].answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
               >
                 Добавить вариант ответа
               </Button>

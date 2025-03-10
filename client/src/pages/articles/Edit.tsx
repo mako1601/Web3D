@@ -21,6 +21,7 @@ import { articleSchema } from '@schemas/articleSchemas';
 import { PageProps } from '@mytypes/commonTypes';
 import { Article, ArticleDto } from '@mytypes/articleTypes';
 import StyledEditorContainer from '@components/StyledEditorContainer';
+import usePreventUnload from "@hooks/usePreventUnload";
 
 export default function EditArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
   const [article, setArticle] = React.useState<Article | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [formDirty, setFormDirty] = React.useState(false);
+  usePreventUnload(formDirty);
 
   const TITLE_MAX_LENGTH = 60;
   const DESCRIPTION_MAX_LENGTH = 250;
@@ -109,19 +111,6 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
       }
     }
   }, [article, reset, editor]);
-
-  React.useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (formDirty) {
-        event.preventDefault();
-        return "";
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [formDirty]);
 
   if (loading || userLoading) {
     return (

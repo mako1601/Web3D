@@ -11,10 +11,10 @@ export interface Test {
 export interface TestDto {
   title: string;
   description: string;
-  questions: QuestionDto[];
+  questions: Question[];
 }
 
-export interface TestForCreate {
+export interface TestForSchemas {
   title: string;
   description: string;
 }
@@ -28,20 +28,7 @@ export interface Question {
   answerOptions: AnswerOption[];
 }
 
-export interface QuestionDto {
-  index: number;
-  text: string;
-  imageUrl?: string;
-  answerOptions: AnswerOptionDto[];
-}
-
-export interface QuestionForCreate {
-  id: string;
-  index: number;
-  text: string;
-  imageUrl?: string;
-  answerOptions: AnswerOptionDto[];
-}
+export type QuestionMap = { [key: string]: Question };
 
 export interface AnswerOption {
   id: number;
@@ -51,8 +38,13 @@ export interface AnswerOption {
   isCorrect: boolean;
 }
 
-export interface AnswerOptionDto {
-  index: number;
-  text: string;
-  isCorrect: boolean;
-}
+export const defaultQuestion = {
+  id: 0,
+  testId: 0,
+  index: 0,
+  text: "",
+  answerOptions: [
+    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true },
+    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false }
+  ]
+};

@@ -20,6 +20,7 @@ import { createArticle } from '@api/articleApi';
 import { PageProps } from '@mytypes/commonTypes';
 import { ArticleDto } from '@mytypes/articleTypes';
 import { articleSchema } from '@schemas/articleSchemas';
+import usePreventUnload from '@hooks/usePreventUnload';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = ReactDOM.useNavigate();
@@ -34,6 +35,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
   const [contentLength, setContentLength] = React.useState(0);
 
   const [formDirty, setFormDirty] = React.useState(false);
+  usePreventUnload(formDirty);
 
   const {
     register,
@@ -82,19 +84,6 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
       setLoading(false);
     }
   };
-
-  React.useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (formDirty) {
-        event.preventDefault();
-        return "";
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [formDirty]);
 
   return (
     <Page>

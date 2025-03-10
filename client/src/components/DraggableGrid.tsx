@@ -1,27 +1,29 @@
-import * as React from 'react';
-import uuid from 'react-native-uuid';
 import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors, Modifier } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToParentElement, restrictToWindowEdges } from '@dnd-kit/modifiers';
 import { Paper, Grid2 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
 import SortableItem from '@components/SortableItem';
-import { QuestionForCreate } from '@mytypes/testTypes';
+import { QuestionMap } from '@mytypes/testTypes';
 
 const MAX_ITEMS = 50;
 const GRID_COLS = 10;
 
 const DraggableGrid = ({
   questions,
-  setQuestions,
   activeQuestion,
-  setActiveQuestion
+  setActiveQuestion,
+  handleDragEnd,
+  addQuestion,
+  removeQuestion
 }: {
-  questions: QuestionForCreate[];
-  setQuestions: React.Dispatch<React.SetStateAction<QuestionForCreate[]>>;
+  questions: QuestionMap;
   activeQuestion: string;
-  setActiveQuestion: React.Dispatch<React.SetStateAction<string>>;
+  setActiveQuestion: (id: string) => void;
+  handleDragEnd: (event: any) => void;
+  addQuestion: () => void;
+  removeQuestion: (id: string) => void;
 }) => {
   const modifiers: Modifier[] = [restrictToParentElement, restrictToWindowEdges];
 
@@ -30,62 +32,24 @@ const DraggableGrid = ({
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   );
 
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    if (over && over.id !== active.id) {
-      setQuestions((prevQuestions) => {
-        const oldIndex = prevQuestions.findIndex((q) => q.id === active.id);
-        const newIndex = prevQuestions.findIndex((q) => q.id === over.id);
-        const newOrder = arrayMove(prevQuestions, oldIndex, newIndex);
-        const updatedQuestions = newOrder.map((q, index) => ({ ...q, index: index }));
-        return updatedQuestions;
-      });
-    }
-    setActiveQuestion(active.id);
-  };
-
-  const addQuestion = () => {
-    if (questions.length < MAX_ITEMS) {
-      const newQuestion: QuestionForCreate = {
-        id: uuid.v4(),
-        index: questions.length,
-        text: "",
-        answerOptions: [
-          { index: 0, text: "", isCorrect: true },
-          { index: 1, text: "", isCorrect: false },
-        ]
-      };
-      setQuestions([...questions, newQuestion]);
-      setActiveQuestion(newQuestion.id);
-    }
-  };
-
-  const removeQuestion = (id: string) => {
-    if (questions.length > 1) {
-      const updatedQuestions = questions
-        .filter((q) => q.id !== id)
-        .map((q, newIndex) => ({ ...q, index: newIndex }));
-      setQuestions(updatedQuestions);
-      setActiveQuestion(updatedQuestions[0].id);
-    }
-  };
-
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={modifiers}>
-      <SortableContext items={questions.map(q => q.id)} strategy={rectSortingStrategy}>
+      <SortableContext items={Object.keys(questions)} strategy={rectSortingStrategy}>
         <Grid2 container spacing={2} columns={GRID_COLS}>
-          {questions.map((question) => (
-            <SortableItem
-              key={question.id}
-              id={question.id}
-              text={question.text}
-              onRemove={() => removeQuestion(question.id)}
-              activeId={activeQuestion}
-              setActiveId={setActiveQuestion}
-              isRemovable={questions.length > 1}
-            />
-          ))}
-          {questions.length < MAX_ITEMS && (
+          {Object.keys(questions).map(key => {
+            return (
+              <SortableItem
+                key={key}
+                id={key}
+                text={questions[key].text}
+                onRemove={() => removeQuestion(key)}
+                activeId={activeQuestion}
+                setActiveId={setActiveQuestion}
+                isRemovable={Object.keys(questions).length > 1}
+              />
+            );
+          })}
+          {Object.keys(questions).length < MAX_ITEMS && (
             <Grid2 size={{ xs: 3, sm: 2, md: 1 }}>
               <Paper
                 onClick={addQuestion}
@@ -109,6 +73,6 @@ const DraggableGrid = ({
       </SortableContext>
     </DndContext>
   );
-}
+};
 
 export default DraggableGrid;

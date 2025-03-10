@@ -43,7 +43,7 @@ export default function ArticleList() {
 
   React.useEffect(() => {
     fetchArticles();
-    console.error("Оптимизировать запросы!");
+    console.log("Оптимизировать запросы!");
   }, [fetchArticles]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {

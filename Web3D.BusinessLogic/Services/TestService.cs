@@ -37,11 +37,12 @@ internal class TestService(
         return tests;
     }
 
-    public async Task UpdateAsync(long testId, string newTitle, ICollection<Question> questions, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(long testId, string newTitle, string newDescription, ICollection<Question> questions, CancellationToken cancellationToken = default)
     {
         var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
 
         test.Title = newTitle;
+        test.Description = newDescription;
         test.Questions = questions;
         test.UpdatedAt = DateTime.UtcNow;
 

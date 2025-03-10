@@ -10,6 +10,7 @@
       "@api/*": ["api/*"],
       "@components/*": ["components/*"],
       "@context/*": ["context/*"],
+      "@hooks/*": ["hooks/*"],
       "@pages/*": ["pages/*"],
       "@schemas/*": ["schemas/*"],
       "@mytypes/*": ["mytypes/*"],

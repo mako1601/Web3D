@@ -42,7 +42,7 @@ export default function TestList() {
 
   React.useEffect(() => {
     fetchArticles();
-    console.error("Оптимизировать запросы!");
+    console.log("Оптимизировать запросы!");
   }, [fetchArticles]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {

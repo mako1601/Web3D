@@ -38,7 +38,7 @@ public class TestController(ITestService testService) : ControllerBase
     [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> UpdateAsync([FromRoute] long testId, [FromBody] TestRequest request)
     {
-        await testService.UpdateAsync(testId, request.Title, request.Questions);
+        await testService.UpdateAsync(testId, request.Title, request.Description, request.Questions);
         return NoContent();
     }
 
