@@ -1,7 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 
 import Home from '@pages/Home';
-import Model from '@pages/Model';
 import Login from '@pages/users/Login';
 import Profile from '@pages/users/Profile';
 import Register from '@pages/users/Register';
@@ -13,6 +12,7 @@ import ViewArticle from '@pages/articles/View';
 import ArticleList from '@pages/articles/List';
 import EditArticle from '@pages/articles/Edit';
 import CreateArticle from '@pages/articles/Create';
+import ModelView from '@pages/model/View';
 import PublicRoute from '@components/PublicRoute';
 import ProtectedRoute from '@components/ProtectedRoute';
 import { PageProps } from '@mytypes/commonTypes';
@@ -43,7 +43,7 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
         <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
         <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
-      <Route path="/model" element={<Model />} />
+      <Route path="/model" element={<ModelView />} />
     </Routes>
   );
 };
