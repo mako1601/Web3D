@@ -8,4 +8,6 @@ public class Question
     public string Text { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public ICollection<AnswerOption> AnswerOptions { get; set; } = [];
+    public QuestionType Type { get; set; }
+    public string? CorrectAnswer { get; set; } // for Fill-in-the-Blank
 }

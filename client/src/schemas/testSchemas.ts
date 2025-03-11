@@ -3,10 +3,10 @@ import * as yup from 'yup';
 export const testSchema = yup.object().shape({
   title: yup.string()
     .required("Обязательное поле")
-    .max(60, "Название не может превышать 60 символов")
+    .max(100, "Название не может превышать 100 символов")
     .trim(),
   description: yup.string()
-    .max(250, "Описание не может превышать 250 символов")
+    .max(500, "Описание не может превышать 500 символов")
     .trim()
     .default("")
 });

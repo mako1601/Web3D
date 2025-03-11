@@ -49,16 +49,13 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasKey(x => x.Id);
         modelBuilder.Entity<Test>()
             .Property(x => x.Title)
-            .HasMaxLength(128)
+            .HasMaxLength(100)
             .IsRequired();
         modelBuilder.Entity<Test>()
             .HasIndex(x => x.Title);
         modelBuilder.Entity<Test>()
             .Property(x => x.Description)
-            .HasMaxLength(512);
-        modelBuilder.Entity<Test>()
-            .Property(x => x.CreatedAt)
-            .HasDefaultValueSql("NOW()");
+            .HasMaxLength(500);
         modelBuilder.Entity<Test>()
             .HasOne<User>()
             .WithMany()
@@ -75,8 +72,14 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasKey(x => x.Id);
         modelBuilder.Entity<Question>()
             .Property(x => x.Text)
-            .HasMaxLength(256)
+            .HasMaxLength(300)
             .IsRequired();
+        modelBuilder.Entity<Question>()
+            .Property(q => q.ImageUrl)
+            .HasMaxLength(255);
+        modelBuilder.Entity<Question>()
+            .Property(x => x.Type)
+            .HasConversion<string>();
         modelBuilder.Entity<Question>()
             .HasMany(x => x.AnswerOptions)
             .WithOne()
@@ -88,11 +91,11 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasKey(x => x.Id);
         modelBuilder.Entity<AnswerOption>()
             .Property(x => x.Text)
-            .HasMaxLength(256)
+            .HasMaxLength(150)
             .IsRequired();
         modelBuilder.Entity<AnswerOption>()
-            .Property(x => x.IsCorrect)
-            .HasDefaultValue(false);
+            .Property(x => x.MatchingPair)
+            .HasMaxLength(150);
 
         // Article
         modelBuilder.Entity<Article>()

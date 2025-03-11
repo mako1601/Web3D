@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography } from '@mui/material';
+import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography, Select, MenuItem, Checkbox } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
 
@@ -14,10 +14,10 @@ import DraggableGrid from '@components/DraggableGrid';
 import ContentContainer from '@components/ContentContainer';
 import { createTest } from '@api/testApi';
 import { PageProps } from '@mytypes/commonTypes';
-import { TestDto, TestForSchemas } from '@mytypes/testTypes';
+import { questionTypes, TestDto, TestForSchemas, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH } from '@mytypes/testTypes';
 import { testSchema } from '@schemas/testSchemas';
-import { useTestQuestions } from "@hooks/useTestQuestions";
-import usePreventUnload from "@hooks/usePreventUnload";
+import { useTestQuestions } from '@hooks/useTestQuestions';
+import usePreventUnload from '@hooks/usePreventUnload';
 
 // TODO: add question validation
 export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
@@ -39,8 +39,6 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
     removeAnswerOption
   } = useTestQuestions();
 
-  const TITLE_MAX_LENGTH = 60;
-  const DESCRIPTION_MAX_LENGTH = 250;
   const [titleLength, setTitleLength] = React.useState(0);
   const [descriptionLength, setDescriptionLength] = React.useState(0);
 
@@ -52,6 +50,10 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
     resolver: yupResolver(testSchema)
   });
 
+  React.useEffect(() => {
+    console.log(questions);
+  }, [questions]);
+
   const onSubmit = async (data: TestForSchemas) => {
     try {
       setLoading(true);
@@ -61,15 +63,18 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
         questions: Object.values(questions).map((question, qIndex) => ({
           id: question.id,
           testId: question.testId,
+          type: question.type,
           index: qIndex,
           text: question.text,
           imageUrl: question.imageUrl,
+          correctAnswer: question.correctAnswer,
           answerOptions: question.answerOptions.map((answerOption, aIndex) => ({
             id: answerOption.id,
             questionId: answerOption.questionId,
             index: aIndex,
             text: answerOption.text,
-            isCorrect: answerOption.isCorrect
+            isCorrect: answerOption.isCorrect,
+            matchingPair: answerOption.matchingPair
           }))
         }))
       };
@@ -165,64 +170,167 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
 
           {/* Question text and answer options */}
           <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Question type selector */}
+            <FormControl>
+              <FormLabel>Тип вопроса</FormLabel>
+              <Select
+                value={questions[activeQuestion].type}
+                onChange={(e) => {
+                  updateQuestion(activeQuestion, "type", Number(e.target.value));
+                  setFormDirty(true);
+                }}
+              >
+                {questionTypes.map(type => (
+                  <MenuItem key={type.value} value={type.value}>{type.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <FormControl sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Question text */}
               <TextField
                 fullWidth
                 value={questions[activeQuestion].text}
                 onChange={(e) => {
-                  updateQuestion(activeQuestion, e.target.value);
+                  updateQuestion(activeQuestion, "text", e.target.value);
                   setFormDirty(true);
                 }}
                 placeholder="Текст вопроса"
               />
-              <RadioGroup
-                sx={{ display: 'flex', gap: 2 }}
-                value={questions[activeQuestion].answerOptions.findIndex(opt => opt.isCorrect)}
-                onChange={(e) => {
-                  setCorrectAnswer(activeQuestion, parseInt(e.target.value));
-                  setFormDirty(true);
-                }}
-              >
-                {questions[activeQuestion].answerOptions.map((option, aIndex) => (
-                  <Box key={aIndex} sx={{ display: 'flex', gap: 2 }}>
-                    <TextField
-                      fullWidth
-                      value={option.text}
-                      onChange={(e) => {
-                        updateAnswerOption(activeQuestion, aIndex, e.target.value);
-                        setFormDirty(true);
-                      }}
-                      placeholder={`Вариант ответа ${aIndex + 1}`}
-                    />
-                    <Box>
+
+              {/* Question types */}
+              {/* Single Choice */}
+              {questions[activeQuestion].type === 0 && (
+                <RadioGroup
+                  sx={{ display: 'flex', gap: 2 }}
+                  value={questions[activeQuestion].answerOptions.findIndex(opt => opt.isCorrect)}
+                  onChange={(e) => {
+                    setCorrectAnswer(activeQuestion, parseInt(e.target.value));
+                    setFormDirty(true);
+                  }}
+                >
+                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        value={option.text}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestion, index, "text", e.target.value);
+                          setFormDirty(true);
+                        }}
+                        placeholder={`Вариант ответа ${index + 1}`}
+                      />
+                      <Box>
+                        <FormControlLabel
+                          sx={{ margin: 0 }}
+                          value={index}
+                          control={<Radio />}
+                          label="Правильный"
+                        />
+                      </Box>
+                      <IconButton
+                        onClick={() => removeAnswerOption(activeQuestion, index)}
+                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                      >
+                        <ClearRoundedIcon />
+                      </IconButton>
+                    </Box>
+                  ))}
+                </RadioGroup>
+              )}
+
+              {/* Multiple Choice */}
+              {questions[activeQuestion].type === 1 && (
+                <>
+                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        value={option.text}
+                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        placeholder={`Вариант ответа ${index + 1}`}
+                      />
                       <FormControlLabel
-                        sx={{ margin: 0 }}
-                        value={aIndex}
-                        control={<Radio />}
+                        control={<Checkbox checked={option.isCorrect} onChange={() => setCorrectAnswer(activeQuestion, index)} />}
                         label="Правильный"
                       />
+                      <IconButton
+                        onClick={() => removeAnswerOption(activeQuestion, index)}
+                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                      >
+                        <ClearRoundedIcon />
+                      </IconButton>
                     </Box>
-                    <IconButton
-                      onClick={() => removeAnswerOption(activeQuestion, aIndex)}
-                      disabled={questions[activeQuestion].answerOptions.length < 3}
-                    >
-                      <ClearRoundedIcon />
-                    </IconButton>
-                  </Box>
-                ))}
-              </RadioGroup>
-              <Button
-                variant="outlined"
-                startIcon={<AddRoundedIcon />}
-                onClick={() => {
-                  addAnswerOption(activeQuestion);
-                  setFormDirty(true);
-                }}
-                disabled={questions[activeQuestion].answerOptions.length >= 4}
-                sx={{ display: questions[activeQuestion].answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
-              >
-                Добавить вариант ответа
-              </Button>
+                  ))}
+                </>
+              )}
+
+              {/* Matching */}
+              {questions[activeQuestion].type === 2 && (
+                <>
+                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        fullWidth
+                        value={option.text}
+                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        placeholder={`Элемент ${index + 1}`}
+                      />
+                      <TextField
+                        fullWidth
+                        value={option.matchingPair}
+                        onChange={(e) => updateAnswerOption(activeQuestion, index, "matchingPair", e.target.value)}
+                        placeholder="Соответствие"
+                      />
+                      <IconButton
+                        onClick={() => removeAnswerOption(activeQuestion, index)}
+                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                      >
+                        <ClearRoundedIcon />
+                      </IconButton>
+                    </Box>
+                  ))}
+                </>
+              )}
+
+              {/* Fill in the blank */}
+              {questions[activeQuestion].type === 3 && (
+                <TextField
+                  fullWidth
+                  value={questions[activeQuestion].correctAnswer}
+                  onChange={(e) => updateQuestion(activeQuestion, "correctAnswer", e.target.value)}
+                  placeholder="Правильный ответ"
+                />
+              )}
+
+              {(questions[activeQuestion].type === 0 || questions[activeQuestion].type === 1) && (
+                <Button
+                  variant="outlined"
+                  startIcon={<AddRoundedIcon />}
+                  onClick={() => {
+                    addAnswerOption(activeQuestion);
+                    setFormDirty(true);
+                  }}
+                  disabled={questions[activeQuestion].answerOptions.length >= 4}
+                  sx={{ display: questions[activeQuestion].answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
+                >
+                  Добавить вариант ответа
+                </Button>
+              )}
+              {questions[activeQuestion].type === 2 && (
+                <Button
+                  variant="outlined"
+                  startIcon={<AddRoundedIcon />}
+                  onClick={() => {
+                    addAnswerOption(activeQuestion);
+                    setFormDirty(true);
+                  }}
+                  disabled={questions[activeQuestion].answerOptions.length >= 5}
+                  sx={{ display: questions[activeQuestion].answerOptions.length >= 5 ? 'none' : 'inline-flex' }}
+                >
+                  Добавить вариант ответа
+                </Button>
+              )}
             </FormControl>
             <Button
               type="submit"

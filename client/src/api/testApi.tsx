@@ -25,7 +25,6 @@ export const getAllTests = async (
   return response.data;
 };
 
-// TODO: ДОДЕЛАТЬ //
 export const updateTest = async (id: number, data: TestDto): Promise<void> => {
   await api.put(`${ROUTE}/${id}`, data);
 };
@@ -33,4 +32,3 @@ export const updateTest = async (id: number, data: TestDto): Promise<void> => {
 export const deleteTest = async (id: number): Promise<void> => {
   await api.delete(`${ROUTE}/${id}`);
 };
-// -------------- //

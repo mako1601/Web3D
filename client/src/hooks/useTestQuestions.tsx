@@ -1,27 +1,45 @@
-import { useState } from "react";
-import { QuestionMap, defaultQuestion } from "@mytypes/testTypes";
-
-const QUESTION_MIN = 1;
-const QUESTION_MAX = 50;
-const ANSWER_OPTION_MIN = 2;
-const ANSWER_OPTION_MAX = 4;
+import * as React from 'react';
+import { AnswerOption, Question, QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX } from '@mytypes/testTypes';
+import { defaultSingleChoiceQuestion, defaultMultipleChoiceQuestion, defaultMatchingQuestion, defaultFillInTheBlankQuestion } from '@mytypes/testTypes';
 
 export function useTestQuestions(initialQuestions: QuestionMap = {}) {
-  const [questions, setQuestions] = useState<QuestionMap>(() =>
-    Object.keys(initialQuestions).length > 0 ? initialQuestions : { [crypto.randomUUID()]: defaultQuestion }
+  const [questions, setQuestions] = React.useState<QuestionMap>(() =>
+    Object.keys(initialQuestions).length > 0 ? initialQuestions : { [crypto.randomUUID()]: defaultSingleChoiceQuestion }
   );
-  const [activeQuestion, setActiveQuestion] = useState<string>(Object.keys(questions)[0]);
+  const [activeQuestion, setActiveQuestion] = React.useState<string>(Object.keys(questions)[0]);
 
   const addQuestion = () => {
     if (Object.keys(questions).length < QUESTION_MAX) {
       const newKey = crypto.randomUUID();
-      setQuestions(prev => ({ ...prev, [newKey]: defaultQuestion }));
+      setQuestions(prev => ({ ...prev, [newKey]: defaultSingleChoiceQuestion }));
       setActiveQuestion(newKey);
     }
   };
 
-  const updateQuestion = (key: string, newText: string) => {
-    setQuestions(prev => ({ ...prev, [key]: { ...prev[key], text: newText } }));
+  const updateQuestion = <K extends keyof Question>(key: string, field: K, value: Question[K]) => {
+    setQuestions((prev) => {
+      if (field === "type") {
+        let resetQuestion;
+        switch (value) {
+          case 0:
+            resetQuestion = { ...defaultSingleChoiceQuestion, id: prev[key].id, testId: prev[key].testId, [field]: value };
+            break;
+          case 1:
+            resetQuestion = { ...defaultMultipleChoiceQuestion, id: prev[key].id, testId: prev[key].testId, [field]: value };
+            break;
+          case 2:
+            resetQuestion = { ...defaultMatchingQuestion, id: prev[key].id, testId: prev[key].testId, [field]: value };
+            break;
+          case 3:
+            resetQuestion = { ...defaultFillInTheBlankQuestion, id: prev[key].id, testId: prev[key].testId, [field]: value };
+            break;
+          default:
+            resetQuestion = { ...defaultSingleChoiceQuestion, id: prev[key].id, testId: prev[key].testId, [field]: value };
+        }
+        return { ...prev, [key]: resetQuestion };
+      }
+      return { ...prev, [key]: { ...prev[key], [field]: value } };
+    });
   };
 
   const removeQuestion = (key: string) => {
@@ -38,18 +56,23 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
     setQuestions(prev => {
       const question = prev[key];
       if (question && question.answerOptions.length < ANSWER_OPTION_MAX) {
-        const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false }];
-        return { ...prev, [key]: { ...question, answerOptions: newOptions } };
+        if (question.type === 2) {
+          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", matchingPair: "", isCorrect: false }];
+          return { ...prev, [key]: { ...question, answerOptions: newOptions } };
+        } else {
+          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false }];
+          return { ...prev, [key]: { ...question, answerOptions: newOptions } };
+        }
       }
       return prev;
     });
   };
 
-  const updateAnswerOption = (key: string, index: number, text: string) => {
+  const updateAnswerOption = <K extends keyof AnswerOption>(key: string, index: number, field: K, value: AnswerOption[K]) => {
     setQuestions(prev => {
       const question = prev[key];
       if (question) {
-        const newOptions = question.answerOptions.map((opt, i) => i === index ? { ...opt, text } : opt);
+        const newOptions = question.answerOptions.map((opt, i) => i === index ? { ...opt, [field]: value } : opt);
         return { ...prev, [key]: { ...question, answerOptions: newOptions } };
       }
       return prev;
@@ -60,7 +83,10 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
     setQuestions(prev => {
       const question = prev[key];
       if (question) {
-        const newOptions = question.answerOptions.map((opt, i) => ({ ...opt, isCorrect: i === index }));
+        const newOptions = question.answerOptions.map((opt, i) => ({
+          ...opt,
+          isCorrect: question.type === 0 ? i === index : i === index ? !opt.isCorrect : opt.isCorrect
+        }));
         return { ...prev, [key]: { ...question, answerOptions: newOptions } };
       }
       return prev;

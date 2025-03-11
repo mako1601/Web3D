@@ -18,25 +18,16 @@ export default function ThreeScene() {
     scene.background = new THREE.Color(0xffffff);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 80000);
-    camera.position.set(-600, 550, 1300);
+    camera.position.set(-200, 300, 500);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     containerRef.current.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0x7c7c7c, 2.0);
     const light = new THREE.DirectionalLight(0xffffff, 2.0);
     light.position.set(0.32, 0.39, 0.7);
-    light.castShadow = true;
-    light.shadow.mapSize.width = 1024;
-    light.shadow.mapSize.height = 1024;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500;
-    light.shadow.radius = 4;
-    light.shadow.bias = -0.0001;
     scene.add(ambientLight, light);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -101,8 +92,6 @@ export default function ThreeScene() {
         materials.reflective.envMap = textureCube;
       }
       teapot = new THREE.Mesh(geometry, materials[effectController.newShading as keyof typeof materials]);
-      teapot.receiveShadow = true;
-      teapot.castShadow = true;
       scene.add(teapot);
       if (randomRotation) {
         teapot.rotation.set(
@@ -131,7 +120,7 @@ export default function ThreeScene() {
     const guiInstance = new GUI();
 
     guiInstance.add(effectController, "newTess", [2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50])
-      .name("Tessellation Level").onChange(createNewTeapot);
+      .name("Tessellation Level").onChange(() => createNewTeapot(false));
 
     guiInstance.add(effectController, "newShading", Object.keys(materials))
       .name("Shading").onChange(() => {
@@ -208,8 +197,8 @@ export default function ThreeScene() {
           show: [lightIntensityController, lightColorController]
         },
         glossy: {
-          hide: [cubemapController],
-          show: [metalnessController, roughnessController, emissiveColorController, emissiveIntensityController, opacityController, textureScaleController]
+          hide: [cubemapController, textureScaleController],
+          show: [metalnessController, roughnessController, emissiveColorController, emissiveIntensityController, opacityController]
         },
         textured: {
           hide: [cubemapController, metalnessController, roughnessController, emissiveColorController, emissiveIntensityController, opacityController],
