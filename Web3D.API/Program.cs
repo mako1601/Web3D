@@ -1,6 +1,9 @@
-using Web3D.Domain.Options;
+using DotNetEnv;
+
 using Web3D.DataAccess.Extensions;
 using Web3D.BusinessLogic.Extensions;
+
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +14,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDataAccess(builder.Configuration);
 builder.Services.AddServices();
-builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection(nameof(AuthOptions)));
 builder.Services.AddAuth(builder.Configuration);
+builder.Services.AddCloudinary(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {

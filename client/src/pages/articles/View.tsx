@@ -20,7 +20,7 @@ export default function ViewArticle() {
 
   React.useEffect(() => {
     if (isNaN(articleId)) return;
-    console.error("Оптимизировать запросы!");
+    console.log("Оптимизировать запросы!");
     const fetchArticle = async () => {
       try {
         const data = await getArticleById(articleId);

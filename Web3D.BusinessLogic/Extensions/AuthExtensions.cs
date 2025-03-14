@@ -13,10 +13,19 @@ public static class AuthExtensions
 {
     public static IServiceCollection AddAuth(this IServiceCollection servicesCollection, IConfiguration configuration)
     {
-        var authOptions = configuration
-            .GetSection(nameof(AuthOptions))
-            .Get<AuthOptions>()
-            ?? throw new Exception("AuthOptions is null");
+        var secretKey = Environment.GetEnvironmentVariable("AUTH_SECRET_KEY");
+        if (string.IsNullOrEmpty(secretKey))
+        {
+            throw new Exception("AUTH_SECRET_KEY is not set");
+        }
+
+        var authOptions = new AuthOptions();
+        configuration.GetSection(nameof(AuthOptions)).Bind(authOptions);
+        authOptions.SecretKey = secretKey;
+        servicesCollection.Configure<AuthOptions>(options =>
+        {
+            options.SecretKey = authOptions.SecretKey;
+        });
 
         servicesCollection.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

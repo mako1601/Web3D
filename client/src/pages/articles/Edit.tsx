@@ -3,10 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop } from '@mui/material';
-import StarterKit from '@tiptap/starter-kit';
-import TextAlign from '@tiptap/extension-text-align';
-import Underline from '@tiptap/extension-underline';
 import { useEditor, EditorContent } from '@tiptap/react';
+import Image from '@tiptap/extension-image';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
 import debounce from 'lodash.debounce';
 
 import Page from '@components/Page';
@@ -22,6 +23,7 @@ import { PageProps } from '@mytypes/commonTypes';
 import { Article, ArticleDto } from '@mytypes/articleTypes';
 import StyledEditorContainer from '@components/StyledEditorContainer';
 import usePreventUnload from "@hooks/usePreventUnload";
+import { deleteImage, uploadImage } from '@api/cloudinaryApi';
 
 export default function EditArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
   const { user, loading: userLoading } = useAuth();
   const [article, setArticle] = React.useState<Article | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const initialImageUrls = React.useRef<string[]>([]);
+  const localImages = React.useRef<Map<string, File>>(new Map());
   const [formDirty, setFormDirty] = React.useState(false);
   usePreventUnload(formDirty);
 
@@ -60,9 +64,16 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     extensions: [
       StarterKit,
       Underline,
+      Image.extend({
+        renderHTML({ HTMLAttributes }) {
+          return ["img", { ...HTMLAttributes, style: "max-width:100%; height:auto;" }];
+        },
+      }).configure({
+        inline: true,
+      }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
-      }),
+      })
     ],
     content: "",
     onUpdate: debounce(({ editor }) => {
@@ -100,6 +111,8 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
 
   React.useEffect(() => {
     if (article) {
+      const imageUrls = extractImageUrls(article.content);
+      initialImageUrls.current = imageUrls;
       reset({
         title: article.title,
         description: article.description,
@@ -112,26 +125,53 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     }
   }, [article, reset, editor]);
 
-  if (loading || userLoading) {
-    return (
-      <Page>
-        <Header />
-        <ContentContainer>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-            <CircularProgress />
-          </Box>
-        </ContentContainer>
-        <Footer />
-      </Page>
-    );
-  }
-
   if (!article || !editor) return null;
+
+  const extractImageIdFromUrl = (url: string): string => {
+    const match = url.match(/\/v\d+\/([^\/]+)\.\w+$/);
+    return match ? match[1] : "";
+  };
+
+  const extractImageUrls = (html: string): string[] => {
+    const tempContainer = document.createElement("div");
+    tempContainer.innerHTML = html;
+    const images = Array.from(tempContainer.querySelectorAll("img"));
+    return images.map((img) => img.getAttribute("src") || "");
+  };
+
+  const uploadImages = async (html: string): Promise<string> => {
+    const tempContainer = document.createElement("div");
+    tempContainer.innerHTML = html;
+    const imageElements = Array.from(tempContainer.querySelectorAll("img"));
+    const imageUploadPromises = imageElements.map(async (img) => {
+      const src = img.getAttribute("src");
+      if (!src || !localImages.current.has(src)) return;
+      const file = localImages.current.get(src);
+      if (file) {
+        try {
+          const cloudUrl = await uploadImage(file);
+          img.setAttribute("src", cloudUrl);
+        } catch (e: any) {
+          throw new Error("Файл не найден");
+        }
+      }
+    });
+    await Promise.all(imageUploadPromises);
+    return tempContainer.innerHTML;
+  };
 
   const onSubmit = async (data: ArticleDto) => {
     try {
       setLoading(true);
-      await updateArticle(article.id, data);
+      const updatedContent = await uploadImages(data.content);
+      const currentImageUrls = extractImageUrls(updatedContent);
+      const deletedImages = initialImageUrls.current.filter((url) => !currentImageUrls.includes(url));
+      for (const imageUrl of deletedImages) {
+        await deleteImage(extractImageIdFromUrl(imageUrl));
+      }
+      const updatedData = { ...data, content: updatedContent };
+      setLoading(false);
+      await updateArticle(article.id, updatedData);
       setSeverity("success");
       setMessage("Учебный материал успешно обновлён!");
       navigate("/");
@@ -142,6 +182,8 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
         setMessage(e.response.data);
       } else if (e.request) {
         setMessage("Сервер не отвечает, повторите попытку позже");
+      } else if (e.message) {
+        setMessage(e.message);
       } else {
         setMessage("Произошла неизвестная ошибка");
       }
@@ -213,7 +255,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
                 Текст
                 <Box>{contentLength}/{CONTENT_MAX_LENGTH}</Box>
               </FormLabel>
-              {editor && <BubbleMenu editor={editor} />}
+              {editor && <BubbleMenu editor={editor} localImages={localImages} />}
               <StyledEditorContainer>
                 <EditorContent editor={editor} />
               </StyledEditorContainer>
@@ -245,7 +287,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
           width: '100%',
           height: '100%',
         }}
-        open={loading}
+        open={loading || userLoading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

@@ -2,11 +2,12 @@ import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Box, FormControl, TextField, FormLabel, Backdrop, CircularProgress } from '@mui/material';
+import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField } from '@mui/material';
+import { EditorContent, useEditor } from '@tiptap/react';
+import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
-import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
-import { useEditor, EditorContent } from '@tiptap/react';
+import TextAlign from '@tiptap/extension-text-align';
 import debounce from 'lodash.debounce';
 
 import Page from '@components/Page';
@@ -21,11 +22,13 @@ import { PageProps } from '@mytypes/commonTypes';
 import { ArticleDto } from '@mytypes/articleTypes';
 import { articleSchema } from '@schemas/articleSchemas';
 import usePreventUnload from '@hooks/usePreventUnload';
+import { uploadImage } from '@api/cloudinaryApi';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = ReactDOM.useNavigate();
   const [loading, setLoading] = React.useState(false);
-  const content = "<p></p>";
+  const content = `<p></p>`;
+  const localImages = React.useRef<Map<string, File>>(new Map());
 
   const TITLE_MAX_LENGTH = 60;
   const DESCRIPTION_MAX_LENGTH = 250;
@@ -50,22 +53,52 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
     extensions: [
       StarterKit,
       Underline,
+      Image.extend({
+        renderHTML({ HTMLAttributes }) {
+          return ["img", { ...HTMLAttributes, style: "max-width:100%; height:auto;" }];
+        },
+      }).configure({
+        inline: true,
+      }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
-      }),
+      })
     ],
     content,
     onUpdate: debounce(({ editor }) => {
       setValue("content", editor.getHTML(), { shouldValidate: true });
       setContentLength(editor.getText().length);
       setFormDirty(true);
-    }, 300),
+    }, 300)
   });
+
+  const uploadImages = async (html: string): Promise<string> => {
+    const tempContainer = document.createElement("div");
+    tempContainer.innerHTML = html;
+    const imageElements = Array.from(tempContainer.querySelectorAll("img"));
+    const imageUploadPromises = imageElements.map(async (img) => {
+      const src = img.getAttribute("src");
+      if (!src || !localImages.current.has(src)) return;
+      const file = localImages.current.get(src);
+      if (file) {
+        try {
+          const cloudUrl = await uploadImage(file);
+          img.setAttribute("src", cloudUrl);
+        } catch (e: any) {
+          throw new Error("Файл не найден");
+        }
+      }
+    });
+    await Promise.all(imageUploadPromises);
+    return tempContainer.innerHTML;
+  };
 
   const onSubmit = async (data: ArticleDto) => {
     try {
       setLoading(true);
-      await createArticle(data);
+      const updatedContent = await uploadImages(data.content);
+      const updatedData = { ...data, content: updatedContent };
+      await createArticle(updatedData);
       setSeverity("success");
       setMessage("Учебный материал успешно создан!");
       navigate("/");
@@ -76,6 +109,8 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
         setMessage(e.response.data);
       } else if (e.request) {
         setMessage("Сервер не отвечает, повторите попытку позже");
+      } else if (e.message) {
+        setMessage(e.message);
       } else {
         setMessage("Произошла неизвестная ошибка");
       }
@@ -147,7 +182,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
                 Текст
                 <Box>{contentLength}/{CONTENT_MAX_LENGTH}</Box>
               </FormLabel>
-              {editor && <BubbleMenu editor={editor} />}
+              {editor && <BubbleMenu editor={editor} localImages={localImages} />}
               <StyledEditorContainer>
                 <EditorContent editor={editor} />
               </StyledEditorContainer>

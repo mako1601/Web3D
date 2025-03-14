@@ -1,5 +1,5 @@
-import { Box, styled } from "@mui/material";
-import { gray } from "@theme/themePrimitives";
+import { Box, styled } from '@mui/material';
+import { gray } from '@theme/themePrimitives';
 
 const StyledEditorContainer = styled(Box)(({ theme }) => ({
   padding: '0 1rem',

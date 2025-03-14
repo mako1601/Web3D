@@ -2,8 +2,8 @@ import * as React from 'react';
 import { Box, Typography } from '@mui/material';
 
 import { Test } from '@mytypes/testTypes';
-import { getUserById } from "@api/userApi";
-import { formatDate } from "@utils/dateUtils";
+import { getUserById } from '@api/userApi';
+import { formatDate } from '@utils/dateUtils';
 
 interface TestCardProps {
   test: Test;

@@ -6,6 +6,8 @@ services:
       dockerfile: Web3D.API/Dockerfile
     depends_on:
       - postgres_db
+    env_file:
+      - Web3D.API/.env
 
   client:
     image: client:latest

@@ -1,17 +1,42 @@
-import { BubbleMenu, Editor } from "@tiptap/react";
-import { Box, Divider } from "@mui/material";
-import { FormatBold, FormatItalic, FormatStrikethrough, FormatUnderlined } from "@mui/icons-material";
-import { FormatAlignLeft, FormatAlignCenter, FormatAlignRight, FormatAlignJustify } from "@mui/icons-material";
-import { Title } from '@mui/icons-material';
-import { FormatListBulleted, FormatListNumbered } from '@mui/icons-material';
-import { Code } from '@mui/icons-material';
-import StyledIconButton from "@components/StyledIconButton";
+import * as React from 'react';
+import { BubbleMenu, Editor } from '@tiptap/react';
+import { Box, Divider } from '@mui/material';
+import { FormatBold, FormatItalic, FormatStrikethrough, FormatUnderlined } from '@mui/icons-material';
+import { FormatAlignLeft, FormatAlignCenter, FormatAlignRight, FormatAlignJustify } from '@mui/icons-material';
+import { Title, FormatListBulleted, FormatListNumbered, Code } from '@mui/icons-material';
+import ImageIcon from '@mui/icons-material/Image';
+import StyledIconButton from '@components/StyledIconButton';
 
 interface Props {
   editor: Editor;
+  localImages: React.MutableRefObject<Map<string, File>>;
 }
 
-const CustomBubbleMenu = ({ editor }: Props) => {
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_FORMATS = ["image/png", "image/jpeg", "image/webp"];
+const MAX_IMAGES = 30;
+
+const CustomBubbleMenu = ({ editor, localImages }: Props) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_FORMATS.includes(file.type)) {
+      alert("Недопустимый формат, разрешенные форматы: PNG, JPEG, WEBP");
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      alert("Файл слишком большой, максимальный размер — 5МБ");
+      return;
+    }
+    if (localImages.current.size >= MAX_IMAGES) {
+      alert(`Достигнут лимит на количество изображений (${MAX_IMAGES})`);
+      return;
+    }
+    const localUrl = URL.createObjectURL(file);
+    editor.chain().focus().setImage({ src: localUrl }).run();
+    localImages.current.set(localUrl, file);
+  };
+
   return (
     <BubbleMenu editor={editor} tippyOptions={{ duration: 100, placement: 'bottom', maxWidth: "1000px" }}>
       <Box
@@ -42,6 +67,15 @@ const CustomBubbleMenu = ({ editor }: Props) => {
         <StyledIconButton onClick={() => editor.chain().focus().toggleOrderedList().run()}><FormatListNumbered /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
         <StyledIconButton onClick={() => editor.chain().focus().toggleCodeBlock().run()}><Code /></StyledIconButton>
+        <StyledIconButton component="label">
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/webp"
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
+          <ImageIcon sx={{ margin: '-2px' }} />
+        </StyledIconButton>
       </Box>
     </BubbleMenu>
   );

@@ -1,7 +1,7 @@
-import { IconButton, styled } from "@mui/material";
-import { gray } from "@theme/themePrimitives";
+import { IconButton, IconButtonProps, styled } from '@mui/material';
+import { gray } from '@theme/themePrimitives';
 
-const StyledIconButton = styled(IconButton)(({ theme }) => ({
+const StyledIconButton = styled(IconButton)<IconButtonProps>(({ theme }) => ({
   color: theme.palette.text.secondary,
   border: 0,
   borderRadius: 7,

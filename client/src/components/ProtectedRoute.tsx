@@ -1,7 +1,7 @@
-import * as ReactDOM from "react-router-dom";
-import { CircularProgress, Box } from "@mui/material";
+import * as ReactDOM from 'react-router-dom';
+import { CircularProgress, Box } from '@mui/material';
 
-import { useAuth } from "@context/AuthContext";
+import { useAuth } from '@context/AuthContext';
 
 interface ProtectedRouteProps {
   allowedRoles: number[];
