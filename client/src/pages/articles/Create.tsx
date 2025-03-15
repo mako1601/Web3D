@@ -1,14 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField } from '@mui/material';
-import { EditorContent, useEditor } from '@tiptap/react';
-import Image from '@tiptap/extension-image';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import debounce from 'lodash.debounce';
+import { EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
@@ -17,107 +10,37 @@ import PageCard from '@components/PageCard';
 import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
-import { createArticle } from '@api/articleApi';
 import { PageProps } from '@mytypes/commonTypes';
-import { ArticleDto } from '@mytypes/articleTypes';
-import { articleSchema } from '@schemas/articleSchemas';
-import usePreventUnload from '@hooks/usePreventUnload';
-import { uploadImage } from '@api/cloudinaryApi';
+import { ArticleDto, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
+import { useArticleForm, useArticleEditor, useCreateArticle, useUploadImages } from '@hooks/useArticles';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = ReactDOM.useNavigate();
   const [loading, setLoading] = React.useState(false);
-  const content = `<p></p>`;
   const localImages = React.useRef<Map<string, File>>(new Map());
-
-  const TITLE_MAX_LENGTH = 60;
-  const DESCRIPTION_MAX_LENGTH = 250;
-  const CONTENT_MAX_LENGTH = 30000;
-  const [titleLength, setTitleLength] = React.useState(0);
-  const [descriptionLength, setDescriptionLength] = React.useState(0);
-  const [contentLength, setContentLength] = React.useState(0);
-
-  const [formDirty, setFormDirty] = React.useState(false);
-  usePreventUnload(formDirty);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors }
-  } = useForm<ArticleDto>({
-    resolver: yupResolver(articleSchema),
-  });
+    errors,
+    titleLength,
+    setTitleLength,
+    descriptionLength,
+    setDescriptionLength,
+    contentLength,
+    setContentLength,
+    setFormDirty
+  } = useArticleForm();
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Image.extend({
-        renderHTML({ HTMLAttributes }) {
-          return ["img", { ...HTMLAttributes, style: "max-width:100%; height:auto;" }];
-        },
-      }).configure({
-        inline: true,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      })
-    ],
-    content,
-    onUpdate: debounce(({ editor }) => {
-      setValue("content", editor.getHTML(), { shouldValidate: true });
-      setContentLength(editor.getText().length);
-      setFormDirty(true);
-    }, 300)
-  });
-
-  const uploadImages = async (html: string): Promise<string> => {
-    const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = html;
-    const imageElements = Array.from(tempContainer.querySelectorAll("img"));
-    const imageUploadPromises = imageElements.map(async (img) => {
-      const src = img.getAttribute("src");
-      if (!src || !localImages.current.has(src)) return;
-      const file = localImages.current.get(src);
-      if (file) {
-        try {
-          const cloudUrl = await uploadImage(file);
-          img.setAttribute("src", cloudUrl);
-        } catch (e: any) {
-          throw new Error("Файл не найден");
-        }
-      }
-    });
-    await Promise.all(imageUploadPromises);
-    return tempContainer.innerHTML;
-  };
+  const editor = useArticleEditor(setValue, setContentLength, setFormDirty);
+  const uploadImages = useUploadImages(localImages);
+  const createArticle = useCreateArticle(setSeverity, setMessage, setOpen, navigate);
 
   const onSubmit = async (data: ArticleDto) => {
-    try {
-      setLoading(true);
-      const updatedContent = await uploadImages(data.content);
-      const updatedData = { ...data, content: updatedContent };
-      await createArticle(updatedData);
-      setSeverity("success");
-      setMessage("Учебный материал успешно создан!");
-      navigate("/");
-    } catch (e: any) {
-      console.error(e);
-      setSeverity("error");
-      if (e.response) {
-        setMessage(e.response.data);
-      } else if (e.request) {
-        setMessage("Сервер не отвечает, повторите попытку позже");
-      } else if (e.message) {
-        setMessage(e.message);
-      } else {
-        setMessage("Произошла неизвестная ошибка");
-      }
-    } finally {
-      setOpen(true);
-      setLoading(false);
-    }
+    setLoading(true);
+    await createArticle(data, uploadImages);
+    setLoading(false);
   };
 
   return (

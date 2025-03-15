@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop } from '@mui/material';
-import { useEditor, EditorContent } from '@tiptap/react';
-import Image from '@tiptap/extension-image';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import debounce from 'lodash.debounce';
+import { EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
@@ -16,14 +9,12 @@ import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
-import { getArticleById, updateArticle } from '@api/articleApi';
-import { useAuth } from '@context/AuthContext';
-import { articleSchema } from '@schemas/articleSchemas';
-import { PageProps } from '@mytypes/commonTypes';
-import { Article, ArticleDto } from '@mytypes/articleTypes';
 import StyledEditorContainer from '@components/StyledEditorContainer';
-import usePreventUnload from "@hooks/usePreventUnload";
-import { deleteImage, uploadImage } from '@api/cloudinaryApi';
+import { getArticleById } from '@api/articleApi';
+import { useAuth } from '@context/AuthContext';
+import { PageProps } from '@mytypes/commonTypes';
+import { Article, ArticleDto, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
+import { extractImageUrls, useArticleEditor, useArticleForm, useEditArticle, useUploadImages } from '@hooks/useArticles';
 
 export default function EditArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = useNavigate();
@@ -35,53 +26,25 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
   const [loading, setLoading] = React.useState(true);
   const initialImageUrls = React.useRef<string[]>([]);
   const localImages = React.useRef<Map<string, File>>(new Map());
-  const [formDirty, setFormDirty] = React.useState(false);
-  usePreventUnload(formDirty);
-
-  const TITLE_MAX_LENGTH = 60;
-  const DESCRIPTION_MAX_LENGTH = 250;
-  const CONTENT_MAX_LENGTH = 30000;
-  const [titleLength, setTitleLength] = React.useState(0);
-  const [descriptionLength, setDescriptionLength] = React.useState(0);
-  const [contentLength, setContentLength] = React.useState(0);
 
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors },
-    reset
-  } = useForm<ArticleDto>({
-    resolver: yupResolver(articleSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      content: "<p></p>"
-    }
-  });
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Image.extend({
-        renderHTML({ HTMLAttributes }) {
-          return ["img", { ...HTMLAttributes, style: "max-width:100%; height:auto;" }];
-        },
-      }).configure({
-        inline: true,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      })
-    ],
-    content: "",
-    onUpdate: debounce(({ editor }) => {
-      setValue("content", editor.getHTML(), { shouldValidate: true });
-      setContentLength(editor.getText().length);
-      setFormDirty(true);
-    }, 300),
-  });
+    errors,
+    reset,
+    titleLength,
+    setTitleLength,
+    descriptionLength,
+    setDescriptionLength,
+    contentLength,
+    setContentLength,
+    setFormDirty
+  } = useArticleForm();
+  
+  const editor = useArticleEditor(setValue, setContentLength, setFormDirty);
+  const uploadImages = useUploadImages(localImages);
+  const editArticle = useEditArticle(setSeverity, setMessage, setOpen, navigate);
 
   React.useEffect(() => {
     if (userLoading) return;
@@ -125,70 +88,10 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     }
   }, [article, reset, editor]);
 
-  const extractImageIdFromUrl = (url: string): string => {
-    const match = url.match(/\/v\d+\/([^\/]+)\.\w+$/);
-    return match ? match[1] : "";
-  };
-
-  const extractImageUrls = (html: string): string[] => {
-    const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = html;
-    const images = Array.from(tempContainer.querySelectorAll("img"));
-    return images.map((img) => img.getAttribute("src") || "");
-  };
-
-  const uploadImages = async (html: string): Promise<string> => {
-    const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = html;
-    const imageElements = Array.from(tempContainer.querySelectorAll("img"));
-    const imageUploadPromises = imageElements.map(async (img) => {
-      const src = img.getAttribute("src");
-      if (!src || !localImages.current.has(src)) return;
-      const file = localImages.current.get(src);
-      if (file) {
-        try {
-          const cloudUrl = await uploadImage(file);
-          img.setAttribute("src", cloudUrl);
-        } catch (e: any) {
-          throw new Error("Файл не найден");
-        }
-      }
-    });
-    await Promise.all(imageUploadPromises);
-    return tempContainer.innerHTML;
-  };
-
   const onSubmit = async (data: ArticleDto) => {
-    try {
-      setLoading(true);
-      const updatedContent = await uploadImages(data.content);
-      const currentImageUrls = extractImageUrls(updatedContent);
-      const deletedImages = initialImageUrls.current.filter((url) => !currentImageUrls.includes(url));
-      for (const imageUrl of deletedImages) {
-        await deleteImage(extractImageIdFromUrl(imageUrl));
-      }
-      const updatedData = { ...data, content: updatedContent };
-      setLoading(false);
-      await updateArticle(article!.id, updatedData);
-      setSeverity("success");
-      setMessage("Учебный материал успешно обновлён!");
-      navigate("/");
-    } catch (e: any) {
-      console.error(e);
-      setSeverity("error");
-      if (e.response) {
-        setMessage(e.response.data);
-      } else if (e.request) {
-        setMessage("Сервер не отвечает, повторите попытку позже");
-      } else if (e.message) {
-        setMessage(e.message);
-      } else {
-        setMessage("Произошла неизвестная ошибка");
-      }
-    } finally {
-      setOpen(true);
-      setLoading(false);
-    }
+    setLoading(true);
+    await editArticle(article!.id, data, uploadImages, initialImageUrls);
+    setLoading(false);
   };
 
   return (

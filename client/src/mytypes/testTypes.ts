@@ -98,5 +98,5 @@ export const questionTypes = [
   { value: 0, label: 'Один правильный ответ' },
   { value: 1, label: 'Несколько правильных ответов' },
   { value: 2, label: 'Соответствие' },
-  { value: 3, label: 'Заполнение пропусков' }
+  { value: 3, label: 'Заполнение пропущенного слова' }
 ];

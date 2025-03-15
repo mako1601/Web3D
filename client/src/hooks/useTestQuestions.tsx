@@ -1,12 +1,139 @@
 import * as React from 'react';
-import { AnswerOption, Question, QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX } from '@mytypes/testTypes';
+import { AnswerOption, Question, QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX, TestDto, TestForSchemas } from '@mytypes/testTypes';
 import { defaultSingleChoiceQuestion, defaultMultipleChoiceQuestion, defaultMatchingQuestion, defaultFillInTheBlankQuestion } from '@mytypes/testTypes';
+import { deleteImage, uploadImage } from '@api/cloudinaryApi';
+import usePreventUnload from './usePreventUnload';
+import { createTest, updateTest } from '@api/testApi';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { testSchema } from '@schemas/testSchemas';
+import { extractImageIdFromUrl } from '@utils/extractImageIdFromUrl';
 
 export function useTestQuestions(initialQuestions: QuestionMap = {}) {
   const [questions, setQuestions] = React.useState<QuestionMap>(() =>
     Object.keys(initialQuestions).length > 0 ? initialQuestions : { [crypto.randomUUID()]: defaultSingleChoiceQuestion }
   );
   const [activeQuestion, setActiveQuestion] = React.useState<string>(Object.keys(questions)[0]);
+  const [titleLength, setTitleLength] = React.useState(0);
+  const [descriptionLength, setDescriptionLength] = React.useState(0);
+  const [isGridVisible, setIsGridVisible] = React.useState(true);
+  const [formDirty, setFormDirty] = React.useState(false);
+  usePreventUnload(formDirty);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm<TestForSchemas>({
+    resolver: yupResolver(testSchema)
+  });
+
+  const useCreateTest = (setSeverity: any, setMessage: any, setOpen: any, navigate: any) => {
+    return async (data: TestForSchemas, localImages: React.MutableRefObject<Map<string, File>>) => {
+      try {
+        const updatedQuestions = await uploadLocalImages(localImages);
+        const testData: TestDto = {
+          title: data.title,
+          description: data.description,
+          questions: Object.values(updatedQuestions).map((question, qIndex) => ({
+            id: question.id,
+            testId: question.testId,
+            type: question.type,
+            index: qIndex,
+            text: question.text,
+            imageUrl: question.imageUrl,
+            correctAnswer: question.correctAnswer,
+            answerOptions: question.answerOptions.map((answerOption, aIndex) => ({
+              id: answerOption.id,
+              questionId: answerOption.questionId,
+              index: aIndex,
+              text: answerOption.text,
+              isCorrect: answerOption.isCorrect,
+              matchingPair: answerOption.matchingPair
+            }))
+          }))
+        };
+        await createTest(testData);
+        setSeverity("success");
+        setMessage("Тест успешно создан!");
+        navigate("/");
+      } catch (e: any) {
+        console.error(e);
+        setSeverity("error");
+        if (e.response) {
+          setMessage(e.response.data);
+        } else if (e.request) {
+          setMessage("Сервер не отвечает, повторите попытку позже");
+        } else if (e.message) {
+          setMessage(e.message);
+        } else {
+          setMessage("Произошла неизвестная ошибка");
+        }
+      } finally {
+        setOpen(true);
+      }
+    };
+  };
+
+  const useEditTest = (setSeverity: any, setMessage: any, setOpen: any, navigate: any) => {
+    return async (
+      id: number,
+      data: TestForSchemas,
+      localImages: React.MutableRefObject<Map<string, File>>,
+      initialImageUrls: React.MutableRefObject<string[]>
+    ) => {
+      try {
+        const updatedQuestions = await uploadLocalImages(localImages);
+        const questionImageUrls = new Set(Object.values(questions)
+          .map(question => question.imageUrl)
+          .filter(url => url !== undefined));
+        const deletedImages = initialImageUrls.current.filter(url => !questionImageUrls.has(url));
+        for (const imageUrl of deletedImages) {
+          await deleteImage(extractImageIdFromUrl(imageUrl));
+        }
+        const testData: TestDto = {
+          title: data.title,
+          description: data.description,
+          questions: Object.values(updatedQuestions).map((question, qIndex) => ({
+            id: question.id,
+            testId: question.testId,
+            type: question.type,
+            index: qIndex,
+            text: question.text,
+            imageUrl: question.imageUrl,
+            correctAnswer: question.correctAnswer,
+            answerOptions: question.answerOptions.map((answerOption, aIndex) => ({
+              id: answerOption.id,
+              questionId: answerOption.questionId,
+              index: aIndex,
+              text: answerOption.text,
+              isCorrect: answerOption.isCorrect,
+              matchingPair: answerOption.matchingPair
+            }))
+          }))
+        };
+        await updateTest(id, testData);
+        setSeverity("success");
+        setMessage("Тест успешно обновлён!");
+        navigate("/");
+      } catch (e: any) {
+        console.error(e);
+        setSeverity("error");
+        if (e.response) {
+          setMessage(e.response.data);
+        } else if (e.request) {
+          setMessage("Сервер не отвечает, повторите попытку позже");
+        } else if (e.message) {
+          setMessage(e.message);
+        } else {
+          setMessage("Произошла неизвестная ошибка");
+        }
+      } finally {
+        setOpen(true);
+      }
+    };
+  };
 
   const addQuestion = () => {
     if (Object.keys(questions).length < QUESTION_MAX) {
@@ -107,7 +234,7 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
     });
   };
 
-  const handleDragEnd = (event: any) => {
+  const reorderQuestionsOnDrag = (event: any) => {
     const { active, over } = event;
     if (over || active.id !== over.id) {
       setQuestions(prev => {
@@ -126,6 +253,22 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
     setActiveQuestion(active.id);
   };
 
+  const uploadLocalImages = async (localImages: React.MutableRefObject<Map<string, File>>) => {
+    const updatedQuestions = { ...questions };
+    for (const [url, file] of localImages.current.entries()) {
+      try {
+        const imageUrl = await uploadImage(file);
+        const questionId = Object.keys(updatedQuestions).find(id => updatedQuestions[id].imageUrl === url);
+        if (questionId) {
+          updatedQuestions[questionId].imageUrl = imageUrl;
+        }
+      } catch (e: any) {
+        throw new Error("Файл не найден");
+      }
+    }
+    return updatedQuestions;
+  };
+
   return {
     questions,
     setQuestions,
@@ -134,10 +277,24 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
     addQuestion,
     updateQuestion,
     removeQuestion,
-    handleDragEnd,
+    reorderQuestionsOnDrag,
     addAnswerOption,
     updateAnswerOption,
     setCorrectAnswer,
-    removeAnswerOption
+    removeAnswerOption,
+    setFormDirty,
+    uploadLocalImages,
+    useCreateTest,
+    useEditTest,
+    titleLength,
+    setTitleLength,
+    descriptionLength,
+    setDescriptionLength,
+    isGridVisible,
+    setIsGridVisible,
+    register,
+    handleSubmit,
+    errors,
+    reset
   };
 }

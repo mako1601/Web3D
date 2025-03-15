@@ -13,3 +13,7 @@ export interface ArticleDto {
   description: string;
   content: string;
 }
+
+export const TITLE_MAX_LENGTH = 60;
+export const DESCRIPTION_MAX_LENGTH = 250;
+export const CONTENT_MAX_LENGTH = 30000;
