@@ -125,8 +125,6 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     }
   }, [article, reset, editor]);
 
-  if (!article || !editor) return null;
-
   const extractImageIdFromUrl = (url: string): string => {
     const match = url.match(/\/v\d+\/([^\/]+)\.\w+$/);
     return match ? match[1] : "";
@@ -171,7 +169,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
       }
       const updatedData = { ...data, content: updatedContent };
       setLoading(false);
-      await updateArticle(article.id, updatedData);
+      await updateArticle(article!.id, updatedData);
       setSeverity("success");
       setMessage("Учебный материал успешно обновлён!");
       navigate("/");
@@ -287,7 +285,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
           width: '100%',
           height: '100%',
         }}
-        open={loading || userLoading}
+        open={loading || userLoading || !article || !editor}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

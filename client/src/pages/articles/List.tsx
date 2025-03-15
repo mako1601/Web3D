@@ -21,7 +21,6 @@ export default function ArticleList() {
   const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get("searchText") || "");
 
-
   const searchText = searchParams.get("searchText") || "";
   const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
