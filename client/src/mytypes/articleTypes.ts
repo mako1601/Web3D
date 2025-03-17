@@ -2,15 +2,21 @@ export interface Article {
   id: number;
   userId: number;
   title: string;
-  description: string;
-  content: string;
+  description?: string;
+  contentUrl: string;
   createdAt: string;
   updatedAt?: string;
 }
 
 export interface ArticleDto {
   title: string;
-  description: string;
+  description?: string;
+  contentUrl: string;
+}
+
+export interface ArticleForSchemas {
+  title: string;
+  description?: string;
   content: string;
 }
 

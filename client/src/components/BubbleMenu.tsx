@@ -3,7 +3,7 @@ import { BubbleMenu, Editor } from '@tiptap/react';
 import { Box, Divider } from '@mui/material';
 import { FormatBold, FormatItalic, FormatStrikethrough, FormatUnderlined } from '@mui/icons-material';
 import { FormatAlignLeft, FormatAlignCenter, FormatAlignRight, FormatAlignJustify } from '@mui/icons-material';
-import { Title, FormatListBulleted, FormatListNumbered, Code } from '@mui/icons-material';
+import { Title, FormatListBulleted, FormatListNumbered, Code, Terminal } from '@mui/icons-material';
 import ImageIcon from '@mui/icons-material/Image';
 import StyledIconButton from '@components/StyledIconButton';
 
@@ -76,6 +76,7 @@ const CustomBubbleMenu = ({ editor, localImages }: Props) => {
           />
           <ImageIcon sx={{ margin: '-2px' }} />
         </StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleCodeRunner().run()}><Terminal /></StyledIconButton>
       </Box>
     </BubbleMenu>
   );

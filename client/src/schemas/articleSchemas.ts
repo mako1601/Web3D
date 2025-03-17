@@ -8,18 +8,8 @@ export const articleSchema = yup.object().shape({
   description: yup.string()
     .trim()
     .optional()
-    .max(250, "Описание не может превышать 250 символов")
-    .default(""),
-  // TODO: Протестировать
+    .max(250, "Описание не может превышать 250 символов"),
   content: yup.string()
-  .transform((value) => {
-    const cleaned = value
-      .replace(/<p><\/p>/g, "")
-      .replace(/<br>/g, "")
-      .trim();
-    return cleaned === "" ? null : cleaned;
-  })
-  .nullable()
-  .required("Обязательное поле")
-  .max(30007, "Превышен лимит 30000 символов"),
+    .required("Обязательное поле")
+    .max(30000, "Текст не может превышать 30000 символов"),
 });

@@ -1,18 +1,21 @@
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { createArticle, updateArticle } from "@api/articleApi";
-import { deleteImage, uploadImage } from "@api/cloudinaryApi";
-import { ArticleDto } from "@mytypes/articleTypes";
-import usePreventUnload from "./usePreventUnload";
-import { articleSchema } from "@schemas/articleSchemas";
-import { useEditor } from "@tiptap/react";
+import debounce from "lodash.debounce";
+import { Editor, JSONContent, useEditor } from "@tiptap/react";
+import Image from '@tiptap/extension-image';
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
-import debounce from "lodash.debounce";
-import Image from '@tiptap/extension-image';
+
+import { createArticle, updateArticle } from "@api/articleApi";
+import { deleteImage, updateJson, uploadImage, uploadJson } from "@api/cloudinaryApi";
+import { Article, ArticleDto, ArticleForSchemas } from "@mytypes/articleTypes";
+import { articleSchema } from "@schemas/articleSchemas";
 import { extractImageIdFromUrl } from "@utils/extractImageIdFromUrl";
+import usePreventUnload from "@hooks/usePreventUnload";
+import { CodeRunner } from "@components/CodeRunner";
+import { extractJsonIdFromUrl } from "@utils/extractJsonIdFromUrl";
 
 export const useArticleForm = () => {
   const [titleLength, setTitleLength] = React.useState(0);
@@ -28,8 +31,8 @@ export const useArticleForm = () => {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<ArticleDto>({
-    resolver: yupResolver(articleSchema),
+  } = useForm<ArticleForSchemas>({
+    resolver: yupResolver(articleSchema)
   });
 
   return {
@@ -45,11 +48,15 @@ export const useArticleForm = () => {
     contentLength,
     setContentLength,
     formDirty,
-    setFormDirty,
+    setFormDirty
   };
 };
 
-export const useArticleEditor = (setValue: any, setContentLength: any, setFormDirty: any) => {
+export const useArticleEditor = (
+  setValue: any,
+  setContentLength: any,
+  setFormDirty: any
+) => {
   return useEditor({
     extensions: [
       StarterKit,
@@ -62,10 +69,11 @@ export const useArticleEditor = (setValue: any, setContentLength: any, setFormDi
         })
         .configure({ inline: true }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
+      CodeRunner
     ],
     content: `<p></p>`,
     onUpdate: debounce(({ editor }) => {
-      setValue("content", editor.getHTML(), { shouldValidate: true });
+      setValue("content", editor.getText(), { shouldValidate: true });
       setContentLength(editor.getText().length);
       setFormDirty(true);
     }, 300),
@@ -73,10 +81,11 @@ export const useArticleEditor = (setValue: any, setContentLength: any, setFormDi
 };
 
 export const useCreateArticle = (setSeverity: any, setMessage: any, setOpen: any, navigate: any) => {
-  return async (data: ArticleDto, uploadImages: (html: string) => Promise<string>) => {
+  return async (editor: Editor, data: ArticleForSchemas, uploadImages: (json: JSONContent) => Promise<JSONContent>) => {
     try {
-      const updatedContent = await uploadImages(data.content);
-      const updatedData = { ...data, content: updatedContent };
+      const updatedJson = await uploadImages(editor.getJSON());
+      const jsonUrl = await uploadJson(JSON.stringify(updatedJson));
+      const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl };
       await createArticle(updatedData);
       setSeverity("success");
       setMessage("Учебный материал успешно создан!");
@@ -100,16 +109,17 @@ export const useCreateArticle = (setSeverity: any, setMessage: any, setOpen: any
 };
 
 export const useEditArticle = (setSeverity: any, setMessage: any, setOpen: any, navigate: any) => {
-  return async (id: number, data: ArticleDto, uploadImages: (html: string) => Promise<string>, initialImageUrls: React.MutableRefObject<string[]>) => {
+  return async (editor: Editor, article: Article, data: ArticleForSchemas, uploadImages: (json: JSONContent) => Promise<JSONContent>, initialImageUrls: React.MutableRefObject<string[]>) => {
     try {
-      const updatedContent = await uploadImages(data.content);
-      const currentImageUrls = extractImageUrls(updatedContent);
+      const updatedJson = await uploadImages(editor.getJSON());
+      const currentImageUrls = extractImageUrls(updatedJson);
       const deletedImages = initialImageUrls.current.filter(url => !currentImageUrls.includes(url));
       for (const imageUrl of deletedImages) {
         await deleteImage(extractImageIdFromUrl(imageUrl));
       }
-      const updatedData = { ...data, content: updatedContent };
-      await updateArticle(id, updatedData);
+      const jsonUrl = await updateJson(JSON.stringify(updatedJson), extractJsonIdFromUrl(article.contentUrl));
+      const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl };
+      await updateArticle(article.id, updatedData);
       setSeverity("success");
       setMessage("Учебный материал успешно обновлён!");
       navigate("/");
@@ -132,33 +142,62 @@ export const useEditArticle = (setSeverity: any, setMessage: any, setOpen: any, 
 };
 
 export const useUploadImages = (localImages: React.MutableRefObject<Map<string, File>>) => {
-  return async (html: string): Promise<string> => {
-    const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = html;
-    const imageElements = Array.from(tempContainer.querySelectorAll("img"));
+  return async (json: any): Promise<any> => {
+    if (!json || !json.content) return json;
 
-    const imageUploadPromises = imageElements.map(async (img) => {
-      const src = img.getAttribute("src");
-      if (!src || !localImages.current.has(src)) return;
-      const file = localImages.current.get(src);
-      if (file) {
-        try {
-          const cloudUrl = await uploadImage(file);
-          img.setAttribute("src", cloudUrl);
-        } catch (e: any) {
-          throw new Error("Файл не найден");
+    const processNode = async (node: any) => {
+      if (node.type === "image" && node.attrs?.src) {
+        const src = node.attrs.src;
+        if (localImages.current.has(src)) {
+          const file = localImages.current.get(src);
+          if (file) {
+            try {
+              const cloudUrl = await uploadImage(file);
+              node.attrs.src = cloudUrl;
+            } catch (e: any) {
+              throw new Error("Файл не найден");
+            }
+          }
         }
       }
-    });
 
-    await Promise.all(imageUploadPromises);
-    return tempContainer.innerHTML;
+      if (node.content) {
+        await Promise.all(node.content.map(processNode));
+      }
+    };
+
+    await Promise.all(json.content.map(processNode));
+    return json;
   };
 };
 
-export const extractImageUrls = (html: string): string[] => {
-  const tempContainer = document.createElement("div");
-  tempContainer.innerHTML = html;
-  const images = Array.from(tempContainer.querySelectorAll("img"));
-  return images.map((img) => img.getAttribute("src") || "");
+export const useFetchJsonFromUrl = async (url: string): Promise<any | null> => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Ошибка загрузки JSON: ${response.status}`);
+    }
+    const json = await response.json();
+    return json;
+  } catch (e: any) {
+    console.error("Ошибка при загрузке JSON:", e);
+    return null;
+  }
+};
+
+export const extractImageUrls = (json: any): string[] => {
+  const urls: string[] = [];
+
+  const traverse = (node: any) => {
+    if (!node || typeof node !== "object") return;
+    if (node.type === "image" && node.attrs?.src) {
+      urls.push(node.attrs.src);
+    }
+    if (Array.isArray(node.content)) {
+      node.content.forEach(traverse);
+    }
+  };
+
+  traverse(json);
+  return urls;
 };

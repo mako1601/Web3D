@@ -27,7 +27,7 @@ public static class ArticleExtension
                 )
                 .Where(x => keywords.All(y =>
                     x.article.Title.ToLower().Contains(y) ||
-                    x.article.Description.ToLower().Contains(y) ||
+                   (x.article.Description != null && x.article.Description.ToLower().Contains(y)) ||
                     string.Join(" ", x.user.LastName, x.user.FirstName, x.user.MiddleName)
                         .ToLower()
                         .Contains(y)

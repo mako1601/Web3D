@@ -8,14 +8,14 @@ namespace Web3D.BusinessLogic.Services;
 
 internal class ArticleService(IArticleRepository articleRepository) : IArticleService
 {
-    public async Task CreateAsync(long authorId, string title, string description, string content, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(long authorId, string title, string? description, string contentUrl, CancellationToken cancellationToken = default)
     {
         var article = new Article
         {
             UserId = authorId,
             Title = title,
             Description = description,
-            Content = content,
+            ContentUrl = contentUrl,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -34,13 +34,13 @@ internal class ArticleService(IArticleRepository articleRepository) : IArticleSe
         return articles;
     }
 
-    public async Task UpdateAsync(long id, string title, string description, string content, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(long id, string title, string? description, string contentUrl, CancellationToken cancellationToken = default)
     {
         var article = await articleRepository.GetByIdAsync(id, cancellationToken) ?? throw new ArticleNotFoundException();
 
         article.Title = title;
         article.Description = description;
-        article.Content = content;
+        article.ContentUrl = contentUrl;
         article.UpdatedAt = DateTime.UtcNow;
 
         await articleRepository.UpdateAsync(article, cancellationToken);

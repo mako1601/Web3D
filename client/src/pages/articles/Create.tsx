@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField } from '@mui/material';
+import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField, IconButton } from '@mui/material';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
@@ -11,13 +12,15 @@ import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
 import { PageProps } from '@mytypes/commonTypes';
-import { ArticleDto, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
+import { ArticleDto, ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
 import { useArticleForm, useArticleEditor, useCreateArticle, useUploadImages } from '@hooks/useArticles';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
   const navigate = ReactDOM.useNavigate();
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
+  const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
+  const [canvasContainerRef, setCanvasContainerRef] = React.useState<HTMLDivElement | null>(null);
 
   const {
     register,
@@ -30,16 +33,70 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
     setDescriptionLength,
     contentLength,
     setContentLength,
-    setFormDirty
+    setFormDirty,
   } = useArticleForm();
 
   const editor = useArticleEditor(setValue, setContentLength, setFormDirty);
   const uploadImages = useUploadImages(localImages);
   const createArticle = useCreateArticle(setSeverity, setMessage, setOpen, navigate);
 
-  const onSubmit = async (data: ArticleDto) => {
+  React.useEffect(() => {
+    (window as any).onCanvasGenerated = (generatedCanvas: HTMLCanvasElement) => {
+      setCanvas(generatedCanvas);
+    };
+    return () => {
+      delete (window as any).onCanvasGenerated;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (canvas && canvasContainerRef) {
+      canvasContainerRef.appendChild(canvas);
+    }
+  }, [canvas, canvasContainerRef]);
+
+  const closeBackdrop = () => {
+    if (canvasContainerRef && canvas) {
+      canvasContainerRef.removeChild(canvas);
+    }
+    setCanvas(null);
+  };
+
+  const handleRunCode = React.useCallback(() => {
+    if (editor) {
+      editor.commands.executeCode();
+    }
+  }, [editor]);
+
+  const getCursorPosition = () => {
+    if (!editor) return { top: 0, left: 0 };
+    const { anchor } = editor.state.selection;
+    const coords = editor.view.coordsAtPos(anchor);
+    const pageCard = document.querySelector('.page-card');
+    if (!pageCard) return { top: coords.top, left: 0 };
+    const pageCardRect = pageCard.getBoundingClientRect();
+    return {
+      top: coords.top,
+      left: pageCardRect.right - 50
+    };
+  };
+
+  const [cursorPos, setCursorPos] = React.useState({ top: 0, left: 0 });
+
+  React.useEffect(() => {
+    if (!editor) return;
+    const updatePosition = () => {
+      setCursorPos(getCursorPosition());
+    };
+    editor.on('selectionUpdate', updatePosition);
+    return () => {
+      editor.off('selectionUpdate', updatePosition);
+    };
+  }, [editor]);
+
+  const onSubmit = async (data: ArticleForSchemas) => {
     setLoading(true);
-    await createArticle(data, uploadImages);
+    await createArticle(editor!, data, uploadImages);
     setLoading(false);
   };
 
@@ -99,7 +156,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
               />
             </FormControl>
           </PageCard>
-          <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <PageCard className="page-card" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 Текст
@@ -123,6 +180,27 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
             >
               {loading ? "Сохранение…" : "Сохранить"}
             </Button>
+            {editor && editor.isActive('codeRunner') && (
+              <IconButton
+                onClick={handleRunCode}
+                sx={{
+                  position: 'absolute',
+                  top: `${cursorPos.top - 10}px`,
+                  left: `${cursorPos.left - 20}px`,
+                  padding: 0,
+                  backgroundColor: 'transparent',
+                  border: 'transparent',
+                  transition: 'transform 0.2s ease, color 0.2s ease',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    transform: 'scale(1.4)',
+                    color: 'rgb(0, 200, 50)',
+                  },
+                }}
+              >
+                <PlayArrowRoundedIcon sx={{ color: 'rgb(12, 150, 0)', '&:hover': { color: 'rgb(0, 200, 50)' } }} />
+              </IconButton>
+            )}
           </PageCard>
         </Box>
       </ContentContainer>
@@ -140,6 +218,26 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
         open={loading}
       >
         <CircularProgress color="inherit" />
+      </Backdrop>
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        }}
+        open={!!canvas}
+        onClick={closeBackdrop}
+      >
+        {canvas && (
+          <div
+            style={{ display: 'flex', flexDirection: 'column' }}
+            ref={el => setCanvasContainerRef(el)}
+          />
+        )}
       </Backdrop>
     </Page>
   );
