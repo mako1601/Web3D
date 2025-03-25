@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Box, Link, Radio, Button, Divider, FormLabel, TextField, RadioGroup, IconButton, Typography, FormControl, InputAdornment, FormControlLabel } from '@mui/material';
+import { Box, Link, Button, Divider, FormLabel, TextField, IconButton, Typography, FormControl, InputAdornment } from '@mui/material';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
@@ -21,13 +21,13 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const { control, register, handleSubmit, formState: { errors } } = useForm<RegData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<RegData>({
     resolver: yupResolver(regSchema),
   });
-
-  const handleTogglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   const onSubmit = async (data: RegData) => {
     try {
@@ -99,7 +99,7 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      onClick={handleTogglePasswordVisibility}
+                      onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       title={showPassword ? "Спрятать пароль" : "Отобразить пароль"}
                       style={{ border: 0, backgroundColor: 'transparent' }}
@@ -142,20 +142,6 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
               autoComplete="additional-name"
               error={!!errors.middleName}
               helperText={errors.middleName?.message}
-            />
-          </FormControl>
-          <FormControl>
-            <FormLabel sx={{ margin: 0 }}>Роль</FormLabel>
-            <Controller
-              name="role"
-              control={control}
-              defaultValue={1}
-              render={({ field }) => (
-                <RadioGroup {...field} row>
-                  <FormControlLabel value={1} control={<Radio />} label="Студент" />
-                  <FormControlLabel value={2} control={<Radio />} label="Преподаватель" />
-                </RadioGroup>
-              )}
             />
           </FormControl>
           <Button type="submit" fullWidth variant="contained">Зарегистрироваться</Button>

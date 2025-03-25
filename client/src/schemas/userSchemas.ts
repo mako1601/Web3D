@@ -24,7 +24,7 @@ export const regSchema = yup.object().shape({
     .matches(/^\S*$/, "Отчество не должно содержать пробелы"),
   role: yup.number()
     .required()
-    .oneOf([1, 2]),
+    .default(1),
 });
 
 export const logSchema = yup.object().shape({
