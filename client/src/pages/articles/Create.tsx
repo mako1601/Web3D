@@ -12,7 +12,7 @@ import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
 import { PageProps } from '@mytypes/commonTypes';
-import { ArticleDto, ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
+import { ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
 import { useArticleForm, useArticleEditor, useCreateArticle, useUploadImages } from '@hooks/useArticles';
 
 export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
