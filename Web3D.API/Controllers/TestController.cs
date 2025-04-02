@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Exceptions;
 using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.API.Controllers;
@@ -24,6 +25,13 @@ public class TestController(ITestService testService) : ControllerBase
     public async Task<IActionResult> GetAsync([FromRoute] long id)
     {
         var result = await testService.GetByIdAsync(id);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:long}/pass")]
+    public async Task<IActionResult> GetForPassingAsync([FromRoute] long id)
+    {
+        var result = await testService.GetForPassingByIdAsync(id);
         return Ok(result);
     }
 
@@ -50,30 +58,38 @@ public class TestController(ITestService testService) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{testId:long}/start")]
-    [Authorize]
+    [HttpGet("{testId:long}/start")]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> StartTestAsync([FromRoute] long testId)
     {
-        var result = await testService.StartTestAsync(testId, 0);
-        return Ok(result);
+        try {
+            var userId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
+            var result = await testService.StartTestAsync(testId, userId);
+            return Ok(result);
+        }
+        catch (UserNotFoundException)
+        {
+            return NotFound("Пользователь не найден");
+        }
+        catch (TestNotFoundException)
+        {
+            return NotFound("Тест не найден");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Ошибка на сервере: " + ex.Message);
+        }
     }
 
     [HttpPut("{testResultId:long}/finish")]
     [Authorize]
-    public async Task<IActionResult> FinishTestAsync([FromRoute] long testResultId)
+    public async Task<IActionResult> FinishTestAsync([FromRoute] long testResultId, [FromBody] TestRequest request)
     {
-        await testService.FinishTestAsync(testResultId);
+        Console.WriteLine("123");
+        await testService.FinishTestAsync(testResultId, request.Questions);
         return NoContent();
     }
 
-    [HttpPost("{testResultId:long}/answer")]
-    [Authorize]
-    public async Task<IActionResult> SubmitAnswerAsync([FromRoute] long testResultId, [FromBody] AnswerRequest request)
-    {
-        await testService.SaveAnswerAsync(testResultId, request.QuestionId, request.AnswerOptionId);
-        return NoContent();
-    }
-    
     [HttpGet("{testResultId:long}/result")]
     [Authorize]
     public async Task<IActionResult> GetTestResultAsync([FromRoute] long testResultId)

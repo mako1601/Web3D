@@ -138,8 +138,6 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
             .HasIndex(x => x.TestResultId);
         modelBuilder.Entity<AnswerResult>()
             .HasIndex(x => x.QuestionId);
-        modelBuilder.Entity<AnswerResult>()
-            .HasIndex(x => x.AnswerOptionId);
 
         // RefreshTokens
         modelBuilder.Entity<RefreshToken>()

@@ -15,18 +15,29 @@ internal class TestResultRepository(Web3DDbContext context) : ITestResultReposit
         return testResult.Id;
     }
 
-    public async Task FinishTestAsync(long testResultId, CancellationToken cancellationToken = default)
-    {
-        var testResult = await context.TestResults.FirstOrDefaultAsync(x => x.Id == testResultId, cancellationToken: cancellationToken)
-                         ?? throw new Exception("TestResult was not found");
+    //public async Task FinishTestAsync(long testResultId, CancellationToken cancellationToken = default)
+    //{
+    //    var testResult = await context.TestResults.FirstOrDefaultAsync(x => x.Id == testResultId, cancellationToken: cancellationToken)
+    //                     ?? throw new Exception("TestResult was not found");
 
-        testResult.EndedAt = DateTime.UtcNow;
+    //    testResult.EndedAt = DateTime.UtcNow;
+    //    testResult.Score = await context.AnswerResults
+    //        .Where(x => x.TestResultId == testResultId && x.IsCorrect)
+    //        .CountAsync(cancellationToken);
+
+    //    await context.SaveChangesAsync(cancellationToken);
+    //}
+
+    public async Task UpdateAsync(TestResult testResult, CancellationToken cancellationToken = default)
+    {
         testResult.Score = await context.AnswerResults
-            .Where(x => x.TestResultId == testResultId && x.IsCorrect)
+            .Where(x => x.TestResultId == testResult.Id && x.IsCorrect)
             .CountAsync(cancellationToken);
 
+        context.TestResults.Update(testResult);
         await context.SaveChangesAsync(cancellationToken);
     }
+
     public async Task<TestResult?> GetTestResultByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         return await context.TestResults

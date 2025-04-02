@@ -7,6 +7,8 @@ import Register from '@pages/users/Register';
 import UserList from '@pages/users/UserList';
 import EditTest from '@pages/tests/Edit';
 import TestList from '@pages/tests/List';
+import ViewTest from '@pages/tests/View';
+import PassTest from '@pages/tests/Pass';
 import CreateTest from '@pages/tests/Create';
 import ViewArticle from '@pages/articles/View';
 import ArticleList from '@pages/articles/List';
@@ -38,7 +40,10 @@ const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) =>
         <Route path="/articles/:id/edit" element={<EditArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
       </Route>
       <Route path="/tests" element={<TestList />} />
-      {/* <Route path="/tests/:id" element={<??? />} /> */}
+      <Route path="/tests/:id" element={<ViewTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
+      <Route element={<ProtectedRoute allowedRoles={[1]} />} > {/*Only for Student*/}
+        <Route path="/tests/:testId/results/:testResultId" element={<PassTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen}/>} />
+      </Route>
       <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
         <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
         <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />

@@ -38,7 +38,26 @@ export interface AnswerOption {
   index: number;
   text: string;
   isCorrect: boolean;
-  matchingPair?: string;
+  matchingPair: string | null;
+}
+
+export type TestResult = {
+  id: number;
+  userId: number;
+  testId: number;
+  attempt: number;
+  score: number | null;
+  startedAt: string;
+  endedAt: string | null;
+  answerResults: AnswerResult[];
+}
+
+export type AnswerResult = {
+  id: number;
+  testResultId: number;
+  questionId: number;
+  answerOptionId: number | null;
+  isCorrect: boolean;
 }
 
 export const QUESTION_MIN = 1;
@@ -55,8 +74,8 @@ export const defaultSingleChoiceQuestion: Question = {
   index: 0,
   text: "",
   answerOptions: [
-    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true },
-    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false }
+    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true, matchingPair: null },
+    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false, matchingPair: null }
   ]
 };
 
@@ -67,8 +86,8 @@ export const defaultMultipleChoiceQuestion: Question = {
   index: 0,
   text: "",
   answerOptions: [
-    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true },
-    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false }
+    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true, matchingPair: null },
+    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false, matchingPair: null }
   ]
 };
 

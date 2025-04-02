@@ -184,10 +184,10 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
       const question = prev[key];
       if (question && question.answerOptions.length < ANSWER_OPTION_MAX) {
         if (question.type === 2) {
-          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", matchingPair: "", isCorrect: false }];
+          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false, matchingPair: "" }];
           return { ...prev, [key]: { ...question, answerOptions: newOptions } };
         } else {
-          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false }];
+          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false, matchingPair: null }];
           return { ...prev, [key]: { ...question, answerOptions: newOptions } };
         }
       }

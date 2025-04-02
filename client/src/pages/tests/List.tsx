@@ -1,3 +1,4 @@
+import * as ReactDOM from 'react-router-dom';
 import { Box, CircularProgress, Divider, FormControl, FormControlLabel, IconButton, InputAdornment, OutlinedInput, Radio, RadioGroup, Stack, Typography } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -15,6 +16,7 @@ import { useSearchAndPagination } from '@hooks/useSearchAndPagination';
 const PAGE_SIZE = 10;
 
 export default function TestList() {
+  const navigate = ReactDOM.useNavigate();
   const {
     searchQuery,
     orderBy,
@@ -75,7 +77,7 @@ export default function TestList() {
               <Stack gap="1rem">
                 <PageCard sx={{ padding: 0 }}>
                   {tests.map((test) => (
-                    <TestCard key={test.id} test={test} onClick={() => console.log(test.id) /*onClick={() => navigate(`${test.id}`)}*/} />
+                    <TestCard key={test.id} test={test} onClick={() => navigate(`${test.id}`)} />
                   ))}
                 </PageCard>
                 <Pagination currentPage={currentPage} totalPages={Math.ceil(totalCount / PAGE_SIZE)} onPageChange={handlePageChange} />

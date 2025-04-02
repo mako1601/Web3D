@@ -1,6 +1,6 @@
 import { api } from './axiosInstance';
 import { PageResult } from '@mytypes/commonTypes';
-import { Test, TestDto } from '@mytypes/testTypes';
+import { Test, TestDto, TestResult } from '@mytypes/testTypes';
 
 const ROUTE = "/tests";
 
@@ -21,7 +21,8 @@ export const getAllTests = async (
   pageSize: number
 ): Promise<PageResult<Test>> => {
   const response = await api.get<PageResult<Test>>(`${ROUTE}`, {
-    params: { searchText, orderBy, sortDirection, currentPage, pageSize } });
+    params: { searchText, orderBy, sortDirection, currentPage, pageSize }
+  });
   return response.data;
 };
 
@@ -31,4 +32,23 @@ export const updateTest = async (id: number, data: TestDto): Promise<void> => {
 
 export const deleteTest = async (id: number): Promise<void> => {
   await api.delete(`${ROUTE}/${id}`);
+};
+
+export const startTest = async (id: number): Promise<number> => {
+  const response = await api.get<number>(`${ROUTE}/${id}/start`);
+  return response.data;
+};
+
+export const finishTest = async (id: number, data: TestDto): Promise<void> => {
+  await api.put(`${ROUTE}/${id}/finish`, data);
+};
+
+export const getTestForPassingById = async (id: number): Promise<Test> => {
+  const response = await api.get<Test>(`${ROUTE}/${id}/pass`);
+  return response.data;
+};
+
+export const getTestResultById = async (id: number): Promise<TestResult> => {
+  const response = await api.get<TestResult>(`${ROUTE}/${id}/result`);
+  return response.data;
 };

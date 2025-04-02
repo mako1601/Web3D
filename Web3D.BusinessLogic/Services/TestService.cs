@@ -1,11 +1,13 @@
 ﻿using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Exceptions;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.BusinessLogic.Services;
 
 internal class TestService(
+    IUserRepository userRepository,
     ITestRepository testRepository,
     ITestResultRepository testResultRepository,
     IAnswerResultRepository answerResultRepository)
@@ -19,7 +21,7 @@ internal class TestService(
             Title = title,
             Description = description,
             Questions = questions,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         await testRepository.CreateAsync(test, cancellationToken);
@@ -27,7 +29,45 @@ internal class TestService(
 
     public async Task<Test?> GetByIdAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        return test;
+    }
+
+    public async Task<Test?> GetForPassingByIdAsync(long testId, CancellationToken cancellationToken = default)
+    {
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+
+        foreach (var question in test.Questions)
+        {
+            switch (question.Type)
+            {
+                case QuestionType.SingleChoice:
+                case QuestionType.MultipleChoice:
+                    foreach (var answer in question.AnswerOptions)
+                    {
+                        answer.IsCorrect = false;
+                    }
+                    break;
+
+                case QuestionType.Matching:
+                    var shuffledPairs = question.AnswerOptions
+                        .Select(a => a.MatchingPair)
+                        .OrderBy(_ => Guid.NewGuid())
+                        .ToList();
+
+                    int index = 0;
+                    foreach (var answer in question.AnswerOptions)
+                    {
+                        answer.MatchingPair = shuffledPairs[index++];
+                    }
+                    break;
+
+                case QuestionType.FillInTheBlank:
+                    question.CorrectAnswer = null;
+                    break;
+            }
+        }
+
         return test;
     }
 
@@ -39,7 +79,7 @@ internal class TestService(
 
     public async Task UpdateAsync(long testId, string newTitle, string newDescription, ICollection<Question> questions, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
 
         test.Title = newTitle;
         test.Description = newDescription;
@@ -51,13 +91,14 @@ internal class TestService(
 
     public async Task DeleteAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
         await testRepository.DeleteAsync(test, cancellationToken);
     }
 
     public async Task<long> StartTestAsync(long testId, long userId, CancellationToken cancellationToken = default)
     {
-        _ = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new Exception("Test was not found");
+        _ = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        _ = await userRepository.GetByIdAsync(userId, cancellationToken) ?? throw new UserNotFoundException();
         var attempt = await testResultRepository.GetAttemptAsync(testId, userId, cancellationToken);
 
         var testResult = new TestResult
@@ -65,28 +106,58 @@ internal class TestService(
             UserId = userId,
             TestId = testId,
             Attempt = attempt,
-            StartedAt = DateTime.UtcNow,
+            StartedAt = DateTime.UtcNow
         };
 
         var testResultId = await testResultRepository.StartTestAsync(testResult, cancellationToken);
         return testResultId;
     }
 
-    public async Task FinishTestAsync(long testResultId, CancellationToken cancellationToken = default)
+    public async Task FinishTestAsync(long testResultId, ICollection<Question> questions, CancellationToken cancellationToken = default)
     {
-        await testResultRepository.FinishTestAsync(testResultId, cancellationToken);
+        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken) ?? throw new Exception("TestResult was not found");
+        var test = await testRepository.GetByIdAsync(questions.First().TestId, cancellationToken) ?? throw new TestNotFoundException();
+
+        foreach (var userQuestion in questions)
+        {
+            var testQuestion = test.Questions.FirstOrDefault(q => q.Id == userQuestion.Id);
+            if (testQuestion == null) continue;
+
+            bool isCorrect = false;
+
+            switch (userQuestion.Type)
+            {
+                case QuestionType.SingleChoice:
+                case QuestionType.MultipleChoice:
+                    isCorrect = userQuestion.AnswerOptions.All(ao =>
+                        testQuestion.AnswerOptions.Any(to => to.Id == ao.Id && to.IsCorrect == ao.IsCorrect));
+                    break;
+
+                case QuestionType.Matching:
+                    isCorrect = userQuestion.AnswerOptions.All(ao =>
+                        testQuestion.AnswerOptions.Any(to => to.Id == ao.Id && to.MatchingPair == ao.MatchingPair));
+                    break;
+
+                case QuestionType.FillInTheBlank:
+                    isCorrect = string.Equals(userQuestion.CorrectAnswer, testQuestion.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+                    break;
+            }
+
+            await SaveAnswerAsync(testResultId, userQuestion.Id, isCorrect, cancellationToken);
+        }
+
+        testResult.EndedAt = DateTime.UtcNow;
+
+        await testResultRepository.UpdateAsync(testResult, cancellationToken);
     }
 
-    public async Task SaveAnswerAsync(long testResultId, long questionId, long? answerOptionId, CancellationToken cancellationToken = default)
+    public async Task SaveAnswerAsync(long testResultId, long questionId, bool isCorrect, CancellationToken cancellationToken = default)
     {
-        var isCorrect = await answerResultRepository.IsAnswerCorrectAsync(questionId, answerOptionId, cancellationToken);
-        
         var answerResult = new AnswerResult
         {
             TestResultId = testResultId,
             QuestionId = questionId,
-            AnswerOptionId = answerOptionId,
-            IsCorrect = isCorrect,
+            IsCorrect = isCorrect
         };
 
         await answerResultRepository.SaveAnswerAsync(answerResult, cancellationToken);
