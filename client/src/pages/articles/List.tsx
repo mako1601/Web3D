@@ -76,7 +76,7 @@ export default function ArticleList() {
             ) : (
               <Stack gap="1rem">
                 <PageCard sx={{ padding: 0 }}>
-                  {articles.map((article) => (
+                  {articles.map(article => (
                     <ArticleCard key={article.id} article={article} onClick={() => navigate(`${article.id}`)} />
                   ))}
                 </PageCard>

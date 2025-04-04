@@ -15,7 +15,6 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
   const [hovered, setHovered] = React.useState(false);
   const [author, setAuthor] = React.useState<{ lastName: string;firstName: string; middleName?: string } | null>(null);
 
-  
   React.useEffect(() => {
     const fetchAuthor = async () => {
       try {
@@ -29,7 +28,7 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
     fetchAuthor();
   }, [article.userId]);
 
-  const isLongText = React.useMemo(() => article.description.split("\n").length > 3, [article.description]);
+  const isLongText = React.useMemo(() => (article.description?.split("\n").length ?? 0) > 3, [article.description]);
 
   const handleDescriptionClick = () => {
     if (isLongText) {

@@ -13,15 +13,23 @@ export const getTestById = async (id: number): Promise<Test> => {
   return response.data;
 };
 
-export const getAllTests = async (
-  searchText: string,
-  orderBy: string,
-  sortDirection: number,
-  currentPage: number,
-  pageSize: number
-): Promise<PageResult<Test>> => {
+export const getAllTests = async ({
+  searchText,
+  userId,
+  orderBy,
+  sortDirection,
+  currentPage,
+  pageSize,
+}: {
+  searchText?: string,
+  userId?: number,
+  orderBy?: string,
+  sortDirection?: number,
+  currentPage?: number,
+  pageSize?: number
+}): Promise<PageResult<Test>> => {
   const response = await api.get<PageResult<Test>>(`${ROUTE}`, {
-    params: { searchText, orderBy, sortDirection, currentPage, pageSize }
+    params: { searchText, userId, orderBy, sortDirection, currentPage, pageSize }
   });
   return response.data;
 };
@@ -50,5 +58,24 @@ export const getTestForPassingById = async (id: number): Promise<Test> => {
 
 export const getTestResultById = async (id: number): Promise<TestResult> => {
   const response = await api.get<TestResult>(`${ROUTE}/${id}/result`);
+  return response.data;
+};
+
+export const getAllTestResults = async ({
+  testId,
+  orderBy,
+  sortDirection,
+  currentPage,
+  pageSize,
+}: {
+  testId?: number,
+  orderBy?: string,
+  sortDirection?: number,
+  currentPage?: number,
+  pageSize?: number
+}): Promise<PageResult<TestResult>> => {
+  const response = await api.get<PageResult<TestResult>>(`${ROUTE}/results`, {
+    params: { testId, orderBy, sortDirection, currentPage, pageSize }
+  });
   return response.data;
 };

@@ -36,9 +36,9 @@ public class TestController(ITestService testService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync([FromQuery] Filter sort, [FromQuery] SortParams order, [FromQuery] PageParams page)
+    public async Task<IActionResult> GetAllAsync([FromQuery] Filter filter, [FromQuery] SortParams sortParams, [FromQuery] PageParams pageParams)
     {
-        var result = await testService.GetAllAsync(sort, order, page);
+        var result = await testService.GetAllAsync(filter, sortParams, pageParams);
         return Ok(result);
     }
 
@@ -95,6 +95,13 @@ public class TestController(ITestService testService) : ControllerBase
     public async Task<IActionResult> GetTestResultAsync([FromRoute] long testResultId)
     {
         var result = await testService.GetTestResultByIdAsync(testResultId);
+        return Ok(result);
+    }
+
+    [HttpGet("results")]
+    public async Task<IActionResult> GetAllTestResultsAsync([FromQuery] Filter filter, [FromQuery] SortParams sortParams, [FromQuery] PageParams pageParams)
+    {
+        var result = await testService.GetAllTestResultsAsync(filter, sortParams, pageParams);
         return Ok(result);
     }
 }

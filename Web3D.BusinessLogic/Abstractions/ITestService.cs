@@ -15,4 +15,5 @@ public interface ITestService
     public Task FinishTestAsync(long testResultId, ICollection<Question> questions, CancellationToken cancellationToken = default);
     public Task SaveAnswerAsync(long testResultId, long QuestionId, bool isCorrect, CancellationToken cancellationToken = default);
     public Task<TestResult?> GetTestResultByIdAsync(long testResultId, CancellationToken cancellationToken = default);
+    public Task<PageResult<TestResult>> GetAllTestResultsAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default);
 }

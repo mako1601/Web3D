@@ -35,6 +35,11 @@ public static class TestExtension
                 .Select(x => x.test);
         }
 
+        if (filter.UserId is not null)
+        {
+            query = query.Where(x => x.UserId == filter.UserId);
+        }
+
         return query;
     }
 

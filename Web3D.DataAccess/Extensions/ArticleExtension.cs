@@ -35,6 +35,11 @@ public static class ArticleExtension
                 .Select(x => x.article);
         }
 
+        if (filter.UserId is not null)
+        {
+            query = query.Where(x => x.UserId == filter.UserId);
+        }
+
         return query;
     }
 

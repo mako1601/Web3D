@@ -3,8 +3,8 @@
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
 using Web3D.DataAccess.Contexts;
-using Web3D.DataAccess.Abstractions;
 using Web3D.DataAccess.Extensions;
+using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 

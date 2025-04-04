@@ -13,15 +13,23 @@ export const getArticleById = async (id: number): Promise<Article> => {
   return response.data;
 };
 
-export const getAllArticles = async (
-  searchText: string,
-  orderBy: string,
-  sortDirection: number,
-  currentPage: number,
-  pageSize: number
-): Promise<PageResult<Article>> => {
+export const getAllArticles = async ({
+  searchText,
+  userId,
+  orderBy,
+  sortDirection,
+  currentPage,
+  pageSize,
+}: {
+  searchText?: string;
+  userId?: number;
+  orderBy?: string;
+  sortDirection?: number;
+  currentPage?: number;
+  pageSize?: number;
+}): Promise<PageResult<Article>> => {
   const response = await api.get<PageResult<Article>>(`${ROUTE}`, {
-    params: { searchText, orderBy, sortDirection, currentPage, pageSize }
+    params: { searchText, userId, orderBy, sortDirection, currentPage, pageSize },
   });
   return response.data;
 };

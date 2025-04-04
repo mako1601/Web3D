@@ -187,7 +187,7 @@ export function useTestQuestions(initialQuestions: QuestionMap = {}) {
           const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false, matchingPair: "" }];
           return { ...prev, [key]: { ...question, answerOptions: newOptions } };
         } else {
-          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false, matchingPair: null }];
+          const newOptions = [...question.answerOptions, { id: 0, questionId: question.id, index: question.answerOptions.length, text: "", isCorrect: false }];
           return { ...prev, [key]: { ...question, answerOptions: newOptions } };
         }
       }

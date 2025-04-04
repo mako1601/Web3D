@@ -168,4 +168,10 @@ internal class TestService(
         var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken) ?? throw new Exception("TestResult was not found");
         return testResult;
     }
+
+    public async Task<PageResult<TestResult>> GetAllTestResultsAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    {
+        var testResults = await testResultRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
+        return testResults;
+    }
 }

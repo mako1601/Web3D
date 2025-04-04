@@ -28,9 +28,9 @@ public class ArticleController(IArticleService articleService) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllAsync([FromQuery] Filter sort, [FromQuery] SortParams order, [FromQuery] PageParams page)
+    public async Task<IActionResult> GetAllAsync([FromQuery] Filter filter, [FromQuery] SortParams order, [FromQuery] PageParams page)
     {
-        var result = await articleService.GetAllAsync(sort, order, page);
+        var result = await articleService.GetAllAsync(filter, order, page);
         return Ok(result);
     }
 

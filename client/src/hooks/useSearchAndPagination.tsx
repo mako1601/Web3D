@@ -1,19 +1,27 @@
-
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 
 export const useSearchAndPagination = (
-  fetchData: (
-    searchText: string,
-    orderBy: string,
-    sortDirection: number,
-    currentPage: number,
-    pageSize: number
-  ) => Promise<any>, pageSize: number
+  fetchData: ({
+    searchText,
+    userId,
+    orderBy,
+    sortDirection,
+    currentPage,
+    pageSize
+  }: {
+    searchText?: string,
+    userId?: number,
+    orderBy?: string,
+    sortDirection?: number,
+    currentPage?: number,
+    pageSize?: number
+  }) => Promise<any>, pageSize: number
 ) => {
   const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get("searchText") || "");
   const searchText = searchParams.get("searchText") || "";
+  const userId = searchParams.get("userId") ? parseInt(searchParams.get("userId") || "", 10) : undefined;
   const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -23,14 +31,14 @@ export const useSearchAndPagination = (
 
   const fetchArticles = React.useCallback(async () => {
     try {
-      const response = await fetchData(searchText, orderBy, sortDirection, currentPage, pageSize);
+      const response = await fetchData({ searchText, userId, orderBy, sortDirection, currentPage, pageSize });
       setData(response.data);
       setTotalCount(response.totalCount);
     } catch (e) {
       setData(null);
       setTotalCount(0);
     }
-  }, [fetchData, searchText, orderBy, sortDirection, currentPage, pageSize]);
+  }, [fetchData, userId, searchText, orderBy, sortDirection, currentPage, pageSize]);
 
   React.useEffect(() => {
     fetchArticles();

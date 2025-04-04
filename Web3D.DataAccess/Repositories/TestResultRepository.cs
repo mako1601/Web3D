@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 using Web3D.Domain.Models;
+using Web3D.Domain.Filters;
 using Web3D.DataAccess.Contexts;
+using Web3D.DataAccess.Extensions;
 using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
@@ -14,19 +16,6 @@ internal class TestResultRepository(Web3DDbContext context) : ITestResultReposit
         await context.SaveChangesAsync(cancellationToken);
         return testResult.Id;
     }
-
-    //public async Task FinishTestAsync(long testResultId, CancellationToken cancellationToken = default)
-    //{
-    //    var testResult = await context.TestResults.FirstOrDefaultAsync(x => x.Id == testResultId, cancellationToken: cancellationToken)
-    //                     ?? throw new Exception("TestResult was not found");
-
-    //    testResult.EndedAt = DateTime.UtcNow;
-    //    testResult.Score = await context.AnswerResults
-    //        .Where(x => x.TestResultId == testResultId && x.IsCorrect)
-    //        .CountAsync(cancellationToken);
-
-    //    await context.SaveChangesAsync(cancellationToken);
-    //}
 
     public async Task UpdateAsync(TestResult testResult, CancellationToken cancellationToken = default)
     {
@@ -54,5 +43,14 @@ internal class TestResultRepository(Web3DDbContext context) : ITestResultReposit
         return testResult is null ? 1 : await context.TestResults
             .Where(x => x.TestId == testId && x.UserId == userId)
             .MaxAsync(x => x.Attempt + 1, cancellationToken);
+    }
+
+    public async Task<PageResult<TestResult>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    {
+        return await context.TestResults
+            .Include(x => x.AnswerResults)
+            .Filter(filter, context)
+            .Sort(sortParams, context)
+            .ToPagedAsync(pageParams, cancellationToken);
     }
 }

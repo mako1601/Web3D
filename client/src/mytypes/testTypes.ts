@@ -38,7 +38,7 @@ export interface AnswerOption {
   index: number;
   text: string;
   isCorrect: boolean;
-  matchingPair: string | null;
+  matchingPair?: string;
 }
 
 export type TestResult = {
@@ -46,9 +46,9 @@ export type TestResult = {
   userId: number;
   testId: number;
   attempt: number;
-  score: number | null;
+  score?: number;
   startedAt: string;
-  endedAt: string | null;
+  endedAt?: string;
   answerResults: AnswerResult[];
 }
 
@@ -56,7 +56,6 @@ export type AnswerResult = {
   id: number;
   testResultId: number;
   questionId: number;
-  answerOptionId: number | null;
   isCorrect: boolean;
 }
 
@@ -74,8 +73,8 @@ export const defaultSingleChoiceQuestion: Question = {
   index: 0,
   text: "",
   answerOptions: [
-    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true, matchingPair: null },
-    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false, matchingPair: null }
+    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true },
+    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false }
   ]
 };
 
@@ -86,8 +85,8 @@ export const defaultMultipleChoiceQuestion: Question = {
   index: 0,
   text: "",
   answerOptions: [
-    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true, matchingPair: null },
-    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false, matchingPair: null }
+    { id: 0, questionId: 0, index: 0, text: "", isCorrect: true },
+    { id: 0, questionId: 0, index: 1, text: "", isCorrect: false }
   ]
 };
 

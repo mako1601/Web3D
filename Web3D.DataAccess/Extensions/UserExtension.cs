@@ -20,6 +20,11 @@ public static class UserExtension
                 .Contains(nameLower));
         }
 
+        if (filter.UserId is not null)
+        {
+            query = query.Where(x => x.Id == filter.UserId);
+        }
+
         return query;
     }
 
