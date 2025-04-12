@@ -1,14 +1,12 @@
 export const formatDate = (dateString: string | null): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat("ru-RU", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  })
-    .format(date)
-    .replace(" г.", "");
+
+  const day = date.getDate();
+  const month = date.toLocaleString("ru-RU", { month: "short" });
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  return `${day} ${month} ${year}, ${hours}:${minutes}`;
 };

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, Button, MenuItem } from '@mui/material';
 import QuizIcon from '@mui/icons-material/Quiz';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -25,14 +26,18 @@ const CreateMenu = () => {
       </Button>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem
+          component={Link}
+          to="/articles/create"
+          onClick={handleClose}
           sx={{ color: 'text.secondary', gap: 1 }}
-          onClick={() => { window.location.href = "/articles/create"; handleClose(); }}
         >
           <ArticleIcon />Учебный материал
         </MenuItem>
         <MenuItem
+          component={Link}
+          to="/tests/create"
+          onClick={handleClose}
           sx={{ color: 'text.secondary', gap: 1 }}
-          onClick={() => { window.location.href = "/tests/create"; handleClose(); }}
         >
           <QuizIcon />Тест
         </MenuItem>

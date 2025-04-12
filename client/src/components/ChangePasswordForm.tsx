@@ -8,8 +8,8 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PageCard from "./PageCard";
 import { passwordSchema } from '@schemas/userSchemas';
 import { updatePassword } from '@api/userApi';
-import { PageProps } from '@mytypes/commonTypes';
 import { UpdUserPass } from '@mytypes/userTypes';
+import { SnackbarContext } from '@context/SnackbarContext';
 
 interface UpdatePasswordData {
   oldPassword: string;
@@ -17,7 +17,8 @@ interface UpdatePasswordData {
   confirmNewPassword: string;
 }
 
-const ChangePasswordForm = ({ setSeverity, setMessage, setOpen }: PageProps) => {
+const ChangePasswordForm = () => {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const [loadingPassword, setLoadingPassword] = React.useState(false);
   const [showOldPassword, setShowOldPassword] = React.useState(false);
   const [showNewPassword, setShowNewPassword] = React.useState(false);

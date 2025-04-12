@@ -3,6 +3,7 @@ import { Box, styled } from '@mui/material';
 import { gray } from '@theme/themePrimitives';
 
 const HeaderContainer = styled(Box)(({ theme }) => ({
+  zIndex: 3,
   width: '100%',
   minHeight: '56px',
   backgroundColor: 'hsl(0, 0%, 99%)',

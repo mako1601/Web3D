@@ -2,16 +2,18 @@ import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 
 export const useSearchAndPagination = (
-  fetchData: ({
+  fetch: ({
     searchText,
     userId,
+    testId,
     orderBy,
     sortDirection,
     currentPage,
     pageSize
   }: {
     searchText?: string,
-    userId?: number,
+    userId?: number[],
+    testId?: number[],
     orderBy?: string,
     sortDirection?: number,
     currentPage?: number,
@@ -21,28 +23,27 @@ export const useSearchAndPagination = (
   const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get("searchText") || "");
   const searchText = searchParams.get("searchText") || "";
-  const userId = searchParams.get("userId") ? parseInt(searchParams.get("userId") || "", 10) : undefined;
-  const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "Title";
+  const orderBy = (searchParams.get("orderBy") as "Title" | "UserId" | "CreatedAt" | "UpdatedAt") || "CreatedAt";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [data, setData] = React.useState<any[] | null>(null);
   const [totalCount, setTotalCount] = React.useState(0);
 
-  const fetchArticles = React.useCallback(async () => {
+  const fetchData = React.useCallback(async () => {
     try {
-      const response = await fetchData({ searchText, userId, orderBy, sortDirection, currentPage, pageSize });
+      const response = await fetch({ searchText, orderBy, sortDirection, currentPage, pageSize });
       setData(response.data);
       setTotalCount(response.totalCount);
     } catch (e) {
       setData(null);
       setTotalCount(0);
     }
-  }, [fetchData, userId, searchText, orderBy, sortDirection, currentPage, pageSize]);
+  }, [fetch, searchText, orderBy, sortDirection, currentPage, pageSize]);
 
   React.useEffect(() => {
-    fetchArticles();
-  }, [fetchArticles]);
+    fetchData();
+  }, [fetchData]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {
     setSearchParams((prev) => {

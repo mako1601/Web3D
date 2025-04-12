@@ -8,10 +8,11 @@ import { useAuth } from "@context/AuthContext";
 import { profileSchema } from '@schemas/userSchemas';
 import { updateUser } from '@api/userApi';
 import { refreshToken } from '@api/axiosInstance';
-import { PageProps } from '@mytypes/commonTypes';
 import { UpdUserData } from "@mytypes/userTypes";
+import { SnackbarContext } from '@context/SnackbarContext';
 
-const ProfileForm = ({ setSeverity, setMessage, setOpen }: PageProps) => {
+const ProfileForm = () => {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const { user, setUser } = useAuth();
   const [loadingProfile, setLoadingProfile] = React.useState(false);
   

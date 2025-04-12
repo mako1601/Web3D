@@ -12,15 +12,15 @@ const GRID_COLS = 10;
 
 const DraggableGrid = ({
   questions,
-  activeQuestion,
-  setActiveQuestion,
+  activeQuestionId,
+  setActiveQuestionId,
   handleDragEnd,
   addQuestion,
   removeQuestion
 }: {
   questions: QuestionMap;
-  activeQuestion: string;
-  setActiveQuestion: (id: string) => void;
+  activeQuestionId: string;
+  setActiveQuestionId: (id: string) => void;
   handleDragEnd: (event: any) => void;
   addQuestion: () => void;
   removeQuestion: (id: string) => void;
@@ -41,10 +41,10 @@ const DraggableGrid = ({
               <SortableItem
                 key={key}
                 id={key}
-                text={questions[key].text}
+                text={questions[key].text ?? ""}
                 onRemove={() => removeQuestion(key)}
-                activeId={activeQuestion}
-                setActiveId={setActiveQuestion}
+                activeId={activeQuestionId}
+                setActiveId={setActiveQuestionId}
                 isRemovable={Object.keys(questions).length > 1}
               />
             );

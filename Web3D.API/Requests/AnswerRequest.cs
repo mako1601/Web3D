@@ -1,2 +1,2 @@
 ﻿namespace Web3D.API.Requests;
-public record AnswerRequest(long QuestionId, long? AnswerOptionId);
+public record AnswerRequest(ICollection<Domain.Models.Dto.AnswerResultDto> AnswerResults);

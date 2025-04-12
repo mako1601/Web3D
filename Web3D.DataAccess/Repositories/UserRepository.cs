@@ -2,7 +2,7 @@
 
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
-using Web3D.Domain.Models.DTO;
+using Web3D.Domain.Models.Dto;
 using Web3D.DataAccess.Contexts;
 using Web3D.DataAccess.Extensions;
 using Web3D.DataAccess.Abstractions;
@@ -32,7 +32,7 @@ internal class UserRepository(Web3DDbContext context) : IUserRepository
         return await context.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
     }
 
-    public async Task<PageResult<UserDTO>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<UserDto>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         return await context.Users
             .Filter(filter)

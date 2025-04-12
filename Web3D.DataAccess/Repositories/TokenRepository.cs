@@ -16,12 +16,12 @@ internal class TokenRepository(Web3DDbContext context) : ITokenRepository
 
     public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
     {
-        return await context.RefreshTokens.FirstOrDefaultAsync(x => x.Token.Equals(token), cancellationToken: cancellationToken);
+        return await context.RefreshTokens.FirstOrDefaultAsync(x => x.Token.Equals(token), cancellationToken);
     }
 
     public async Task<RefreshToken?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
-        return await context.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken: cancellationToken);
+        return await context.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
     }
 
     public async Task UpdateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)

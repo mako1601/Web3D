@@ -5,7 +5,6 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import Pagination from '@components/Pagination';
 import ArticleCard from '@components/ArticleCard';
@@ -105,7 +104,6 @@ export default function ArticleList() {
           </Stack>
         </ContentContainer>
       )}
-      <Footer />
     </Page >
   );
 }

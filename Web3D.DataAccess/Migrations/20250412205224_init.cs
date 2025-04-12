@@ -13,62 +13,22 @@ namespace Web3D.DataAccess.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "TestResults",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
-                    TestId = table.Column<long>(type: "bigint", nullable: false),
-                    Attempt = table.Column<long>(type: "bigint", nullable: false),
-                    Score = table.Column<long>(type: "bigint", nullable: true),
-                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
-                    EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TestResults", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Login = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Login = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    FirstName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    MiddleName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Role = table.Column<string>(type: "text", nullable: false),
-                    LastActivity = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LastName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
+                    MiddleName = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
+                    Role = table.Column<string>(type: "text", nullable: false, defaultValue: "Student"),
+                    LastActivity = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AnswerResults",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TestResultId = table.Column<long>(type: "bigint", nullable: false),
-                    QuestionId = table.Column<long>(type: "bigint", nullable: false),
-                    AnswerOptionId = table.Column<long>(type: "bigint", nullable: true),
-                    IsCorrect = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AnswerResults", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AnswerResults_TestResults_TestResultId",
-                        column: x => x.TestResultId,
-                        principalTable: "TestResults",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -78,10 +38,10 @@ namespace Web3D.DataAccess.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                    Description = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ContentUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -96,15 +56,39 @@ namespace Web3D.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    Token = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IpAddress = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
+                    UserAgent = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Tests",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<long>(type: "bigint", nullable: false),
-                    Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
-                    Description = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
+                    Title = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -126,8 +110,10 @@ namespace Web3D.DataAccess.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     TestId = table.Column<long>(type: "bigint", nullable: false),
                     Index = table.Column<int>(type: "integer", nullable: false),
-                    Text = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true)
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Text = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    TaskJson = table.Column<string>(type: "jsonb", nullable: false),
+                    ImageUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -141,46 +127,35 @@ namespace Web3D.DataAccess.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AnswerOptions",
+                name: "TestResults",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    QuestionId = table.Column<long>(type: "bigint", nullable: false),
-                    Index = table.Column<int>(type: "integer", nullable: false),
-                    Text = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    IsCorrect = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
+                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    TestId = table.Column<long>(type: "bigint", nullable: false),
+                    Attempt = table.Column<long>(type: "bigint", nullable: false),
+                    Score = table.Column<double>(type: "double precision", nullable: true),
+                    AnswersJson = table.Column<string>(type: "jsonb", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    EndedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AnswerOptions", x => x.Id);
+                    table.PrimaryKey("PK_TestResults", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AnswerOptions_Questions_QuestionId",
-                        column: x => x.QuestionId,
-                        principalTable: "Questions",
+                        name: "FK_TestResults_Tests_TestId",
+                        column: x => x.TestId,
+                        principalTable: "Tests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TestResults_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AnswerOptions_QuestionId",
-                table: "AnswerOptions",
-                column: "QuestionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AnswerResults_AnswerOptionId",
-                table: "AnswerResults",
-                column: "AnswerOptionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AnswerResults_QuestionId",
-                table: "AnswerResults",
-                column: "QuestionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AnswerResults_TestResultId",
-                table: "AnswerResults",
-                column: "TestResultId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Articles_UserId",
@@ -193,20 +168,36 @@ namespace Web3D.DataAccess.Migrations
                 column: "TestId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Token",
+                table: "RefreshTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UserId",
+                table: "RefreshTokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TestResults_TestId",
+                table: "TestResults",
+                column: "TestId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TestResults_UserId_TestId_Attempt",
                 table: "TestResults",
                 columns: new[] { "UserId", "TestId", "Attempt" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tests_Title",
-                table: "Tests",
-                column: "Title");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tests_UserId",
                 table: "Tests",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_LastActivity",
+                table: "Users",
+                column: "LastActivity");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Login",
@@ -219,16 +210,13 @@ namespace Web3D.DataAccess.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AnswerOptions");
-
-            migrationBuilder.DropTable(
-                name: "AnswerResults");
-
-            migrationBuilder.DropTable(
                 name: "Articles");
 
             migrationBuilder.DropTable(
                 name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "TestResults");

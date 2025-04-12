@@ -6,8 +6,8 @@ public class TestResult
     public long UserId { get; set; }
     public long TestId { get; set; }
     public long Attempt { get; set; }
-    public long? Score { get; set; }
+    public double? Score { get; set; }
+    public string AnswersJson { get; set; } = "[]";
     public DateTime StartedAt { get; set; }
     public DateTime? EndedAt { get; set; }
-    public ICollection<AnswerResult> AnswerResults { get; set; } = [];
 }

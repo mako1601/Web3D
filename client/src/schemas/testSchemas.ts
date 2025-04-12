@@ -8,5 +8,5 @@ export const testSchema = yup.object().shape({
   description: yup.string()
     .max(500, "Описание не может превышать 500 символов")
     .trim()
-    .default("")
+    .optional()
 });

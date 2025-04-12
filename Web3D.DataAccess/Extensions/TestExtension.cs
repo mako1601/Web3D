@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
@@ -27,7 +26,7 @@ public static class TestExtension
                 )
                 .Where(x => keywords.All(y =>
                     x.test.Title.ToLower().Contains(y) ||
-                    x.test.Description.ToLower().Contains(y) ||
+                    (x.test.Description != null && x.test.Description.ToLower().Contains(y)) ||
                     string.Join(" ", x.user.LastName, x.user.FirstName, x.user.MiddleName)
                         .ToLower()
                         .Contains(y)
@@ -35,9 +34,14 @@ public static class TestExtension
                 .Select(x => x.test);
         }
 
-        if (filter.UserId is not null)
+        if (filter.TestId != null && filter.TestId.Count != 0)
         {
-            query = query.Where(x => x.UserId == filter.UserId);
+            query = query.Where(x => filter.TestId.Contains(x.Id));
+        }
+
+        if (filter.UserId != null && filter.UserId.Count != 0)
+        {
+            query = query.Where(x => filter.UserId.Contains(x.UserId));
         }
 
         return query;
@@ -45,9 +49,84 @@ public static class TestExtension
 
     public static IQueryable<Test> Sort(this IQueryable<Test> query, SortParams sortParams, Web3DDbContext context)
     {
-        return sortParams.SortDirection == SortDirection.Descending
-            ? query.OrderByDescending(GetKeySelector(sortParams.OrderBy, context))
-            : query.OrderBy(GetKeySelector(sortParams.OrderBy, context));
+        var testResults = context.TestResults
+            .Select(tr => new
+            {
+                tr.TestId,
+                tr.EndedAt,
+                tr.Score,
+                QuestionCount = context.Questions
+                    .Where(q => q.TestId == tr.TestId)
+                    .Count()
+            });
+
+        var testQuery = query
+            .Join(context.Users,
+                  test => test.UserId,
+                  user => user.Id,
+                  (test, user) => new
+                  {
+                      Test = test,
+                      UserFullName = user.MiddleName == null
+                          ? user.LastName + " " + user.FirstName
+                          : user.LastName + " " + user.FirstName + " " + user.MiddleName
+                  })
+            .Select(x => new
+            {
+                x.Test,
+                x.UserFullName,
+                CompletedCount = testResults.Count(y => y.TestId == x.Test.Id && y.EndedAt != null),
+                UnfinishedCount = testResults.Count(y => y.TestId == x.Test.Id && y.EndedAt == null),
+                AverageScore = testResults
+                    .Where(y => y.TestId == x.Test.Id && y.EndedAt != null && y.Score != null && y.QuestionCount != 0)
+                    .Select(y => (double)(y.Score ?? 0) / y.QuestionCount)
+                    .Any()
+                        ? testResults
+                            .Where(y => y.TestId == x.Test.Id && y.EndedAt != null && y.Score != null && y.QuestionCount != 0)
+                            .Average(y => (double)(y.Score ?? 0) / y.QuestionCount)
+                        : 0
+            });
+
+        testQuery = sortParams.OrderBy switch
+        {
+            "Title" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.Test.Title)
+                : testQuery.OrderBy(x => x.Test.Title),
+
+            "CreatedAt" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.Test.CreatedAt)
+                : testQuery.OrderBy(x => x.Test.CreatedAt),
+
+            "UpdatedAt" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.Test.UpdatedAt ?? x.Test.CreatedAt)
+                : testQuery.OrderBy(x => x.Test.UpdatedAt ?? x.Test.CreatedAt),
+
+            "QuestionCount" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.Test.Questions.Count)
+                : testQuery.OrderBy(x => x.Test.Questions.Count),
+
+            "User" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.UserFullName)
+                : testQuery.OrderBy(x => x.UserFullName),
+
+            "CompletedCount" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.CompletedCount)
+                : testQuery.OrderBy(x => x.CompletedCount),
+
+            "UnfinishedCount" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.UnfinishedCount)
+                : testQuery.OrderBy(x => x.UnfinishedCount),
+
+            "AverageScore" => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.AverageScore)
+                : testQuery.OrderBy(x => x.AverageScore),
+
+            _ => sortParams.SortDirection == SortDirection.Descending
+                ? testQuery.OrderByDescending(x => x.Test.CreatedAt)
+                : testQuery.OrderBy(x => x.Test.CreatedAt),
+        };
+
+        return testQuery.Select(x => x.Test);
     }
 
     public static async Task<PageResult<Test>> ToPagedAsync(this IQueryable<Test> query, PageParams pageParams, CancellationToken cancellationToken = default)
@@ -65,22 +144,5 @@ public static class TestExtension
             .ToArrayAsync(cancellationToken);
 
         return new PageResult<Test>(result, count);
-    }
-
-    private static Expression<Func<Test, object>> GetKeySelector(string? orderBy, Web3DDbContext context)
-    {
-        if (string.IsNullOrEmpty(orderBy)) return x => x.Title;
-
-        return orderBy switch
-        {
-            nameof(Test.CreatedAt) => x => x.CreatedAt,
-            nameof(Test.UpdatedAt) => x => x.UpdatedAt ?? x.CreatedAt,
-            nameof(Test.UserId) => x =>
-                context.Users
-                    .Where(y => y.Id == x.UserId)
-                    .Select(y => y.MiddleName == null ? y.LastName + " " + y.FirstName : y.LastName + " " + y.FirstName + " " + y.MiddleName)
-                    .FirstOrDefault() ?? string.Empty,
-            _ => x => x.Title
-        };
     }
 }

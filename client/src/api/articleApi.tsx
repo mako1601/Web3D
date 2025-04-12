@@ -1,4 +1,5 @@
 import { api } from './axiosInstance';
+import qs from 'qs';
 import { PageResult } from '@mytypes/commonTypes';
 import { Article, ArticleDto } from '@mytypes/articleTypes';
 
@@ -22,7 +23,7 @@ export const getAllArticles = async ({
   pageSize,
 }: {
   searchText?: string;
-  userId?: number;
+  userId?: number[];
   orderBy?: string;
   sortDirection?: number;
   currentPage?: number;
@@ -30,6 +31,7 @@ export const getAllArticles = async ({
 }): Promise<PageResult<Article>> => {
   const response = await api.get<PageResult<Article>>(`${ROUTE}`, {
     params: { searchText, userId, orderBy, sortDirection, currentPage, pageSize },
+    paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
   });
   return response.data;
 };

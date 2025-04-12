@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 using Web3D.API.Requests;
 using Web3D.Domain.Models;
-using Web3D.Domain.Models.DTO;
+using Web3D.Domain.Models.Dto;
 using Web3D.Domain.Exceptions;
 using Web3D.BusinessLogic.Abstractions;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace Web3D.API.Controllers;
 
@@ -19,7 +19,7 @@ public class AuthController(IUserService userService, ITokenService tokenService
     {
         try
         {
-            var user = new UserDTO
+            var user = new UserDto
             {
                 Id = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id").Value),
                 LastName = User.Claims.FirstOrDefault(x => x.Type == "lastName").Value,

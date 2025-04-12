@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-router-dom';
 import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography, Select, MenuItem, Checkbox, Collapse, Tooltip } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
@@ -11,34 +10,32 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import DraggableGrid from '@components/DraggableGrid';
 import StyledIconButton from '@components/StyledIconButton';
 import ContentContainer from '@components/ContentContainer';
-import { PageProps } from '@mytypes/commonTypes';
-import { questionTypes, TestForSchemas, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH } from '@mytypes/testTypes';
+import { questionTypes, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TestForSchemas } from '@mytypes/testTypes';
 import { useTestQuestions } from '@hooks/useTestQuestions';
+import { SnackbarContext } from '@context/SnackbarContext';
 
 // TODO: add question validation
-export default function CreateTest({ setSeverity, setMessage, setOpen }: PageProps) {
-  const navigate = ReactDOM.useNavigate();
+export default function CreateTest() {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
 
   const {
     questions,
-    activeQuestion,
-    setActiveQuestion,
+    activeQuestionId,
+    setActiveQuestionId,
     addQuestion,
     updateQuestion,
     removeQuestion,
     reorderQuestionsOnDrag,
     addAnswerOption,
     updateAnswerOption,
-    setCorrectAnswer,
     removeAnswerOption,
-    setFormDirty,
+    setIsDirty,
     useCreateTest,
     titleLength,
     setTitleLength,
@@ -51,12 +48,7 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
     errors
   } = useTestQuestions();
 
-  // React.useEffect(() => {
-  //   console.log(questions);
-  // }, [questions]);
-
-  const createTest = useCreateTest(setSeverity, setMessage, setOpen, navigate);
-
+  const createTest = useCreateTest();
   const onSubmit = async (data: TestForSchemas) => {
     setLoading(true);
     await createTest(data, localImages);
@@ -89,7 +81,7 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                 }}
                 onChange={(e) => {
                   setTitleLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -114,7 +106,7 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                 }}
                 onChange={(e) => {
                   setDescriptionLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -139,8 +131,8 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               }}>
                 <DraggableGrid
                   questions={questions}
-                  activeQuestion={activeQuestion}
-                  setActiveQuestion={setActiveQuestion}
+                  activeQuestionId={activeQuestionId}
+                  setActiveQuestionId={setActiveQuestionId}
                   handleDragEnd={reorderQuestionsOnDrag}
                   addQuestion={addQuestion}
                   removeQuestion={removeQuestion}
@@ -173,10 +165,10 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               </Box>
               <Box>
                 <Select
-                  value={questions[activeQuestion].type}
+                  value={questions[activeQuestionId].type}
                   onChange={(e) => {
-                    updateQuestion(activeQuestion, "type", Number(e.target.value));
-                    setFormDirty(true);
+                    updateQuestion(activeQuestionId, { type: Number(e.target.value) });
+                    setIsDirty(true);
                   }}
                   sx={{
                     '& > div': {
@@ -195,20 +187,9 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
             </FormControl>
 
             <FormControl sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Question text */}
-              <TextField
-                fullWidth
-                value={questions[activeQuestion].text}
-                onChange={(e) => {
-                  updateQuestion(activeQuestion, "text", e.target.value);
-                  setFormDirty(true);
-                }}
-                placeholder="Текст вопроса"
-              />
-
               {/* Upload image button */}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                {!questions[activeQuestion].imageUrl ? (
+                {!questions[activeQuestionId].imageUrl ? (
                   <Button
                     variant="outlined"
                     component="label"
@@ -248,8 +229,8 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                             }
                             const localUrl = URL.createObjectURL(file);
                             localImages.current.set(localUrl, file);
-                            updateQuestion(activeQuestion, "imageUrl", localUrl);
-                            setFormDirty(true);
+                            updateQuestion(activeQuestionId, { imageUrl: localUrl });
+                            setIsDirty(true);
                           }
                         }
                       }}
@@ -268,7 +249,7 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                     }}
                   >
                     <img
-                      src={questions[activeQuestion].imageUrl}
+                      src={questions[activeQuestionId].imageUrl}
                       style={{
                         maxWidth: '100%',
                         maxHeight: '100%',
@@ -279,9 +260,13 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                       size="small"
                       title="Удалить изображение"
                       onClick={() => {
-                        localImages.current.delete(questions[activeQuestion].imageUrl!);
-                        updateQuestion(activeQuestion, "imageUrl", undefined);
-                        setFormDirty(true);
+                        const imgUrl = questions[activeQuestionId].imageUrl;
+                        if (imgUrl) {
+                          localImages.current.delete(imgUrl);
+                          URL.revokeObjectURL(imgUrl);
+                        }
+                        updateQuestion(activeQuestionId, { imageUrl: undefined });
+                        setIsDirty(true);
                       }}
                       sx={{
                         position: 'absolute',
@@ -302,25 +287,43 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                 )}
               </Box>
 
+              {/* Question text */}
+              {questions[activeQuestionId].type !== 2 && (
+                <TextField
+                  fullWidth
+                  value={questions[activeQuestionId].text ?? ""}
+                  onChange={(e) => {
+                    updateQuestion(activeQuestionId, { text: e.target.value });
+                    setIsDirty(true);
+                  }}
+                  placeholder="Текст вопроса"
+                />
+              )}
+
               {/* Question types */}
               {/* Single Choice */}
-              {questions[activeQuestion].type === 0 && (
+              {questions[activeQuestionId].type === 0 && (
                 <RadioGroup
                   sx={{ display: 'flex', gap: 2 }}
-                  value={questions[activeQuestion].answerOptions.findIndex(opt => opt.isCorrect)}
+                  value={questions[activeQuestionId].task.answer.findIndex(ans => ans === true)}
                   onChange={(e) => {
-                    setCorrectAnswer(activeQuestion, parseInt(e.target.value));
-                    setFormDirty(true);
+                    const answerIndex = parseInt(e.target.value);
+                    updateQuestion(activeQuestionId, {
+                      task: {
+                        answer: (questions[activeQuestionId].task.answer as boolean[]).map((_, idx) => idx === answerIndex ? true : false)
+                      }
+                    });
+                    setIsDirty(true);
                   }}
                 >
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.options.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
+                        value={option}
                         onChange={(e) => {
-                          updateAnswerOption(activeQuestion, index, "text", e.target.value);
-                          setFormDirty(true);
+                          updateAnswerOption(activeQuestionId, index, e.target.value);
+                          setIsDirty(true);
                         }}
                         placeholder={`Вариант ответа ${index + 1}`}
                       />
@@ -333,8 +336,8 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
                         />
                       </Box>
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -344,23 +347,45 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               )}
 
               {/* Multiple Choice */}
-              {questions[activeQuestion].type === 1 && (
+              {questions[activeQuestionId].type === 1 && (
                 <>
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.options.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        value={option}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value);
+                          setIsDirty(true);
+                        }}
                         placeholder={`Вариант ответа ${index + 1}`}
                       />
                       <FormControlLabel
-                        control={<Checkbox checked={option.isCorrect} onChange={() => setCorrectAnswer(activeQuestion, index)} />}
+                        control={<Checkbox
+                          checked={questions[activeQuestionId].task.answer[index] as boolean}
+                          onChange={(e) => {
+                            const updatedAnswers = [...(questions[activeQuestionId].task.answer as boolean[])];
+                            const trueCount = updatedAnswers.filter(val => val === true).length;
+
+                            if (e.target.checked) {
+                              if (trueCount < updatedAnswers.length) {
+                                updatedAnswers[index] = true;
+                              }
+                            } else {
+                              if (trueCount > 1) {
+                                updatedAnswers[index] = false;
+                              }
+                            }
+
+                            updateQuestion(activeQuestionId, { task: { answer: updatedAnswers } });
+                            setIsDirty(true);
+                          }}
+                        />}
                         label="Правильный"
                       />
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -370,25 +395,31 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               )}
 
               {/* Matching */}
-              {questions[activeQuestion].type === 2 && (
+              {questions[activeQuestionId].type === 2 && (
                 <>
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.answer.map((text, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        value={text[0]}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value, 0);
+                          setIsDirty(true);
+                        }}
                         placeholder={`Элемент ${index + 1}`}
                       />
                       <TextField
                         fullWidth
-                        value={option.matchingPair}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "matchingPair", e.target.value)}
+                        value={text[1]}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value, 1);
+                          setIsDirty(true);
+                        }}
                         placeholder="Соответствие"
                       />
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -398,39 +429,31 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
               )}
 
               {/* Fill in the blank */}
-              {questions[activeQuestion].type === 3 && (
+              {questions[activeQuestionId].type === 3 && (
                 <TextField
                   fullWidth
-                  value={questions[activeQuestion].correctAnswer}
-                  onChange={(e) => updateQuestion(activeQuestion, "correctAnswer", e.target.value)}
+                  value={questions[activeQuestionId].task.answer}
+                  onChange={(e) => {
+                    updateQuestion(activeQuestionId, { task: { answer: e.target.value } });
+                    setIsDirty(true);
+                  }}
                   placeholder="Правильный ответ"
                 />
               )}
 
-              {(questions[activeQuestion].type === 0 || questions[activeQuestion].type === 1) && (
+              {(questions[activeQuestionId].type !== 3) && (
                 <Button
                   variant="outlined"
                   startIcon={<AddRoundedIcon />}
                   onClick={() => {
-                    addAnswerOption(activeQuestion);
-                    setFormDirty(true);
+                    addAnswerOption(activeQuestionId);
+                    setIsDirty(true);
                   }}
-                  disabled={questions[activeQuestion].answerOptions.length >= 4}
-                  sx={{ display: questions[activeQuestion].answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
-                >
-                  Добавить вариант ответа
-                </Button>
-              )}
-              {questions[activeQuestion].type === 2 && (
-                <Button
-                  variant="outlined"
-                  startIcon={<AddRoundedIcon />}
-                  onClick={() => {
-                    addAnswerOption(activeQuestion);
-                    setFormDirty(true);
+                  sx={{
+                    display: questions[activeQuestionId].type === 2
+                      ? (questions[activeQuestionId].task.answer.length >= 5 ? 'none' : 'inline-flex')
+                      : (questions[activeQuestionId].task.answer.length >= 4 ? 'none' : 'inline-flex')
                   }}
-                  disabled={questions[activeQuestion].answerOptions.length >= 5}
-                  sx={{ display: questions[activeQuestion].answerOptions.length >= 5 ? 'none' : 'inline-flex' }}
                 >
                   Добавить вариант ответа
                 </Button>
@@ -447,7 +470,6 @@ export default function CreateTest({ setSeverity, setMessage, setOpen }: PagePro
           </PageCard>
         </Box>
       </ContentContainer>
-      <Footer />
       <Backdrop
         sx={{
           color: '#fff',

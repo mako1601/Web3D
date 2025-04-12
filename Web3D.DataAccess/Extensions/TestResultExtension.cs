@@ -9,11 +9,16 @@ namespace Web3D.DataAccess.Extensions;
 
 public static class TestResultExtension
 {
-    public static IQueryable<TestResult> Filter(this IQueryable<TestResult> query, Filter filter, Web3DDbContext context)
+    public static IQueryable<TestResult> Filter(this IQueryable<TestResult> query, Filter filter)
     {
-        if (filter.TestId is not null)
+        if (filter.TestId != null && filter.TestId.Count != 0)
         {
-            query = query.Where(x => x.TestId == filter.TestId);
+            query = query.Where(x => filter.TestId.Contains(x.TestId));
+        }
+
+        if (filter.UserId != null && filter.UserId.Count != 0)
+        {
+            query = query.Where(x => filter.UserId.Contains(x.UserId));
         }
 
         return query;
@@ -49,15 +54,11 @@ public static class TestResultExtension
 
         return orderBy switch
         {
-            nameof(TestResult.StartedAt) => x => x.StartedAt,
-            nameof(TestResult.EndedAt) => x => x.EndedAt ?? x.StartedAt,
-            nameof(TestResult.UserId) => x =>
-                context.Users
-                    .Where(y => y.Id == x.UserId)
-                    .Select(y => y.MiddleName == null ? y.LastName + " " + y.FirstName : y.LastName + " " + y.FirstName + " " + y.MiddleName)
-                    .FirstOrDefault() ?? string.Empty,
-            nameof(TestResult.TestId) => x => x.TestId,
-            nameof(TestResult.Score) => x => x.Score ?? 0,
+            "StartedAt" => x => x.StartedAt,
+            "EndedAt" => x => x.EndedAt ?? x.StartedAt,
+            "Score" => x => x.Score ?? 0,
+            "Attempt" => x => x.Attempt,
+            "Duration" => x => (x.EndedAt ?? x.StartedAt) - x.StartedAt,
             _ => x => x.StartedAt
         };
     }

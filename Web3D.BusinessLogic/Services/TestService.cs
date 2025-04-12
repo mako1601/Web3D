@@ -1,5 +1,10 @@
-﻿using Web3D.Domain.Models;
+﻿using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
+using Web3D.Domain.Models.Dto;
 using Web3D.Domain.Exceptions;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
@@ -9,11 +14,15 @@ namespace Web3D.BusinessLogic.Services;
 internal class TestService(
     IUserRepository userRepository,
     ITestRepository testRepository,
-    ITestResultRepository testResultRepository,
-    IAnswerResultRepository answerResultRepository)
+    ITestResultRepository testResultRepository)
     : ITestService
 {
-    public async Task CreateAsync(long userId, string title, string description, ICollection<Question> questions, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(
+        long userId,
+        string title,
+        string description,
+        ICollection<Question> questions,
+        CancellationToken cancellationToken = default)
     {
         var test = new Test
         {
@@ -29,57 +38,108 @@ internal class TestService(
 
     public async Task<Test?> GetByIdAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
+            ?? throw new TestNotFoundException();
         return test;
     }
 
     public async Task<Test?> GetForPassingByIdAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
+            ?? throw new TestNotFoundException();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
+        var rng = new Random();
 
         foreach (var question in test.Questions)
         {
-            switch (question.Type)
+            try
             {
-                case QuestionType.SingleChoice:
-                case QuestionType.MultipleChoice:
-                    foreach (var answer in question.AnswerOptions)
-                    {
-                        answer.IsCorrect = false;
-                    }
-                    break;
+                using var doc = JsonDocument.Parse(question.TaskJson);
+                var root = doc.RootElement;
 
-                case QuestionType.Matching:
-                    var shuffledPairs = question.AnswerOptions
-                        .Select(a => a.MatchingPair)
-                        .OrderBy(_ => Guid.NewGuid())
-                        .ToList();
+                switch (question.Type)
+                {
+                    case QuestionType.SingleChoice:
+                    case QuestionType.MultipleChoice:
+                        {
+                            var optionsArray = root.GetProperty("options").EnumerateArray().Select(x => x.GetString() ?? "").ToArray();
+                            var falseAnswers = optionsArray.Select(_ => false).ToArray();
 
-                    int index = 0;
-                    foreach (var answer in question.AnswerOptions)
-                    {
-                        answer.MatchingPair = shuffledPairs[index++];
-                    }
-                    break;
+                            var modified = new Dictionary<string, object>
+                            {
+                                ["options"] = optionsArray,
+                                ["answer"] = falseAnswers
+                            };
 
-                case QuestionType.FillInTheBlank:
-                    question.CorrectAnswer = null;
-                    break;
+                            question.TaskJson = System.Text.Json.JsonSerializer.Serialize(modified, options);
+                            break;
+                        }
+
+                    case QuestionType.Matching:
+                        {
+                            var answerPairs = root.GetProperty("answer")
+                                .EnumerateArray()
+                                .Select(x => x.EnumerateArray().Select(x => x.GetString() ?? "").ToArray())
+                                .ToList();
+
+                            var rightParts = answerPairs.Select(x => x[1]).OrderBy(_ => rng.Next()).ToList();
+                            var shuffledPairs = answerPairs.Select((pair, index) => new[] { pair[0], rightParts[index] }).ToList();
+
+                            var modified = new Dictionary<string, object>
+                            {
+                                ["answer"] = shuffledPairs
+                            };
+
+                            question.TaskJson = System.Text.Json.JsonSerializer.Serialize(modified, options);
+                            break;
+                        }
+
+                    case QuestionType.FillInTheBlank:
+                        {
+                            var modified = new Dictionary<string, object>
+                            {
+                                ["answer"] = ""
+                            };
+
+                            question.TaskJson = System.Text.Json.JsonSerializer.Serialize(modified, options);
+                            break;
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка обработки JSON у вопроса ID {question.Id}: {ex.Message}");
             }
         }
 
         return test;
     }
 
-    public async Task<PageResult<Test>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<Test>> GetAllAsync(
+        Filter filter,
+        SortParams sortParams,
+        PageParams pageParams,
+        CancellationToken cancellationToken = default)
     {
         var tests = await testRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return tests;
     }
 
-    public async Task UpdateAsync(long testId, string newTitle, string newDescription, ICollection<Question> questions, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(
+        long testId,
+        string newTitle,
+        string newDescription,
+        ICollection<Question> questions,
+        CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
+            ?? throw new TestNotFoundException();
 
         test.Title = newTitle;
         test.Description = newDescription;
@@ -91,7 +151,8 @@ internal class TestService(
 
     public async Task DeleteAsync(long testId, CancellationToken cancellationToken = default)
     {
-        var test = await testRepository.GetByIdAsync(testId, cancellationToken) ?? throw new TestNotFoundException();
+        var test = await testRepository.GetByIdAsync(testId, cancellationToken)
+            ?? throw new TestNotFoundException();
         await testRepository.DeleteAsync(test, cancellationToken);
     }
 
@@ -113,63 +174,76 @@ internal class TestService(
         return testResultId;
     }
 
-    public async Task FinishTestAsync(long testResultId, ICollection<Question> questions, CancellationToken cancellationToken = default)
+    public async Task FinishTestAsync(long testResultId, ICollection<AnswerResultDto> answerResults, CancellationToken cancellationToken = default)
     {
-        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken) ?? throw new Exception("TestResult was not found");
-        var test = await testRepository.GetByIdAsync(questions.First().TestId, cancellationToken) ?? throw new TestNotFoundException();
-
-        foreach (var userQuestion in questions)
-        {
-            var testQuestion = test.Questions.FirstOrDefault(q => q.Id == userQuestion.Id);
-            if (testQuestion == null) continue;
-
-            bool isCorrect = false;
-
-            switch (userQuestion.Type)
-            {
-                case QuestionType.SingleChoice:
-                case QuestionType.MultipleChoice:
-                    isCorrect = userQuestion.AnswerOptions.All(ao =>
-                        testQuestion.AnswerOptions.Any(to => to.Id == ao.Id && to.IsCorrect == ao.IsCorrect));
-                    break;
-
-                case QuestionType.Matching:
-                    isCorrect = userQuestion.AnswerOptions.All(ao =>
-                        testQuestion.AnswerOptions.Any(to => to.Id == ao.Id && to.MatchingPair == ao.MatchingPair));
-                    break;
-
-                case QuestionType.FillInTheBlank:
-                    isCorrect = string.Equals(userQuestion.CorrectAnswer, testQuestion.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
-                    break;
-            }
-
-            await SaveAnswerAsync(testResultId, userQuestion.Id, isCorrect, cancellationToken);
-        }
+        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken)
+            ?? throw new Exception("TestResult was not found");
+        var test = await testRepository.GetByIdAsync(testResult.TestId, cancellationToken)
+            ?? throw new TestNotFoundException();
 
         testResult.EndedAt = DateTime.UtcNow;
+
+        var answersList = new List<object>();
+        int correctAnswersCount = 0;
+
+        foreach (var answerResult in answerResults)
+        {
+            var question = test.Questions.FirstOrDefault(q => q.Id == answerResult.QuestionId);
+            if (question == null) continue;
+
+            var taskObject = JObject.Parse(question.TaskJson);
+            var userAnswerObject = JObject.Parse(answerResult.UserAnswerJson);
+
+            var taskAnswer = taskObject["answer"];
+            var userAnswer = userAnswerObject["answer"];
+
+            bool isCorrect;
+
+            if (taskAnswer is JValue taskVal && userAnswer is JValue userVal && taskVal.Type == JTokenType.String && userVal.Type == JTokenType.String)
+            {
+                var taskStr = taskVal.ToString().ToLowerInvariant();
+                var userStr = userVal.ToString().ToLowerInvariant();
+                isCorrect = taskStr.Equals(userStr);
+            }
+            else
+            {
+                isCorrect = JToken.DeepEquals(taskAnswer, userAnswer);
+            }
+
+            answersList.Add(new
+            {
+                questionId = answerResult.QuestionId,
+                type = question.Type,
+                userAnswerJson = answerResult.UserAnswerJson,
+                isCorrect
+            });
+
+            if (isCorrect)
+            {
+                correctAnswersCount++;
+            }
+        }
+
+        testResult.AnswersJson = JsonConvert.SerializeObject(answersList);
+        testResult.Score = (double)correctAnswersCount / test.Questions.Count * 100;
 
         await testResultRepository.UpdateAsync(testResult, cancellationToken);
     }
 
-    public async Task SaveAnswerAsync(long testResultId, long questionId, bool isCorrect, CancellationToken cancellationToken = default)
+    public async Task<TestResult?> GetTestResultByIdAsync(
+        long testResultId,
+        CancellationToken cancellationToken = default)
     {
-        var answerResult = new AnswerResult
-        {
-            TestResultId = testResultId,
-            QuestionId = questionId,
-            IsCorrect = isCorrect
-        };
-
-        await answerResultRepository.SaveAnswerAsync(answerResult, cancellationToken);
-    }
-
-    public async Task<TestResult?> GetTestResultByIdAsync(long testResultId, CancellationToken cancellationToken = default)
-    {
-        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken) ?? throw new Exception("TestResult was not found");
+        var testResult = await testResultRepository.GetTestResultByIdAsync(testResultId, cancellationToken)
+            ?? throw new Exception("TestResult was not found");
         return testResult;
     }
 
-    public async Task<PageResult<TestResult>> GetAllTestResultsAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<TestResult>> GetAllTestResultsAsync(
+        Filter filter,
+        SortParams sortParams,
+        PageParams pageParams,
+        CancellationToken cancellationToken = default)
     {
         var testResults = await testResultRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return testResults;

@@ -1,14 +1,18 @@
-import * as React from 'react';
-import CssBaseline from '@mui/material/CssBaseline';
+import React from 'react';
+import { CssBaseline } from '@mui/material';
 import { SnackbarCloseReason } from '@mui/material/Snackbar';
-
+import { SnackbarContext, SnackbarContextType } from '@context/SnackbarContext';
 import AppTheme from '@theme/AppTheme';
 import ColorModeIconToggleButton from '@theme/ColorModeIconToggleButton';
-import AppRoutes from './routes';
 import AppSnackbar from '@components/AppSnackbar';
 import { AuthProvider } from '@context/AuthContext';
 
-export default function App(props: { disableCustomTheme?: boolean }) {
+interface AppProps {
+  children: React.ReactNode;
+  disableCustomTheme?: boolean;
+}
+
+export default function App({ children, disableCustomTheme }: AppProps) {
   const [open, setOpen] = React.useState(false);
   const [message, setMessage] = React.useState('');
   const [severity, setSeverity] = React.useState<'success' | 'error' | 'info' | 'warning'>('success');
@@ -18,13 +22,21 @@ export default function App(props: { disableCustomTheme?: boolean }) {
     setOpen(false);
   };
 
+  const snackbarContextValue: SnackbarContextType = {
+    setSeverity,
+    setMessage,
+    setOpen,
+  };
+
   return (
     <AuthProvider>
-      <AppTheme {...props}>
+      <AppTheme {...{ disableCustomTheme }}>
         <CssBaseline />
         <ColorModeIconToggleButton sx={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: '100' }} />
-        <AppSnackbar open={open} message={message} severity={severity} onClose={handleClose} />
-        <AppRoutes setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />
+        <SnackbarContext.Provider value={snackbarContextValue}>
+          <AppSnackbar open={open} message={message} severity={severity} onClose={handleClose} />
+          {children}
+        </SnackbarContext.Provider>
       </AppTheme>
     </AuthProvider>
   );

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
-using Web3D.Domain.Models.DTO;
+using Web3D.Domain.Models.Dto;
 
 namespace Web3D.DataAccess.Extensions;
 
@@ -20,9 +20,9 @@ public static class UserExtension
                 .Contains(nameLower));
         }
 
-        if (filter.UserId is not null)
+        if (filter.UserId != null && filter.UserId.Count != 0)
         {
-            query = query.Where(x => x.Id == filter.UserId);
+            query = query.Where(x => filter.UserId.Contains(x.Id));
         }
 
         return query;
@@ -35,11 +35,11 @@ public static class UserExtension
             : query.OrderBy(GetKeySelector(sortParams.OrderBy));
     }
 
-    public static async Task<PageResult<UserDTO>> ToPagedAsync(this IQueryable<User> query, PageParams pageParams, CancellationToken cancellationToken = default)
+    public static async Task<PageResult<UserDto>> ToPagedAsync(this IQueryable<User> query, PageParams pageParams, CancellationToken cancellationToken = default)
     {
         var count = await query.CountAsync(cancellationToken);
 
-        if (count <= 0) return new PageResult<UserDTO>([], 0);
+        if (count <= 0) return new PageResult<UserDto>([], 0);
 
         var page = pageParams.CurrentPage ?? 1;
         var pageSize = pageParams.PageSize ?? 10;
@@ -47,7 +47,7 @@ public static class UserExtension
         var result = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(x => new UserDTO
+            .Select(x => new UserDto
             {
                 Id = x.Id,
                 LastName = x.LastName,
@@ -57,7 +57,7 @@ public static class UserExtension
             })
             .ToArrayAsync(cancellationToken);
 
-        return new PageResult<UserDTO>(result, count);
+        return new PageResult<UserDto>(result, count);
     }
 
     private static Expression<Func<User, object>> GetKeySelector(string? orderBy)

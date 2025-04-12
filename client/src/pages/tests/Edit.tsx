@@ -11,19 +11,19 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import DraggableGrid from '@components/DraggableGrid';
 import StyledIconButton from '@components/StyledIconButton';
 import ContentContainer from '@components/ContentContainer';
 import { getTestById } from '@api/testApi';
 import { useAuth } from '@context/AuthContext';
-import { PageProps } from '@mytypes/commonTypes';
-import { DESCRIPTION_MAX_LENGTH, questionTypes, Test, TestForSchemas, TITLE_MAX_LENGTH } from '@mytypes/testTypes';
+import { DESCRIPTION_MAX_LENGTH, QuestionForCreate, QuestionMap, questionTypes, Test, TestForSchemas, TITLE_MAX_LENGTH } from '@mytypes/testTypes';
 import { useTestQuestions } from "@hooks/useTestQuestions";
+import { SnackbarContext } from '@context/SnackbarContext';
 
 // TODO: add question validation
-export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps) {
+export default function EditTest() {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const navigate = ReactDOM.useNavigate();
   const { id } = ReactDOM.useParams();
   const testId = Number(id);
@@ -35,8 +35,8 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
 
   const {
     questions,
-    activeQuestion,
-    setActiveQuestion,
+    activeQuestionId,
+    setActiveQuestionId,
     addQuestion,
     setQuestions,
     updateQuestion,
@@ -44,9 +44,8 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
     reorderQuestionsOnDrag,
     addAnswerOption,
     updateAnswerOption,
-    setCorrectAnswer,
     removeAnswerOption,
-    setFormDirty,
+    setIsDirty,
     useEditTest,
     titleLength,
     setTitleLength,
@@ -75,11 +74,34 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
           return;
         }
         setTitleLength(data.title.length);
-        setDescriptionLength(data.description.length);
+        setDescriptionLength(data.description?.length ?? 0);
         const sortedQuestions = data.questions.sort((a, b) => a.index - b.index);
-        const newQuestions = Object.fromEntries(sortedQuestions.map(question => [crypto.randomUUID(), question]));
-        setQuestions(newQuestions);
-        setActiveQuestion(Object.keys(newQuestions)[0]);
+
+        const questionMap: QuestionMap = {};
+        for (const question of sortedQuestions) {
+          let task: any;
+          try {
+            task = JSON.parse(question.taskJson);
+          } catch (e) {
+            console.warn(`Не удалось распарсить JSON для вопроса ${question.id}`, e);
+            continue;
+          }
+    
+          const q: QuestionForCreate = {
+            id: question.id,
+            testId: question.testId,
+            index: question.index,
+            type: question.type,
+            text: question.text,
+            imageUrl: question.imageUrl,
+            task
+          };
+    
+          questionMap[crypto.randomUUID()] = q;
+        }
+    
+        setQuestions(questionMap);
+        setActiveQuestionId(Object.keys(questionMap)[0]);
       } catch (error) {
         console.error("Ошибка загрузки теста: ", error);
         navigate("/", { replace: true });
@@ -101,11 +123,11 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
         description: test.description
       });
       setTitleLength(test.title.length);
-      setDescriptionLength(test.description.length);
+      setDescriptionLength(test.description?.length ?? 0);
     }
   }, [test, reset]);
 
-  const editTest = useEditTest(setSeverity, setMessage, setOpen, navigate);
+  const editTest = useEditTest();
 
   const onSubmit = async (data: TestForSchemas) => {
     setLoading(true);
@@ -139,7 +161,7 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                 }}
                 onChange={(e) => {
                   setTitleLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -164,7 +186,7 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                 }}
                 onChange={(e) => {
                   setDescriptionLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -189,8 +211,8 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
               }}>
                 <DraggableGrid
                   questions={questions}
-                  activeQuestion={activeQuestion}
-                  setActiveQuestion={setActiveQuestion}
+                  activeQuestionId={activeQuestionId}
+                  setActiveQuestionId={setActiveQuestionId}
                   handleDragEnd={reorderQuestionsOnDrag}
                   addQuestion={addQuestion}
                   removeQuestion={removeQuestion}
@@ -204,14 +226,14 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
             {/* Question type selector */}
             <FormControl>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <FormLabel>Тип вопроса</FormLabel>
+                <FormLabel>Тип заданияа</FormLabel>
                 <Tooltip
                   title={
                     <div>
-                      <li><strong>Один правильный ответ:</strong> вопрос с несколькими вариантами ответов, из которых только один является правильным</li>
-                      <li><strong>Несколько правильных ответов:</strong> вопрос с несколькими вариантами ответа, и несколько из них могут быть правильными</li>
-                      <li><strong>Соответствие:</strong> вопрос, в котором требуется установить связь между двумя наборами элементов</li>
-                      <li><strong>Заполнение пропущенного слова:</strong> вопрос, в котором необходимо заполнить пропущенное слово в предложении</li>
+                      <li><strong>Один правильный ответ:</strong> вопрос с вариантами ответов, один из которых является правильным</li>
+                      <li><strong>Несколько правильных ответов:</strong> вопрос с вариантами ответов, несколько из которых являются правильными</li>
+                      <li><strong>Соответствие:</strong> задание, в котором требуется установить правильное соответствие между элементами двух столбцов</li>
+                      <li><strong>Заполнение пропущенного слова:</strong> утверждение с пропущенным словом, которое необходимо заполнить</li>
                     </div>
                   }
                   placement="right"
@@ -223,10 +245,10 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
               </Box>
               <Box>
                 <Select
-                  value={questions[activeQuestion].type}
+                  value={questions[activeQuestionId].type}
                   onChange={(e) => {
-                    updateQuestion(activeQuestion, "type", Number(e.target.value));
-                    setFormDirty(true);
+                    updateQuestion(activeQuestionId, { type: Number(e.target.value) });
+                    setIsDirty(true);
                   }}
                   sx={{
                     '& > div': {
@@ -245,20 +267,9 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
             </FormControl>
 
             <FormControl sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Question text */}
-              <TextField
-                fullWidth
-                value={questions[activeQuestion].text}
-                onChange={(e) => {
-                  updateQuestion(activeQuestion, "text", e.target.value);
-                  setFormDirty(true);
-                }}
-                placeholder="Текст вопроса"
-              />
-
               {/* Upload image button */}
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                {!questions[activeQuestion].imageUrl ? (
+                {!questions[activeQuestionId].imageUrl ? (
                   <Button
                     variant="outlined"
                     component="label"
@@ -298,8 +309,8 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                             }
                             const localUrl = URL.createObjectURL(file);
                             localImages.current.set(localUrl, file);
-                            updateQuestion(activeQuestion, "imageUrl", localUrl);
-                            setFormDirty(true);
+                            updateQuestion(activeQuestionId, { imageUrl: localUrl });
+                            setIsDirty(true);
                           }
                         }
                       }}
@@ -318,7 +329,7 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                     }}
                   >
                     <img
-                      src={questions[activeQuestion].imageUrl}
+                      src={questions[activeQuestionId].imageUrl}
                       style={{
                         maxWidth: '100%',
                         maxHeight: '100%',
@@ -329,9 +340,13 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                       size="small"
                       title="Удалить изображение"
                       onClick={() => {
-                        localImages.current.delete(questions[activeQuestion].imageUrl!);
-                        updateQuestion(activeQuestion, "imageUrl", undefined);
-                        setFormDirty(true);
+                        const imgUrl = questions[activeQuestionId].imageUrl;
+                        if (imgUrl) {
+                          localImages.current.delete(imgUrl);
+                          URL.revokeObjectURL(imgUrl);
+                        }
+                        updateQuestion(activeQuestionId, { imageUrl: undefined });
+                        setIsDirty(true);
                       }}
                       sx={{
                         position: 'absolute',
@@ -352,25 +367,43 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                 )}
               </Box>
 
+              {/* Question text */}
+              {questions[activeQuestionId].type !== 2 && (
+                <TextField
+                  fullWidth
+                  value={questions[activeQuestionId].text ?? ""}
+                  onChange={(e) => {
+                    updateQuestion(activeQuestionId, { text: e.target.value });
+                    setIsDirty(true);
+                  }}
+                  placeholder="Текст вопроса"
+                />
+              )}
+
               {/* Question types */}
               {/* Single Choice */}
-              {questions[activeQuestion].type === 0 && (
+              {questions[activeQuestionId].type === 0 && (
                 <RadioGroup
                   sx={{ display: 'flex', gap: 2 }}
-                  value={questions[activeQuestion].answerOptions.findIndex(opt => opt.isCorrect)}
+                  value={questions[activeQuestionId].task.answer.findIndex(ans => ans === true)}
                   onChange={(e) => {
-                    setCorrectAnswer(activeQuestion, parseInt(e.target.value));
-                    setFormDirty(true);
+                    const answerIndex = parseInt(e.target.value);
+                    updateQuestion(activeQuestionId, {
+                      task: {
+                        answer: (questions[activeQuestionId].task.answer as boolean[]).map((_, idx) => idx === answerIndex ? true : false)
+                      }
+                    });
+                    setIsDirty(true);
                   }}
                 >
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.options.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
+                        value={option}
                         onChange={(e) => {
-                          updateAnswerOption(activeQuestion, index, "text", e.target.value);
-                          setFormDirty(true);
+                          updateAnswerOption(activeQuestionId, index, e.target.value);
+                          setIsDirty(true);
                         }}
                         placeholder={`Вариант ответа ${index + 1}`}
                       />
@@ -383,8 +416,8 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
                         />
                       </Box>
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -394,23 +427,45 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
               )}
 
               {/* Multiple Choice */}
-              {questions[activeQuestion].type === 1 && (
+              {questions[activeQuestionId].type === 1 && (
                 <>
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.options.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        value={option}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value);
+                          setIsDirty(true);
+                        }}
                         placeholder={`Вариант ответа ${index + 1}`}
                       />
                       <FormControlLabel
-                        control={<Checkbox checked={option.isCorrect} onChange={() => setCorrectAnswer(activeQuestion, index)} />}
+                        control={<Checkbox
+                          checked={questions[activeQuestionId].task.answer[index] as boolean}
+                          onChange={(e) => {
+                            const updatedAnswers = [...(questions[activeQuestionId].task.answer as boolean[])];
+                            const trueCount = updatedAnswers.filter(val => val === true).length;
+
+                            if (e.target.checked) {
+                              if (trueCount < updatedAnswers.length) {
+                                updatedAnswers[index] = true;
+                              }
+                            } else {
+                              if (trueCount > 1) {
+                                updatedAnswers[index] = false;
+                              }
+                            }
+
+                            updateQuestion(activeQuestionId, { task: { answer: updatedAnswers } });
+                            setIsDirty(true);
+                          }}
+                        />}
                         label="Правильный"
                       />
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -420,25 +475,31 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
               )}
 
               {/* Matching */}
-              {questions[activeQuestion].type === 2 && (
+              {questions[activeQuestionId].type === 2 && (
                 <>
-                  {questions[activeQuestion].answerOptions.map((option, index) => (
+                  {questions[activeQuestionId].task.answer.map((text, index) => (
                     <Box key={index} sx={{ display: 'flex', gap: 2 }}>
                       <TextField
                         fullWidth
-                        value={option.text}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "text", e.target.value)}
+                        value={text[0]}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value, 0);
+                          setIsDirty(true);
+                        }}
                         placeholder={`Элемент ${index + 1}`}
                       />
                       <TextField
                         fullWidth
-                        value={option.matchingPair}
-                        onChange={(e) => updateAnswerOption(activeQuestion, index, "matchingPair", e.target.value)}
+                        value={text[1]}
+                        onChange={(e) => {
+                          updateAnswerOption(activeQuestionId, index, e.target.value, 1);
+                          setIsDirty(true);
+                        }}
                         placeholder="Соответствие"
                       />
                       <IconButton
-                        onClick={() => removeAnswerOption(activeQuestion, index)}
-                        disabled={questions[activeQuestion].answerOptions.length < 3}
+                        onClick={() => removeAnswerOption(activeQuestionId, index)}
+                        disabled={questions[activeQuestionId].task.answer.length < 3}
                       >
                         <ClearRoundedIcon />
                       </IconButton>
@@ -448,39 +509,31 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
               )}
 
               {/* Fill in the blank */}
-              {questions[activeQuestion].type === 3 && (
+              {questions[activeQuestionId].type === 3 && (
                 <TextField
                   fullWidth
-                  value={questions[activeQuestion].correctAnswer}
-                  onChange={(e) => updateQuestion(activeQuestion, "correctAnswer", e.target.value)}
+                  value={questions[activeQuestionId].task.answer}
+                  onChange={(e) => {
+                    updateQuestion(activeQuestionId, { task: { answer: e.target.value } });
+                    setIsDirty(true);
+                  }}
                   placeholder="Правильный ответ"
                 />
               )}
 
-              {(questions[activeQuestion].type === 0 || questions[activeQuestion].type === 1) && (
+              {(questions[activeQuestionId].type !== 3) && (
                 <Button
                   variant="outlined"
                   startIcon={<AddRoundedIcon />}
                   onClick={() => {
-                    addAnswerOption(activeQuestion);
-                    setFormDirty(true);
+                    addAnswerOption(activeQuestionId);
+                    setIsDirty(true);
                   }}
-                  disabled={questions[activeQuestion].answerOptions.length >= 4}
-                  sx={{ display: questions[activeQuestion].answerOptions.length >= 4 ? 'none' : 'inline-flex' }}
-                >
-                  Добавить вариант ответа
-                </Button>
-              )}
-              {questions[activeQuestion].type === 2 && (
-                <Button
-                  variant="outlined"
-                  startIcon={<AddRoundedIcon />}
-                  onClick={() => {
-                    addAnswerOption(activeQuestion);
-                    setFormDirty(true);
+                  sx={{
+                    display: questions[activeQuestionId].type === 2
+                      ? (questions[activeQuestionId].task.answer.length >= 5 ? 'none' : 'inline-flex')
+                      : (questions[activeQuestionId].task.answer.length >= 4 ? 'none' : 'inline-flex')
                   }}
-                  disabled={questions[activeQuestion].answerOptions.length >= 5}
-                  sx={{ display: questions[activeQuestion].answerOptions.length >= 5 ? 'none' : 'inline-flex' }}
                 >
                   Добавить вариант ответа
                 </Button>
@@ -497,7 +550,6 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
           </PageCard>
         </Box>
       </ContentContainer>
-      <Footer />
       <Backdrop
         sx={{
           color: '#fff',
@@ -508,7 +560,7 @@ export default function EditTest({ setSeverity, setMessage, setOpen }: PageProps
           width: '100%',
           height: '100%',
         }}
-        open={loading || userLoading || !test}
+        open={loading}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

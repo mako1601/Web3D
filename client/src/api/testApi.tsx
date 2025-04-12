@@ -1,6 +1,7 @@
 import { api } from './axiosInstance';
+import qs from 'qs';
 import { PageResult } from '@mytypes/commonTypes';
-import { Test, TestDto, TestResult } from '@mytypes/testTypes';
+import { AnswerResultDto, Test, TestDto, TestResult } from '@mytypes/testTypes';
 
 const ROUTE = "/tests";
 
@@ -16,20 +17,23 @@ export const getTestById = async (id: number): Promise<Test> => {
 export const getAllTests = async ({
   searchText,
   userId,
+  testId,
   orderBy,
   sortDirection,
   currentPage,
-  pageSize,
+  pageSize
 }: {
   searchText?: string,
-  userId?: number,
+  userId?: number[],
+  testId?: number[],
   orderBy?: string,
   sortDirection?: number,
   currentPage?: number,
   pageSize?: number
 }): Promise<PageResult<Test>> => {
   const response = await api.get<PageResult<Test>>(`${ROUTE}`, {
-    params: { searchText, userId, orderBy, sortDirection, currentPage, pageSize }
+    params: { searchText, userId, testId, orderBy, sortDirection, currentPage, pageSize },
+    paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
   });
   return response.data;
 };
@@ -47,8 +51,8 @@ export const startTest = async (id: number): Promise<number> => {
   return response.data;
 };
 
-export const finishTest = async (id: number, data: TestDto): Promise<void> => {
-  await api.put(`${ROUTE}/${id}/finish`, data);
+export const finishTest = async (id: number, data: AnswerResultDto[]): Promise<void> => {
+  await api.put(`${ROUTE}/${id}/finish`, { answerResults: data });
 };
 
 export const getTestForPassingById = async (id: number): Promise<Test> => {
@@ -62,20 +66,23 @@ export const getTestResultById = async (id: number): Promise<TestResult> => {
 };
 
 export const getAllTestResults = async ({
+  userId,
   testId,
   orderBy,
   sortDirection,
   currentPage,
-  pageSize,
+  pageSize
 }: {
-  testId?: number,
+  userId?: number[],
+  testId?: number[],
   orderBy?: string,
   sortDirection?: number,
   currentPage?: number,
   pageSize?: number
 }): Promise<PageResult<TestResult>> => {
   const response = await api.get<PageResult<TestResult>>(`${ROUTE}/results`, {
-    params: { testId, orderBy, sortDirection, currentPage, pageSize }
+    params: { userId, testId, orderBy, sortDirection, currentPage, pageSize },
+    paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
   });
   return response.data;
 };

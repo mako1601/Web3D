@@ -1,11 +1,14 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import Home from '@pages/Home';
 
 import Login from '@pages/users/Login';
+import Tests from '@pages/users/Tests';
 import UserList from '@pages/users/List';
+import Results from '@pages/users/Results';
 import Profile from '@pages/users/Profile';
 import Register from '@pages/users/Register';
+import Articles from '@pages/users/Articles';
 
 import EditTest from '@pages/tests/Edit';
 import TestList from '@pages/tests/List';
@@ -22,50 +25,164 @@ import ModelView from '@pages/model/View';
 
 import PublicRoute from '@components/PublicRoute';
 import ProtectedRoute from '@components/ProtectedRoute';
-import { PageProps } from '@mytypes/commonTypes';
 
-const AppRoutes: React.FC<PageProps> = ({ setSeverity, setMessage, setOpen }) => {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-      <Route element={<PublicRoute />}>
-        <Route path="/register" element={<Register setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/login" element={<Login setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route element={<ProtectedRoute allowedRoles={[0, 1, 2]} />}>
-        <Route path="/profile" element={<Navigate to="/profile/data" replace />} />
-        <Route path="/profile/*" element={<Navigate to="/profile/data" replace />} />
-        <Route path="/profile/data" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route element={<ProtectedRoute allowedRoles={[1]} />}>
-        <Route path="/profile/results" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route element={<ProtectedRoute allowedRoles={[2]} />}>
-        <Route path="/profile/articles" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/profile/tests" element={<Profile setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route element={<ProtectedRoute allowedRoles={[0]} />}> {/*Only for Admin*/}
-        <Route path="/users" element={<UserList setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route path="/articles" element={<ArticleList />} />
-      <Route path="/articles/:id" element={<ViewArticle />} />
-      <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
-        <Route path="/articles/create" element={<CreateArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/articles/:id/edit" element={<EditArticle setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route path="/tests" element={<TestList />} />
-      <Route path="/tests/:id" element={<ViewTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      <Route element={<ProtectedRoute allowedRoles={[1]} />} > {/*Only for Student*/}
-        <Route path="/tests/:testId/results/:testResultId" element={<PassTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route element={<ProtectedRoute allowedRoles={[2]} />} > {/*Only for Teacher*/}
-        <Route path="/tests/create" element={<CreateTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-        <Route path="/tests/:id/edit" element={<EditTest setSeverity={setSeverity} setMessage={setMessage} setOpen={setOpen} />} />
-      </Route>
-      <Route path="/model" element={<ModelView />} />
-    </Routes>
-  );
-};
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home />,
+  },
+  {
+    path: '/register',
+    element: (
+      <PublicRoute>
+        <Register />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/login',
+    element: (
+      <PublicRoute>
+        <Login />
+      </PublicRoute>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute allowedRoles={[0, 1, 2]}>
+        <Navigate to="/profile/data" replace />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/data',
+    element: (
+      <ProtectedRoute allowedRoles={[0, 1, 2]}>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/results',
+    element: (
+      <ProtectedRoute allowedRoles={[1]}>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/results/all',
+    element: (
+      <ProtectedRoute allowedRoles={[1]}>
+        <Results />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/articles',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/articles/all',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <Articles />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/tests',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile/tests/all',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <Tests />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/users',
+    element: (
+      <ProtectedRoute allowedRoles={[0]}>
+        <UserList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/articles',
+    element: <ArticleList />,
+  },
+  {
+    path: '/articles/:id',
+    element: <ViewArticle />,
+  },
+  {
+    path: '/articles/create',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <CreateArticle />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/articles/:id/edit',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <EditArticle />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/tests',
+    element: <TestList />,
+  },
+  {
+    path: '/tests/:id',
+    element: <ViewTest />,
+  },
+  {
+    path: '/tests/:testId/results/:testResultId',
+    element: (
+      <ProtectedRoute allowedRoles={[1]}>
+        <PassTest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/tests/create',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <CreateTest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/tests/:id/edit',
+    element: (
+      <ProtectedRoute allowedRoles={[2]}>
+        <EditTest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/model',
+    element: <ModelView />,
+  },
+  // {
+  //   path: '*',
+  //   element: <Navigate to="/" replace />,
+  // },
+]);
 
-export default AppRoutes;
+export default router;

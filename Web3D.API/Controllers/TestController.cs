@@ -62,7 +62,8 @@ public class TestController(ITestService testService) : ControllerBase
     [Authorize(Roles = "Student")]
     public async Task<IActionResult> StartTestAsync([FromRoute] long testId)
     {
-        try {
+        try
+        {
             var userId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
             var result = await testService.StartTestAsync(testId, userId);
             return Ok(result);
@@ -83,11 +84,21 @@ public class TestController(ITestService testService) : ControllerBase
 
     [HttpPut("{testResultId:long}/finish")]
     [Authorize]
-    public async Task<IActionResult> FinishTestAsync([FromRoute] long testResultId, [FromBody] TestRequest request)
+    public async Task<IActionResult> FinishTestAsync([FromRoute] long testResultId, [FromBody] AnswerRequest request)
     {
-        Console.WriteLine("123");
-        await testService.FinishTestAsync(testResultId, request.Questions);
-        return NoContent();
+        try
+        {
+            await testService.FinishTestAsync(testResultId, request.AnswerResults);
+            return NoContent();
+        }
+        catch (TestNotFoundException)
+        {
+            return NotFound("Тест не найден");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Ошибка на сервере: " + ex.Message);
+        }
     }
 
     [HttpGet("{testResultId:long}/result")]

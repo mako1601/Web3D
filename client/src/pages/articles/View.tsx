@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
@@ -10,7 +10,6 @@ import DOMPurify from 'dompurify';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import CodeViewer from '@components/CodeViewer';
 import { CodeRunner } from '@components/CodeRunner';
@@ -19,14 +18,17 @@ import { getArticleById } from '@api/articleApi';
 import { getUserById } from '@api/userApi';
 import { formatDate } from '@utils/dateUtils';
 import { Article } from '@mytypes/articleTypes';
-import { useFetchJsonFromUrl } from '@hooks/useArticles';
+import { useAuth } from '@context/AuthContext';
+import { useArticleForm } from '@hooks/useArticles';
 
 export default function ViewArticle() {
   const { id } = ReactDOM.useParams();
   const articleId = Number(id);
+  const { user } = useAuth();
   const [article, setArticle] = React.useState<Article | null>(null);
   const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
   const [htmlContent, setHtmlContent] = React.useState<string | null>(null);
+  const { useFetchJsonFromUrl } = useArticleForm();
 
   React.useEffect(() => {
     if (isNaN(articleId)) return;
@@ -101,7 +103,7 @@ export default function ViewArticle() {
           </Box>
         ) : (
           <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="h4" color="text.primary">
                 {article.title}
               </Typography>
@@ -116,6 +118,17 @@ export default function ViewArticle() {
                 <Typography variant="caption" color="text.primary">
                   {article.updatedAt ? "Обновлено" : "Создано"}: {article.updatedAt ? formatDate(article.updatedAt) : formatDate(article.createdAt)}
                 </Typography>
+                {user && user.id === article.userId ? (
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    component={ReactDOM.Link}
+                    to="edit"
+                    sx={{ margin: '1rem 0' }}
+                  >
+                    Изменить
+                  </Button>
+                ) : null}
               </Box>
             </Box>
             <Box>
@@ -126,7 +139,6 @@ export default function ViewArticle() {
           </PageCard>
         )}
       </ContentContainer>
-      <Footer />
     </Page>
   );
 }

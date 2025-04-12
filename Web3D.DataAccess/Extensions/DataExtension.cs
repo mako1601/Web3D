@@ -16,7 +16,6 @@ public static class DataExtension
         servicesCollection.AddScoped<ITestRepository, TestRepository>();
         servicesCollection.AddScoped<IArticleRepository, ArticleRepository>();
         servicesCollection.AddScoped<ITestResultRepository, TestResultRepository>();
-        servicesCollection.AddScoped<IAnswerResultRepository, AnswerResultRepository>();
         servicesCollection.AddScoped<ITokenRepository, TokenRepository>();
 
         servicesCollection.AddDbContext<Web3DDbContext>(options =>

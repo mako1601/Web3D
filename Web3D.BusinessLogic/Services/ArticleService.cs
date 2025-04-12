@@ -8,7 +8,12 @@ namespace Web3D.BusinessLogic.Services;
 
 internal class ArticleService(IArticleRepository articleRepository) : IArticleService
 {
-    public async Task CreateAsync(long authorId, string title, string? description, string contentUrl, CancellationToken cancellationToken = default)
+    public async Task CreateAsync(
+        long authorId,
+        string title,
+        string? description,
+        string contentUrl,
+        CancellationToken cancellationToken = default)
     {
         var article = new Article
         {
@@ -24,19 +29,30 @@ internal class ArticleService(IArticleRepository articleRepository) : IArticleSe
 
     public async Task<Article?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        var article = await articleRepository.GetByIdAsync(id, cancellationToken) ?? throw new ArticleNotFoundException();
+        var article = await articleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new ArticleNotFoundException();
         return article;
     }
 
-    public async Task<PageResult<Article>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<Article>> GetAllAsync(
+        Filter filter,
+        SortParams sortParams,
+        PageParams pageParams,
+        CancellationToken cancellationToken = default)
     {
         var articles = await articleRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return articles;
     }
 
-    public async Task UpdateAsync(long id, string title, string? description, string contentUrl, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(
+        long id,
+        string title,
+        string? description,
+        string contentUrl,
+        CancellationToken cancellationToken = default)
     {
-        var article = await articleRepository.GetByIdAsync(id, cancellationToken) ?? throw new ArticleNotFoundException();
+        var article = await articleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new ArticleNotFoundException();
 
         article.Title = title;
         article.Description = description;
@@ -48,7 +64,8 @@ internal class ArticleService(IArticleRepository articleRepository) : IArticleSe
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        var article = await articleRepository.GetByIdAsync(id, cancellationToken) ?? throw new ArticleNotFoundException();
+        var article = await articleRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new ArticleNotFoundException();
         await articleRepository.DeleteAsync(article, cancellationToken);
     }
 }

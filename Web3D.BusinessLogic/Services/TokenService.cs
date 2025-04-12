@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Http;
 
 using Web3D.Domain.Models;
+using Web3D.Domain.Exceptions;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
-using Web3D.Domain.Exceptions;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class TokenService(ITokenRepository tokenRepository, IHttpContextAccessor httpContextAccessor) : ITokenService
+internal class TokenService(
+    ITokenRepository tokenRepository,
+    IHttpContextAccessor httpContextAccessor)
+    : ITokenService
 {
     public async Task CreateAsync(long userId, CancellationToken cancellationToken = default)
     {

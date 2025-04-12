@@ -10,9 +10,8 @@ import ProfileResults from "@components/ProfileResults";
 import ProfileArticles from "@components/ProfileArticles";
 import ContentContainer from '@components/ContentContainer';
 import ChangePasswordForm from '@components/ChangePasswordForm';
-import { PageProps } from '@mytypes/commonTypes';
 
-const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
+const Profile = () => {
   const location = useLocation();
 
   let content;
@@ -31,8 +30,8 @@ const Profile = ({ setSeverity, setMessage, setOpen }: PageProps) => {
   } else {
     content = (
       <>
-        <ProfileForm setMessage={setMessage} setOpen={setOpen} setSeverity={setSeverity} />
-        <ChangePasswordForm setMessage={setMessage} setOpen={setOpen} setSeverity={setSeverity} />
+        <ProfileForm />
+        <ChangePasswordForm />
       </>
     );
   }

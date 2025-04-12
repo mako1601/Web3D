@@ -1,4 +1,5 @@
 import { api } from './axiosInstance';
+import qs from 'qs';
 import { PageResult } from '@mytypes/commonTypes';
 import { ChangeUserRole, UpdUserData, UpdUserPass, UserDto } from '@mytypes/userTypes';
 
@@ -9,15 +10,24 @@ export const getUserById = async (id: number): Promise<UserDto> => {
   return response.data;
 };
 
-export const getAllUsers = async (
-  name: string,
-  orderBy: string,
-  sortDirection: number,
-  currentPage: number,
-  pageSize: number
-): Promise<PageResult<UserDto>> => {
+export const getAllUsers = async ({
+  searchText,
+  userId,
+  orderBy,
+  sortDirection,
+  currentPage,
+  pageSize
+}: {
+  searchText?: string,
+  userId?: number[],
+  orderBy?: string,
+  sortDirection?: number,
+  currentPage?: number,
+  pageSize?: number
+}): Promise<PageResult<UserDto>> => {
   const response = await api.get<PageResult<UserDto>>(`${ROUTE}`, {
-    params: { name, orderBy, sortDirection, currentPage, pageSize }
+    params: { searchText, userId, orderBy, sortDirection, currentPage, pageSize },
+    paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' })
   });
   return response.data;
 };

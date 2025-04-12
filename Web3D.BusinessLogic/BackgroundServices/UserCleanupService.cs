@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using Web3D.DataAccess.Abstractions;
-using System;
 
 namespace Web3D.BusinessLogic.BackgroundServices;
 

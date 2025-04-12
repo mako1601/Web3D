@@ -3,6 +3,6 @@
 public class Filter
 {
     public string? SearchText { get; set; }
-    public long? UserId { get; set; }
-    public long? TestId { get; set; }
+    public ICollection<long>? UserId { get; set; }
+    public ICollection<long>? TestId { get; set; }
 }

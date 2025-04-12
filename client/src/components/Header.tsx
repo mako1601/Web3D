@@ -1,4 +1,3 @@
-import * as ReactDOM from 'react-router-dom';
 import { Stack, Avatar, Button } from '@mui/material';
 
 import HeaderMenu from '@components/HeaderMenu';
@@ -6,9 +5,9 @@ import CreateMenu from '@components/CreateMenu';
 import HeaderInner from '@components/HeaderInner';
 import HeaderContainer from '@components/HeaderContainer';
 import { useAuth } from '@context/AuthContext';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
-  const navigate = ReactDOM.useNavigate();
   const { user } = useAuth();
 
   return (
@@ -17,20 +16,20 @@ export default function Header() {
 
         {/* left */}
         <Stack direction="row" spacing={2}>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/"; }}>
+          <Button variant="text" component={Link} to="/">
             Главная
           </Button>
         </Stack>
 
         {/* middle */}
         <Stack direction="row" justifyContent="center" spacing={1}>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/articles"; }}>
+          <Button variant="text" component={Link} to="/articles?sortDirection=1">
             Учебные материалы
           </Button>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/tests"; }}>
+          <Button variant="text" component={Link} to="/tests?sortDirection=1">
             Тесты
           </Button>
-          <Button variant="text" onClick={(e) => { e.preventDefault(); window.location.href = "/model"; }}>
+          <Button variant="text" component={Link} to="/model">
             3D
           </Button>
         </Stack>
@@ -39,19 +38,21 @@ export default function Header() {
         {user ? (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
             {user.role === 2 && (<CreateMenu />)}
-            <Avatar sx={{ bgcolor: 'primary.main', cursor: 'pointer' }} onClick={(e) => { e.preventDefault(); window.location.href = "/profile"; }}>
-              {user.lastName ? user.lastName[0].toUpperCase() : "?"}
-            </Avatar>
+            <Link to="/profile/data" style={{ textDecoration: 'none' }}>
+              <Avatar sx={{ bgcolor: 'primary.main' }}>
+                {user.lastName ? user.lastName[0].toUpperCase() : "?"}
+              </Avatar>
+            </Link>
             <HeaderMenu />
           </Stack>
         ) : (
           <Stack direction="row" justifyContent="flex-end" spacing={2}>
-            <Button variant="contained" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>
+            <Button variant="contained" component={Link} to="/login">
               Войти
             </Button>
           </Stack>
         )}
       </HeaderInner>
-    </HeaderContainer >
+    </HeaderContainer>
   );
 }

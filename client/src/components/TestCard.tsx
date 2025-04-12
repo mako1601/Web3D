@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
 import { Test } from '@mytypes/testTypes';
@@ -7,10 +8,10 @@ import { formatDate } from '@utils/dateUtils';
 
 interface TestCardProps {
   test: Test;
-  onClick: () => void;
+  to: string;
 }
 
-const TestCard = ({ test, onClick }: TestCardProps) => {
+const TestCard = ({ test, to }: TestCardProps) => {
   const [expanded, setExpanded] = React.useState(false);
   const [hovered, setHovered] = React.useState(false);
   const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
@@ -28,34 +29,49 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
     fetchAuthor();
   }, [test.userId]);
 
-  const isLongText = React.useMemo(() => test.description.split("\n").length > 3, [test.description]);
+  const isLongText = React.useMemo(() => (test.description?.split("\n").length ?? 0) > 3, [test.description]);
 
   const authorName = React.useMemo(() => {
     return author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…";
   }, [author]);
 
-  const handleDescriptionClick = () => {
+  const handleDescriptionClick = (e: React.MouseEvent) => {
     if (isLongText) {
-      setExpanded(!expanded);
-    } else {
-      onClick();
+      e.stopPropagation();
+      e.preventDefault();
+      setExpanded(prev => !prev);
     }
   };
 
   return (
-    <div
-      style={{
+    <Box
+      component={Link}
+      to={to}
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         borderRadius: '8px',
         transition: 'background-color 0.3s ease',
         backgroundColor: hovered ? '#f0f0f0' : 'transparent',
+        textDecoration: 'none',
+        color: 'inherit'
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Box sx={{ padding: '1rem', cursor: 'pointer' }} onClick={onClick}>
-        <Typography variant="h6" sx={{ color: 'text.primary' }}>
+      <Box sx={{ padding: '1rem' }}>
+        <Typography
+          variant="h6"
+          sx={{
+            color: 'text.primary',
+            display: '-webkit-box',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            wordBreak: 'break-word',
+          }}
+        >
           {test.title}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -67,7 +83,7 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
               {authorName}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {test.updatedAt ? "Обновлено" : "Создано"}: {test.updatedAt ? formatDate(test.updatedAt) : formatDate(test.createdAt)}
+              {"Создано: " + formatDate(test.createdAt)}
             </Typography>
           </Box>
         </Box>
@@ -106,7 +122,7 @@ const TestCard = ({ test, onClick }: TestCardProps) => {
           )}
         </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

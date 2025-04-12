@@ -6,18 +6,16 @@ import { EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
 import { getArticleById } from '@api/articleApi';
 import { useAuth } from '@context/AuthContext';
-import { PageProps } from '@mytypes/commonTypes';
 import { Article, ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
-import { extractImageUrls, useArticleEditor, useArticleForm, useEditArticle, useFetchJsonFromUrl, useUploadImages } from '@hooks/useArticles';
+import { useArticleForm } from '@hooks/useArticles';
 
-export default function EditArticle({ setSeverity, setMessage, setOpen }: PageProps) {
+export default function EditArticle() {
   const navigate = useNavigate();
   const { id } = useParams();
   const articleId = Number(id);
@@ -42,12 +40,17 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
     setDescriptionLength,
     contentLength,
     setContentLength,
-    setFormDirty
+    setIsDirty,
+    useArticleEditor,
+    useEditArticle,
+    useFetchJsonFromUrl,
+    useUploadImages,
+    extractImageUrls
   } = useArticleForm();
 
-  const editor = useArticleEditor(setValue, setContentLength, setFormDirty);
+  const editor = useArticleEditor(setValue, setContentLength, setIsDirty);
   const uploadImages = useUploadImages(localImages);
-  const editArticle = useEditArticle(setSeverity, setMessage, setOpen, navigate);
+  const editArticle = useEditArticle();
 
   React.useEffect(() => {
     if (userLoading) return;
@@ -84,7 +87,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
           setContentLength(editor.getText().length);
         }
       };
-  
+
       fetchJson();
       initialImageUrls.current = extractImageUrls(editor.getHTML());
       setContentLength(editor.getText().length);
@@ -184,7 +187,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
                 }}
                 onChange={(e) => {
                   setTitleLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -207,7 +210,7 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
                 }}
                 onChange={(e) => {
                   setDescriptionLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -260,7 +263,6 @@ export default function EditArticle({ setSeverity, setMessage, setOpen }: PagePr
           </PageCard>
         </Box>
       </ContentContainer>
-      <Footer />
       <Backdrop
         sx={{
           color: '#fff',

@@ -19,37 +19,34 @@ internal class TestResultRepository(Web3DDbContext context) : ITestResultReposit
 
     public async Task UpdateAsync(TestResult testResult, CancellationToken cancellationToken = default)
     {
-        testResult.Score = await context.AnswerResults
-            .Where(x => x.TestResultId == testResult.Id && x.IsCorrect)
-            .CountAsync(cancellationToken);
-
         context.TestResults.Update(testResult);
         await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<TestResult?> GetTestResultByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        return await context.TestResults
-            .Include(x => x.AnswerResults)
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
+        return await context.TestResults.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task<long> GetAttemptAsync(long testId, long userId, CancellationToken cancellationToken = default)
     {
         var testResult = await context.TestResults
             .Where(x => x.TestId == testId && x.UserId == userId)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return testResult is null ? 1 : await context.TestResults
             .Where(x => x.TestId == testId && x.UserId == userId)
             .MaxAsync(x => x.Attempt + 1, cancellationToken);
     }
 
-    public async Task<PageResult<TestResult>> GetAllAsync(Filter filter, SortParams sortParams, PageParams pageParams, CancellationToken cancellationToken = default)
+    public async Task<PageResult<TestResult>> GetAllAsync(
+        Filter filter,
+        SortParams sortParams,
+        PageParams pageParams,
+        CancellationToken cancellationToken = default)
     {
         return await context.TestResults
-            .Include(x => x.AnswerResults)
-            .Filter(filter, context)
+            .Filter(filter)
             .Sort(sortParams, context)
             .ToPagedAsync(pageParams, cancellationToken);
     }

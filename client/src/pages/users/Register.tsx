@@ -14,9 +14,10 @@ import { getCurrentUser } from '@api/authApi';
 import { useAuth } from '@context/AuthContext';
 import { regSchema } from '@schemas/userSchemas';
 import { RegData } from '@mytypes/userTypes';
-import { PageProps } from '@mytypes/commonTypes';
+import { SnackbarContext } from '@context/SnackbarContext';
 
-export default function Register({ setSeverity, setMessage, setOpen }: PageProps) {
+export default function Register() {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const { setUser } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
@@ -59,7 +60,8 @@ export default function Register({ setSeverity, setMessage, setOpen }: PageProps
       <SignCard variant="outlined">
         <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           <IconButton
-            onClick={() => navigate("/")}
+            component={RouterLink}
+            to="/"
             title="Вернуться на главную"
             style={{ border: 0, backgroundColor: 'transparent', paddingLeft: 0 }}
           >

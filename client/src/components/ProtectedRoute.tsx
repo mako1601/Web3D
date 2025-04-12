@@ -1,13 +1,13 @@
 import * as ReactDOM from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
-
 import { useAuth } from '@context/AuthContext';
 
 interface ProtectedRouteProps {
   allowedRoles: number[];
+  children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles, children }) => {
   const { user, loading } = useAuth();
   const allowedRolesSet = new Set(allowedRoles);
 
@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
     return <ReactDOM.Navigate to="/" replace />;
   }
 
-  return <ReactDOM.Outlet />;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;

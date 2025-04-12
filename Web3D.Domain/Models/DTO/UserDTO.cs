@@ -1,6 +1,6 @@
-﻿namespace Web3D.Domain.Models.DTO;
+﻿namespace Web3D.Domain.Models.Dto;
 
-public class UserDTO
+public class UserDto
 {
     public long Id { get; set; }
     public string LastName { get; set; } = string.Empty;

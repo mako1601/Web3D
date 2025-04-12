@@ -1,22 +1,18 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-router-dom';
 import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField, IconButton } from '@mui/material';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { EditorContent } from '@tiptap/react';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
-import { PageProps } from '@mytypes/commonTypes';
 import { ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
-import { useArticleForm, useArticleEditor, useCreateArticle, useUploadImages } from '@hooks/useArticles';
+import { useArticleForm } from '@hooks/useArticles';
 
-export default function CreateArticle({ setSeverity, setMessage, setOpen }: PageProps) {
-  const navigate = ReactDOM.useNavigate();
+export default function CreateArticle() {
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
   const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
@@ -33,12 +29,15 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
     setDescriptionLength,
     contentLength,
     setContentLength,
-    setFormDirty,
+    setIsDirty,
+    useArticleEditor,
+    useUploadImages,
+    useCreateArticle
   } = useArticleForm();
 
-  const editor = useArticleEditor(setValue, setContentLength, setFormDirty);
+  const editor = useArticleEditor(setValue, setContentLength, setIsDirty);
   const uploadImages = useUploadImages(localImages);
-  const createArticle = useCreateArticle(setSeverity, setMessage, setOpen, navigate);
+  const createArticle = useCreateArticle();
 
   React.useEffect(() => {
     (window as any).onCanvasGenerated = (generatedCanvas: HTMLCanvasElement) => {
@@ -128,7 +127,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
                 }}
                 onChange={(e) => {
                   setTitleLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -151,7 +150,7 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
                 }}
                 onChange={(e) => {
                   setDescriptionLength(e.target.value.length);
-                  setFormDirty(true);
+                  setIsDirty(true);
                 }}
               />
             </FormControl>
@@ -204,7 +203,6 @@ export default function CreateArticle({ setSeverity, setMessage, setOpen }: Page
           </PageCard>
         </Box>
       </ContentContainer>
-      <Footer />
       <Backdrop
         sx={{
           color: '#fff',

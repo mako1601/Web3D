@@ -5,9 +5,8 @@ public class Question
     public long Id { get; set; }
     public long TestId { get; set; }
     public int Index { get; set; }
-    public string Text { get; set; } = string.Empty;
-    public string? ImageUrl { get; set; }
-    public ICollection<AnswerOption> AnswerOptions { get; set; } = [];
     public QuestionType Type { get; set; }
-    public string? CorrectAnswer { get; set; } // for Fill-in-the-Blank
+    public string? Text { get; set; }
+    public string TaskJson { get; set; } = "{}";
+    public string? ImageUrl { get; set; }
 }

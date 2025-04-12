@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, Divider, MenuItem, IconButton } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 
@@ -29,12 +30,21 @@ const HeaderMenu = () => {
         <MenuRoundedIcon />
       </IconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem onClick={(e) => { e.preventDefault(); window.location.href = "/profile"; handleClose(); }}>Профиль</MenuItem>
+        <MenuItem component={Link} to="/profile/data" onClick={handleClose}>Профиль</MenuItem>
         {user?.role === 0 && (
-          <MenuItem onClick={(e) => { e.preventDefault(); window.location.href = "/users"; handleClose(); }}>Пользователи</MenuItem>
+          <MenuItem component={Link} to="/users" onClick={handleClose}>Пользователи</MenuItem>
+        )}
+        {user?.role === 1 && (
+          <MenuItem component={Link} to="/profile/results" onClick={handleClose}>Мои результаты</MenuItem>
+        )}
+        {user?.role === 2 && (
+          <>
+            <MenuItem component={Link} to="/profile/articles" onClick={handleClose}>Мои учебные материалы</MenuItem>
+            <MenuItem component={Link} to="/profile/tests" onClick={handleClose}>Мои тесты</MenuItem>
+          </>
         )}
         <Divider />
-        <MenuItem onClick={(e) => { e.preventDefault(); handleLogout(); }}>Выйти</MenuItem>
+        <MenuItem onClick={handleLogout}>Выйти</MenuItem>
       </Menu>
     </div>
   );

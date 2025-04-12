@@ -6,22 +6,22 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
-import Footer from '@components/Footer';
 import PageCard from '@components/PageCard';
 import UserCard from '@components/UserCard';
 import Pagination from '@components/Pagination';
 import ContentContainer from '@components/ContentContainer';
 import { changeRole, getAllUsers } from '@api/userApi';
 import { ChangeUserRole, UserDto } from '@mytypes/userTypes';
-import { PageProps } from '@mytypes/commonTypes';
 import { roleLabels } from '@utils/roleLabels';
+import { SnackbarContext } from '@context/SnackbarContext';
 
 const PAGE_SIZE = 20;
 
-export default function UserList({ setSeverity, setMessage, setOpen }: PageProps) {
+export default function UserList() {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
   const [searchQuery, setSearchQuery] = React.useState(searchParams.get("name") || "");
-  const name = searchParams.get("name") || "";
+  const searchText = searchParams.get("searchText") || "";
   const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
   const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
   const currentPage = parseInt(searchParams.get("page") || "1", 10);
@@ -32,14 +32,14 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
 
   const fetchUsers = React.useCallback(async () => {
     try {
-      const data = await getAllUsers(name, orderBy, sortDirection, currentPage, PAGE_SIZE);
+      const data = await getAllUsers({ searchText, orderBy, sortDirection, currentPage, pageSize: PAGE_SIZE });
       setUsers(data.data);
       setTotalCount(data.totalCount);
     } catch (e: any) {
       setUsers(null);
       setTotalCount(0);
     }
-  }, [name, orderBy, sortDirection, currentPage]);
+  }, [searchText, orderBy, sortDirection, currentPage]);
 
   React.useEffect(() => {
     fetchUsers();
@@ -68,14 +68,14 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery !== name) {
+    if (e.key === "Enter" && searchQuery !== searchText) {
       updateSearchParams({ name: searchQuery, page: 1 });
       e.currentTarget.blur();
     }
   };
 
   const handleProfileClick = React.useCallback((id: number) => {
-    console.log(`Просмотр профиля пользователя с ID: ${id}`);
+    console.log(`Пользователь с ID: ${id}`);
   }, []);
 
   const handleRoleChange = React.useCallback(async (user: UserDto | null) => {
@@ -109,7 +109,6 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
             <CircularProgress />
           </Box>
         </ContentContainer>
-        <Footer />
       </Page>
     );
   }
@@ -124,9 +123,7 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
           <DialogContentText>
             Вы действительно хотите изменить роль пользователя{" "}
             <em>
-              {selectedUser &&
-                `${selectedUser.lastName} ${selectedUser.firstName}${selectedUser.middleName ? " " + selectedUser.middleName : ""
-                }`}
+              {selectedUser && `${selectedUser.lastName} ${selectedUser.firstName}${selectedUser.middleName ? " " + selectedUser.middleName : ""}`}
             </em>{" "}
             на <strong>{roleLabels[selectedUser?.role === 1 ? 2 : 1]}</strong>?
           </DialogContentText>
@@ -216,7 +213,6 @@ export default function UserList({ setSeverity, setMessage, setOpen }: PageProps
           </PageCard>
         </Stack>
       </ContentContainer>
-      <Footer />
     </Page>
   );
 }
