@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 
 using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
@@ -11,10 +13,13 @@ using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.BusinessLogic.Services;
 
+using Utils = Utils.Utils;
+
 internal class TestService(
     IUserRepository userRepository,
     ITestRepository testRepository,
-    ITestResultRepository testResultRepository)
+    ITestResultRepository testResultRepository,
+    Cloudinary сloudinary)
     : ITestService
 {
     public async Task CreateAsync(
@@ -153,6 +158,13 @@ internal class TestService(
     {
         var test = await testRepository.GetByIdAsync(testId, cancellationToken)
             ?? throw new TestNotFoundException();
+
+        var urls = test.Questions
+            .Where(q => q.ImageUrl != null)
+            .Select(q => q.ImageUrl!)
+            .ToList();
+
+        await DeleteImagesAsync(urls);
         await testRepository.DeleteAsync(test, cancellationToken);
     }
 
@@ -247,5 +259,28 @@ internal class TestService(
     {
         var testResults = await testResultRepository.GetAllAsync(filter, sortParams, pageParams, cancellationToken);
         return testResults;
+    }
+
+    private async Task DeleteImagesAsync(List<string> imageUrls)
+    {
+        foreach (var url in imageUrls)
+        {
+            var publicId = Utils.ExtractPublicIdFromUrl(url);
+
+            if (!string.IsNullOrEmpty(publicId))
+            {
+                var deleteParams = new DeletionParams(publicId)
+                {
+                    ResourceType = ResourceType.Image,
+                    Invalidate = true
+                };
+
+                var result = await сloudinary.DestroyAsync(deleteParams);
+                if (!result.Result.Equals("ok"))
+                {
+                   throw new Exception($"Ошибка при удалении {publicId}: {result.Result}");
+                }
+            }
+        }
     }
 }

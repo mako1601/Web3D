@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, CircularProgress, Typography, Backdrop, Checkbox, Select, MenuItem, Collapse, Tooltip } from '@mui/material';
+import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, CircularProgress, Typography, Backdrop, Checkbox, Select, MenuItem, Collapse, Tooltip, Dialog, DialogTitle, DialogActions } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -32,6 +32,7 @@ export default function EditTest() {
   const [loading, setLoading] = React.useState(false);
   const initialImageUrls = React.useRef<string[]>([]);
   const localImages = React.useRef<Map<string, File>>(new Map());
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   const {
     questions,
@@ -47,6 +48,7 @@ export default function EditTest() {
     removeAnswerOption,
     setIsDirty,
     useEditTest,
+    useDeleteTest,
     titleLength,
     setTitleLength,
     descriptionLength,
@@ -86,7 +88,7 @@ export default function EditTest() {
             console.warn(`Не удалось распарсить JSON для вопроса ${question.id}`, e);
             continue;
           }
-    
+
           const q: QuestionForCreate = {
             id: question.id,
             testId: question.testId,
@@ -96,10 +98,10 @@ export default function EditTest() {
             imageUrl: question.imageUrl,
             task
           };
-    
+
           questionMap[crypto.randomUUID()] = q;
         }
-    
+
         setQuestions(questionMap);
         setActiveQuestionId(Object.keys(questionMap)[0]);
       } catch (error) {
@@ -128,6 +130,7 @@ export default function EditTest() {
   }, [test, reset]);
 
   const editTest = useEditTest();
+  const deleteTest = useDeleteTest();
 
   const onSubmit = async (data: TestForSchemas) => {
     setLoading(true);
@@ -135,8 +138,26 @@ export default function EditTest() {
     setLoading(false);
   }
 
+  const onDelete = async () => {
+    setLoading(true);
+    await deleteTest(test!.id);
+    setLoading(false);
+  }
+
+  const handleDialogClickOpen = () => { setOpenDialog(true); };
+  const handleDialogClose = () => { setOpenDialog(false); };
+
   return (
     <Page>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>
+          Вы действительно хотите удалить тест?
+        </DialogTitle>
+        <DialogActions>
+          <Button autoFocus onClick={handleDialogClose}>Нет</Button>
+          <Button onClick={() => { handleDialogClose(); onDelete(); }}>Да</Button>
+        </DialogActions>
+      </Dialog>
       <Header />
       <ContentContainer gap="1rem">
         <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -539,14 +560,26 @@ export default function EditTest() {
                 </Button>
               )}
             </FormControl>
-            <Button
-              type="submit"
-              sx={{ alignSelf: 'center', width: '10rem' }}
-              variant={loading ? "outlined" : "contained"}
-              disabled={loading}
-            >
-              {loading ? "Сохранение…" : "Сохранить"}
-            </Button>
+            <Box display="flex" flexDirection="column" gap={5}>
+              <Button
+                type="submit"
+                sx={{ alignSelf: 'center', width: '10rem' }}
+                variant={loading ? "outlined" : "contained"}
+                disabled={loading}
+              >
+                {loading ? "Сохранение…" : "Сохранить"}
+              </Button>
+              <Button
+                type="button"
+                sx={{ alignSelf: 'center', width: '10rem' }}
+                variant={loading ? "outlined" : "contained"}
+                disabled={loading}
+                color="error"
+                onClick={handleDialogClickOpen}
+              >
+                Удалить
+              </Button>
+            </Box>
           </PageCard>
         </Box>
       </ContentContainer>

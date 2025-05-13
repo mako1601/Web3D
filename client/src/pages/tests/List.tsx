@@ -74,7 +74,7 @@ export default function TestList() {
               <Stack gap="1rem">
                 <PageCard sx={{ padding: 0 }}>
                   {tests.map((test) => (
-                    <TestCard key={test.id} test={test} to={`${test.id}`} />
+                    <TestCard key={test.id} test={test} />
                   ))}
                 </PageCard>
                 <Pagination currentPage={currentPage} totalPages={Math.ceil(totalCount / PAGE_SIZE)} onPageChange={handlePageChange} />

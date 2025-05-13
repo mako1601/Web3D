@@ -36,7 +36,7 @@ export default function Header() {
 
         {/* right */}
         {user ? (
-          <Stack direction="row" justifyContent="flex-end" spacing={2}>
+          <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
             {user.role === 2 && (<CreateMenu />)}
             <Link to="/profile/data" style={{ textDecoration: 'none' }}>
               <Avatar sx={{ bgcolor: 'primary.main' }}>

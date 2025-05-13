@@ -9,11 +9,12 @@ import SentimentDissatisfiedRoundedIcon from '@mui/icons-material/SentimentDissa
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 
-import { gray } from '@theme/themePrimitives';
 import { FillInTheBlankTask, MatchingTask, MultipleChoiceTask, QuestionForCreate, QuestionType, SingleChoiceTask, TestExtended, TestResultExtended, UserAnswer } from '@mytypes/testTypes';
 import { calculateTimeTaken } from '@utils/calculateTimeTaken';
 import { formatDate } from '@utils/dateUtils';
 import StyledIconButton from './StyledIconButton';
+import PageCard from './PageCard';
+import StyledLink from './StyledRouterLink';
 
 type Props = {
   testResult: TestResultExtended;
@@ -80,24 +81,14 @@ const TestResultCard: React.FC<Props> = ({ testResult, test }) => {
   }
 
   return (
-    <Box
-      display="flex"
-      flexDirection="row"
-      alignItems="center"
-      sx={{
-        border: `1px solid ${gray[200]}`,
-        borderRadius: 1,
-        padding: 2,
-        backgroundColor: 'hsl(0, 0%, 99%)'
-      }}
-    >
+    <PageCard sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', boxShadow: 'none' }}>
       {test ? (
         <>
           <Box display="flex" flexDirection="column" gap={2} sx={{ flexGrow: 1 }}>
             <Typography variant="h6">
-              <RouterLink to={`/tests/${test?.id}`} style={{ textDecoration: 'none', color: 'black' }}>
+              <StyledLink to={`/tests/${test?.id}`}>
                 {test.title}
-              </RouterLink>
+              </StyledLink>
             </Typography>
             {testResult.endedAt ? (
               <Box display="flex" flexDirection="row">
@@ -152,7 +143,7 @@ const TestResultCard: React.FC<Props> = ({ testResult, test }) => {
                 to={`/tests/${test.id}/results/${testResult.id}`}
                 style={{ textDecoration: 'none', color: 'black', borderRadius: '50%' }}
               >
-                <StyledIconButton sx={{ borderRadius: '50%', color: 'black' }}>
+                <StyledIconButton sx={{ borderRadius: '50%', color: (theme) => theme.palette.text.primary }}>
                   <PlayCircleOutlineRoundedIcon />
                 </StyledIconButton>
               </RouterLink>
@@ -190,7 +181,7 @@ const TestResultCard: React.FC<Props> = ({ testResult, test }) => {
           </Grid2>
         </DialogContent>
       </Dialog>
-    </Box>
+    </PageCard>
   );
 }
 

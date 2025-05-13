@@ -11,7 +11,7 @@ const ProfileNav = () => {
   return (
     <Box display="flex" flexDirection="column" flex={1} gap={2}>
       <PageCard sx={{ p: '0.3rem' }}>
-        <Box display="flex" flexDirection="column" gap='0.3rem'>
+        <Box display="flex" flexDirection="column" gap="0.3rem">
           <Button
             sx={{ justifyContent: "flex-start" }}
             onClick={() => navigate("/profile/data")}
@@ -22,7 +22,7 @@ const ProfileNav = () => {
           {user?.role === 1 && (
             <>
               <Button
-                sx={{ justifyContent: "flex-start" }}
+                sx={{ justifyContent: 'flex-start' }}
                 onClick={() => navigate("/profile/results")}
                 variant={location.pathname === "/profile/results" ? "outlined" : "text"}
               >
@@ -33,14 +33,14 @@ const ProfileNav = () => {
           {user?.role === 2 && (
             <>
               <Button
-                sx={{ justifyContent: "flex-start" }}
+                sx={{ justifyContent: 'flex-start' }}
                 onClick={() => navigate("/profile/articles")}
                 variant={location.pathname === "/profile/articles" ? "outlined" : "text"}
               >
                 Мои учебные материалы
               </Button>
               <Button
-                sx={{ justifyContent: "flex-start" }}
+                sx={{ justifyContent: 'flex-start' }}
                 onClick={() => navigate("/profile/tests")}
                 variant={location.pathname === "/profile/tests" ? "outlined" : "text"}
               >

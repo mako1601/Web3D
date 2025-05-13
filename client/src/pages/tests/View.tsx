@@ -188,7 +188,7 @@ export default function ViewTest() {
               display: 'flex',
               justifyContent: 'center',
               p: 8,
-              zIndex: 1000
+              zIndex: 10
             }}
           >
             <Button

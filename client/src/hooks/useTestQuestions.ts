@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-router-dom';
 import { QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX, QuestionType, QuestionForCreate, TestForSchemas, TestDto, UserAnswer, AnswerResultDto } from '@mytypes/testTypes';
 import { createDefaultSingleChoiceQuestion, createDefaultMultipleChoiceQuestion, createDefaultMatchingQuestion, createDefaultFillInTheBlankQuestion } from '@mytypes/testTypes';
 import { deleteImage, uploadImage } from '@api/cloudinaryApi';
-import { createTest, finishTest, updateTest } from '@api/testApi';
+import { createTest, deleteTest, finishTest, updateTest } from '@api/testApi';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { testSchema } from '@schemas/testSchemas';
@@ -127,6 +127,37 @@ export function useTestQuestions() {
         await updateTest(id, testData);
         setSeverity("success");
         setMessage("Тест успешно обновлён!");
+        allowNavigationRef.current = true;
+        navigate("/profile/tests");
+      } catch (e: any) {
+        console.error(e);
+        setSeverity("error");
+        if (e.response) {
+          setMessage(e.response.data);
+        } else if (e.request) {
+          setMessage("Сервер не отвечает, повторите попытку позже");
+        } else if (e.message) {
+          setMessage(e.message);
+        } else {
+          setMessage("Произошла неизвестная ошибка");
+        }
+      } finally {
+        setOpen(true);
+      }
+    };
+  };
+
+  const useDeleteTest = () => {
+    const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
+    const navigate = ReactDOM.useNavigate();
+
+    return async (
+      id: number
+    ) => {
+      try {
+        await deleteTest(id);
+        setSeverity("success");
+        setMessage("Тест успешно удалён!");
         allowNavigationRef.current = true;
         navigate("/profile/tests");
       } catch (e: any) {
@@ -374,6 +405,7 @@ export function useTestQuestions() {
     uploadLocalImages,
     useCreateTest,
     useEditTest,
+    useDeleteTest,
     useFinishTest,
     titleLength,
     setTitleLength,

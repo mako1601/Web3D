@@ -11,10 +11,10 @@ import PageCard from './PageCard';
 import { useAuth } from '@context/AuthContext';
 import { formatDate } from '@utils/dateUtils';
 import StyledIconButton from './StyledIconButton';
-import { gray } from '@theme/themePrimitives';
 import { getAllTestResults, getAllTests } from '@api/testApi';
 import { Test, TestResult } from '@mytypes/testTypes';
 import { PageResult } from '@mytypes/commonTypes';
+import StyledLink from './StyledRouterLink';
 
 const ProfileTests = () => {
   const { user } = useAuth();
@@ -66,24 +66,22 @@ const ProfileTests = () => {
         tests.data.length > 0 ? (
           <Box display="flex" flexDirection="column" gap={2}>
             {tests.data.map(test => (
-              <Box
+              <PageCard
                 key={test.id}
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
                 sx={{
-                  border: `1px solid ${gray[200]}`,
-                  borderRadius: 1,
-                  padding: 2,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  boxShadow: 'none',
                 }}
               >
                 <Box display="flex" flexDirection="column" gap={2}>
                   <Box display="flex" flexDirection="column" gap={1}>
                     <Typography variant="h6" sx={{ wordBreak: 'break-word' }}>
-                      <RouterLink to={`/tests/${test.id}`} style={{ textDecoration: 'none', color: 'black' }}>
+                      <StyledLink to={`/tests/${test.id}`}>
                         {test.title}
-                      </RouterLink>
+                      </StyledLink>
                     </Typography>
                     <Typography>{formatDate(test.createdAt)}</Typography>
                   </Box>
@@ -138,16 +136,16 @@ const ProfileTests = () => {
                     </Box>
                   </Box>
                 </Box>
-                <RouterLink
+                <StyledLink
                   title="Изменить"
                   to={`/tests/${test.id}/edit`}
-                  style={{ textDecoration: 'none', color: 'black', borderRadius: '50%' }}
+                  style={{ borderRadius: '50%' }}
                 >
-                  <StyledIconButton sx={{ borderRadius: '50%', color: 'black' }}>
+                  <StyledIconButton sx={{ borderRadius: '50%', color: (theme) => theme.palette.text.primary }}>
                     <EditIcon />
                   </StyledIconButton>
-                </RouterLink>
-              </Box>
+                </StyledLink>
+              </PageCard>
             ))}
           </Box>
         ) : (

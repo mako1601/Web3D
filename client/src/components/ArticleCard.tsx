@@ -4,16 +4,18 @@ import { Box, Typography } from '@mui/material';
 import { getUserById } from '@api/userApi';
 import { formatDate } from '@utils/dateUtils';
 import { Article } from '@mytypes/articleTypes';
+import GradientBox from './GradientBox';
+import StyledCard from './StyledCard';
 
 interface ArticleCardProps {
   article: Article;
-  onClick: () => void;
 }
 
-const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
+const ArticleCard = ({ article }: ArticleCardProps) => {
   const [expanded, setExpanded] = React.useState(false);
-  const [hovered, setHovered] = React.useState(false);
-  const [author, setAuthor] = React.useState<{ lastName: string;firstName: string; middleName?: string } | null>(null);
+  const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
+  const [isLongText, setIsLongText] = React.useState(false);
+  const textRef = React.useRef<HTMLParagraphElement>(null);
 
   React.useEffect(() => {
     const fetchAuthor = async () => {
@@ -28,35 +30,44 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
     fetchAuthor();
   }, [article.userId]);
 
-  const isLongText = React.useMemo(() => (article.description?.split("\n").length ?? 0) > 3, [article.description]);
-
-  const handleDescriptionClick = () => {
-    if (isLongText) {
-      setExpanded(!expanded);
+  const checkTextLength = () => {
+    const element = textRef.current;
+    if (!element) return;
+    const lineHeight = parseFloat(getComputedStyle(element).lineHeight || '0');
+    const maxLines = 3;
+    const maxHeight = lineHeight * maxLines;
+    if (element.scrollHeight > maxHeight + 1) {
+      setIsLongText(true);
     } else {
-      onClick();
+      setIsLongText(false);
+    }
+  };
+
+  React.useEffect(() => {
+    checkTextLength();
+    window.addEventListener('resize', checkTextLength);
+    return () => {
+      window.removeEventListener('resize', checkTextLength);
+    };
+  }, [article.description]);
+
+  const handleDescriptionClick = (e: React.MouseEvent) => {
+    if (isLongText) {
+      e.stopPropagation();
+      e.preventDefault();
+      setExpanded(prev => !prev);
     }
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: '8px',
-        transition: 'background-color 0.3s ease',
-        backgroundColor: hovered ? "#f0f0f0" : 'transparent',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <Box sx={{ padding: '1rem', cursor: 'pointer' }} onClick={onClick}>
+    <StyledCard to={`/articles/${article.id}`}>
+      <Box sx={{ padding: '1rem', cursor: 'pointer' }}>
         <Typography variant="h6" sx={{ color: 'text.primary' }}>
           {article.title}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <Typography sx={{ color: 'text.secondary' }}>
-            {author ? `${author.lastName} ${author.firstName} ${author.middleName}`: "Загрузка…"}
+            {author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…"}
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             {article.updatedAt ? "Обновлено" : "Создано"}: {article.updatedAt ? formatDate(article.updatedAt) : formatDate(article.createdAt)}
@@ -69,6 +80,7 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
           onClick={handleDescriptionClick}
         >
           <Typography
+            ref={textRef}
             sx={{
               color: 'text.secondary',
               whiteSpace: 'pre-line',
@@ -82,22 +94,10 @@ const ArticleCard = ({ article, onClick }: ArticleCardProps) => {
           >
             {article.description}
           </Typography>
-          {!expanded && isLongText && (
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-                height: '3rem',
-                background: 'linear-gradient(transparent, grey)',
-                borderRadius: '8px',
-              }}
-            />
-          )}
+          {!expanded && isLongText && <GradientBox />}
         </Box>
       )}
-    </div>
+    </StyledCard>
   );
 };
 

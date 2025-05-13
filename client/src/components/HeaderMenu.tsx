@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Divider, MenuItem, IconButton } from '@mui/material';
+import { Menu, Divider, MenuItem } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 
 import { logoutUser } from '@api/authApi';
-import { useAuth } from "@context/AuthContext";
+import { useAuth } from '@context/AuthContext';
+import StyledIconButton from './StyledIconButton';
 
 const HeaderMenu = () => {
   const { user, setUser } = useAuth();
@@ -25,10 +26,13 @@ const HeaderMenu = () => {
   };
 
   return (
-    <div>
-      <IconButton onClick={handleClick}>
+    <div style={{
+      display: 'flex',
+      alignItems: 'center'
+    }}>
+      <StyledIconButton onClick={handleClick}>
         <MenuRoundedIcon />
-      </IconButton>
+      </StyledIconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem component={Link} to="/profile/data" onClick={handleClose}>Профиль</MenuItem>
         {user?.role === 0 && (

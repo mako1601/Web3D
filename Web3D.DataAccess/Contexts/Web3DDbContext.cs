@@ -183,41 +183,41 @@ public class Web3DDbContext(DbContextOptions<Web3DDbContext> options) : DbContex
                       .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<RefreshToken>(entity =>
+        modelBuilder.Entity<RefreshToken>(refreshToken =>
         {
-            entity.HasKey(x => x.Id);
+            refreshToken.HasKey(x => x.Id);
 
-            entity.Property(x => x.UserId)
-                  .IsRequired();
+            refreshToken.Property(x => x.UserId)
+                        .IsRequired();
 
-            entity.HasIndex(x => x.UserId);
+            refreshToken.HasIndex(x => x.UserId);
 
-            entity.Property(x => x.Token)
-                  .IsRequired()
-                  .HasMaxLength(500);
+            refreshToken.Property(x => x.Token)
+                        .IsRequired()
+                        .HasMaxLength(500);
 
-            entity.HasIndex(x => x.Token)
-                  .IsUnique();
+            refreshToken.HasIndex(x => x.Token)
+                        .IsUnique();
 
-            entity.Property(x => x.CreatedAt)
-                  .IsRequired()
-                  .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            refreshToken.Property(x => x.CreatedAt)
+                        .IsRequired()
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-            entity.Property(x => x.ExpiresAt)
-                  .IsRequired();
+            refreshToken.Property(x => x.ExpiresAt)
+                        .IsRequired();
 
-            entity.Property(x => x.IpAddress)
-                  .IsRequired(false)
-                  .HasMaxLength(45);
+            refreshToken.Property(x => x.IpAddress)
+                        .IsRequired(false)
+                        .HasMaxLength(45);
 
-            entity.Property(x => x.UserAgent)
-                  .IsRequired(false)
-                  .HasMaxLength(500);
+            refreshToken.Property(x => x.UserAgent)
+                        .IsRequired(false)
+                        .HasMaxLength(500);
 
-            entity.HasOne<User>()
-                  .WithMany()
-                  .HasForeignKey(x => x.UserId)
-                  .OnDelete(DeleteBehavior.Cascade);
+            refreshToken.HasOne<User>()
+                        .WithMany()
+                        .HasForeignKey(x => x.UserId)
+                        .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

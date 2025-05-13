@@ -9,7 +9,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 
-import { createArticle, updateArticle } from '@api/articleApi';
+import { createArticle, deleteArticle, updateArticle } from '@api/articleApi';
 import { deleteImage, updateJson, uploadImage, uploadJson } from '@api/cloudinaryApi';
 import { Article, ArticleDto, ArticleForSchemas } from '@mytypes/articleTypes';
 import { articleSchema } from '@schemas/articleSchemas';
@@ -49,7 +49,6 @@ export function useArticleForm() {
   } = useForm<ArticleForSchemas>({
     resolver: yupResolver(articleSchema)
   });
-
 
   const useArticleEditor = (
     setValue: any,
@@ -157,6 +156,35 @@ export function useArticleForm() {
     };
   };
 
+  const useDeleteArticle = () => {
+    const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
+    const navigate = ReactDOM.useNavigate();
+
+    return async (id: number) => {
+      try {
+        await deleteArticle(id);
+        setSeverity("success");
+        setMessage("Учебный материал успешно удалён!");
+        allowNavigationRef.current = true;
+        navigate("/");
+      } catch (e: any) {
+        console.error(e);
+        setSeverity("error");
+        if (e.response) {
+          setMessage(e.response.data);
+        } else if (e.request) {
+          setMessage("Сервер не отвечает, повторите попытку позже");
+        } else if (e.message) {
+          setMessage(e.message);
+        } else {
+          setMessage("Произошла неизвестная ошибка");
+        }
+      } finally {
+        setOpen(true);
+      }
+    };
+  };
+
   const useUploadImages = (localImages: React.MutableRefObject<Map<string, File>>) => {
     return async (json: any): Promise<any> => {
       if (!json || !json.content) return json;
@@ -235,6 +263,7 @@ export function useArticleForm() {
     useArticleEditor,
     useCreateArticle,
     useEditArticle,
+    useDeleteArticle,
     useUploadImages,
     useFetchJsonFromUrl,
     extractImageUrls

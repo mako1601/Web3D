@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop, IconButton } from '@mui/material';
+import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop, IconButton, Dialog, DialogTitle, DialogActions } from '@mui/material';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { EditorContent } from '@tiptap/react';
 
@@ -27,6 +27,7 @@ export default function EditArticle() {
   const localImages = React.useRef<Map<string, File>>(new Map());
   const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
   const [canvasContainerRef, setCanvasContainerRef] = React.useState<HTMLDivElement | null>(null);
+  const [openDialog, setOpenDialog] = React.useState(false);
 
   const {
     register,
@@ -43,6 +44,7 @@ export default function EditArticle() {
     setIsDirty,
     useArticleEditor,
     useEditArticle,
+    useDeleteArticle,
     useFetchJsonFromUrl,
     useUploadImages,
     extractImageUrls
@@ -51,6 +53,7 @@ export default function EditArticle() {
   const editor = useArticleEditor(setValue, setContentLength, setIsDirty);
   const uploadImages = useUploadImages(localImages);
   const editArticle = useEditArticle();
+  const deleteArticle = useDeleteArticle();
 
   React.useEffect(() => {
     if (userLoading) return;
@@ -104,6 +107,12 @@ export default function EditArticle() {
     await editArticle(editor!, article!, data, uploadImages, initialImageUrls);
     setLoading(false);
   };
+
+  const onDelete = async () => {
+    setLoading(true);
+    await deleteArticle(article!.id);
+    setLoading(false);
+  }
 
   React.useEffect(() => {
     (window as any).onCanvasGenerated = (generatedCanvas: HTMLCanvasElement) => {
@@ -159,8 +168,20 @@ export default function EditArticle() {
     };
   }, [editor]);
 
+  const handleDialogClickOpen = () => { setOpenDialog(true); };
+  const handleDialogClose = () => { setOpenDialog(false); };
+
   return (
     <Page>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle>
+          Вы действительно хотите удалить учебный материал?
+        </DialogTitle>
+        <DialogActions>
+          <Button autoFocus onClick={handleDialogClose}>Нет</Button>
+          <Button onClick={() => { handleDialogClose(); onDelete(); }}>Да</Button>
+        </DialogActions>
+      </Dialog>
       <Header />
       <ContentContainer gap="1rem">
         <Box
@@ -231,14 +252,26 @@ export default function EditArticle() {
                 </Box>
               )}
             </FormControl>
-            <Button
-              type="submit"
-              sx={{ alignSelf: 'center', width: '10rem' }}
-              variant={loading ? "outlined" : "contained"}
-              disabled={loading}
-            >
-              {loading ? "Сохранение…" : "Сохранить"}
-            </Button>
+            <Box display="flex" flexDirection="column" gap={5}>
+              <Button
+                type="submit"
+                sx={{ alignSelf: 'center', width: '10rem' }}
+                variant={loading ? "outlined" : "contained"}
+                disabled={loading}
+              >
+                {loading ? "Сохранение…" : "Сохранить"}
+              </Button>
+              <Button
+                type="button"
+                sx={{ alignSelf: 'center', width: '10rem' }}
+                variant={loading ? "outlined" : "contained"}
+                disabled={loading}
+                color="error"
+                onClick={handleDialogClickOpen}
+              >
+                Удалить
+              </Button>
+            </Box>
             {editor && editor.isActive('codeRunner') && (
               <IconButton
                 onClick={handleRunCode}

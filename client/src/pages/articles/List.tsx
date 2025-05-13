@@ -1,4 +1,3 @@
-import * as ReactDOM from 'react-router-dom';
 import { Box, Stack, Radio, Divider, IconButton, RadioGroup, Typography, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -15,7 +14,6 @@ import { useSearchAndPagination } from '@hooks/useSearchAndPagination';
 const PAGE_SIZE = 10;
 
 export default function ArticleList() {
-  const navigate = ReactDOM.useNavigate();
   const {
     searchQuery,
     orderBy,
@@ -76,7 +74,7 @@ export default function ArticleList() {
               <Stack gap="1rem">
                 <PageCard sx={{ padding: 0 }}>
                   {articles.map(article => (
-                    <ArticleCard key={article.id} article={article} onClick={() => navigate(`${article.id}`)} />
+                    <ArticleCard key={article.id} article={article} />
                   ))}
                 </PageCard>
                 <Pagination currentPage={currentPage} totalPages={Math.ceil(totalCount / PAGE_SIZE)} onPageChange={handlePageChange} />

@@ -1,20 +1,21 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 
 import { Test } from '@mytypes/testTypes';
 import { getUserById } from '@api/userApi';
 import { formatDate } from '@utils/dateUtils';
+import StyledCard from './StyledCard';
+import GradientBox from './GradientBox';
 
 interface TestCardProps {
   test: Test;
-  to: string;
 }
 
-const TestCard = ({ test, to }: TestCardProps) => {
+const TestCard = ({ test }: TestCardProps) => {
   const [expanded, setExpanded] = React.useState(false);
-  const [hovered, setHovered] = React.useState(false);
   const [author, setAuthor] = React.useState<{ lastName: string; firstName: string; middleName?: string } | null>(null);
+  const [isLongText, setIsLongText] = React.useState(false);
+  const textRef = React.useRef<HTMLParagraphElement>(null);
 
   React.useEffect(() => {
     const fetchAuthor = async () => {
@@ -29,7 +30,26 @@ const TestCard = ({ test, to }: TestCardProps) => {
     fetchAuthor();
   }, [test.userId]);
 
-  const isLongText = React.useMemo(() => (test.description?.split("\n").length ?? 0) > 3, [test.description]);
+  const checkTextLength = () => {
+    const element = textRef.current;
+    if (!element) return;
+    const lineHeight = parseFloat(getComputedStyle(element).lineHeight || '0');
+    const maxLines = 3;
+    const maxHeight = lineHeight * maxLines;
+    if (element.scrollHeight > maxHeight + 1) {
+      setIsLongText(true);
+    } else {
+      setIsLongText(false);
+    }
+  };
+
+  React.useEffect(() => {
+    checkTextLength();
+    window.addEventListener('resize', checkTextLength);
+    return () => {
+      window.removeEventListener('resize', checkTextLength);
+    };
+  }, [test.description]);
 
   const authorName = React.useMemo(() => {
     return author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…";
@@ -44,21 +64,7 @@ const TestCard = ({ test, to }: TestCardProps) => {
   };
 
   return (
-    <Box
-      component={Link}
-      to={to}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        borderRadius: '8px',
-        transition: 'background-color 0.3s ease',
-        backgroundColor: hovered ? '#f0f0f0' : 'transparent',
-        textDecoration: 'none',
-        color: 'inherit'
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <StyledCard to={`/tests/${test.id}`}>
       <Box sx={{ padding: '1rem' }}>
         <Typography
           variant="h6"
@@ -94,6 +100,7 @@ const TestCard = ({ test, to }: TestCardProps) => {
           onClick={handleDescriptionClick}
         >
           <Typography
+            ref={textRef}
             sx={{
               color: 'text.secondary',
               whiteSpace: 'pre-line',
@@ -107,22 +114,10 @@ const TestCard = ({ test, to }: TestCardProps) => {
           >
             {test.description}
           </Typography>
-          {!expanded && isLongText && (
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                width: '100%',
-                height: '3rem',
-                background: 'linear-gradient(transparent, grey)',
-                borderRadius: '8px',
-              }}
-            />
-          )}
+          {!expanded && isLongText && <GradientBox />}
         </Box>
       )}
-    </Box>
+    </StyledCard>
   );
 };
 

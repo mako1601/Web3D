@@ -136,10 +136,10 @@ export default function PassTest() {
           left: 0,
           height: '100vh',
           width: '10rem',
-          backgroundColor: 'rgba(0,0,0,0.01)',
           transition: 'background-color 0.3s',
+          backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0,0,0,0.05)',
           '&:hover': {
-            backgroundColor: 'rgba(0,0,0,0.03)',
+            backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.08)',
           },
           display: 'flex',
           alignItems: 'flex-end',

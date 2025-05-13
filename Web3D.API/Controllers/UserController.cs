@@ -52,7 +52,7 @@ public class UserController(IUserService userService) : ControllerBase
         }
         catch (InvalidLoginOrPasswordException)
         {
-            return NotFound("Не верный пароль");
+            return NotFound("Неверный пароль");
         }
         catch (Exception ex)
         {

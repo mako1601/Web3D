@@ -146,7 +146,7 @@ export default function CreateTest() {
             {/* Question type selector */}
             <FormControl>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <FormLabel>Тип заданияа</FormLabel>
+                <FormLabel>Тип задания</FormLabel>
                 <Tooltip
                   title={
                     <div>

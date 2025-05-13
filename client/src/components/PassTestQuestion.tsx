@@ -100,7 +100,9 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 2
+        gap: 2,
+        maxWidth: '600px',
+        alignSelf: 'center'
       }}
     >
       {question.imageUrl && (

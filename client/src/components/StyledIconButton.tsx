@@ -22,7 +22,7 @@ const StyledIconButton = styled(IconButton)<IconButtonProps>(({ theme }) => ({
     backgroundColor: gray[800],
     borderColor: gray[700],
     '&:hover': {
-      backgroundColor: gray[900],
+      backgroundColor: gray[700],
       borderColor: gray[600],
     },
     '&:active': {

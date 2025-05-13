@@ -10,7 +10,7 @@ import { PageResult } from '@mytypes/commonTypes';
 import { Article } from '@mytypes/articleTypes';
 import { formatDate } from '@utils/dateUtils';
 import StyledIconButton from './StyledIconButton';
-import { gray } from '@theme/themePrimitives';
+import StyledLink from './StyledRouterLink';
 
 const ProfileArticles = () => {
   const { user } = useAuth();
@@ -40,36 +40,34 @@ const ProfileArticles = () => {
         articles.data.length > 0 ? (
           <Box display="flex" flexDirection="column" gap={2}>
             {articles.data.map(article => (
-              <Box
+              <PageCard
                 key={article.id}
-                display="flex"
-                flexDirection="row"
-                justifyContent="space-between"
-                alignItems="center"
                 sx={{
-                  border: `1px solid ${gray[200]}`,
-                  borderRadius: 1,
-                  padding: 2,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  boxShadow: 'none',
                 }}
               >
                 <Box display="grid" flexDirection="column" gap={1}>
                   <Typography variant="h6">
-                    <RouterLink to={`/articles/${article.id}`} style={{ textDecoration: 'none', color: 'black' }}>
+                    <StyledLink to={`/articles/${article.id}`}>
                       {article.title}
-                    </RouterLink>
+                    </StyledLink>
                   </Typography>
                   <Typography>{formatDate(article.createdAt)}</Typography>
                 </Box>
-                <RouterLink
+                <StyledLink
                   title="Изменить"
                   to={`/articles/${article.id}/edit`}
-                  style={{ textDecoration: 'none', color: 'black', borderRadius: '50%' }}
+                  style={{ borderRadius: '50%' }}
                 >
-                  <StyledIconButton sx={{ borderRadius: '50%', color: 'black' }}>
+                  <StyledIconButton sx={{ borderRadius: '50%', color: (theme) => theme.palette.text.primary }}>
                     <EditIcon />
                   </StyledIconButton>
-                </RouterLink>
-              </Box>
+                </StyledLink>
+              </PageCard>
             ))}
           </Box>
         ) : (

@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 
 import SortableItem from '@components/SortableItem';
 import { QuestionMap } from '@mytypes/testTypes';
+import { gray } from '@theme/themePrimitives';
 
 const MAX_ITEMS = 50;
 const GRID_COLS = 10;
@@ -62,10 +63,21 @@ const DraggableGrid = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: 'transparent',
-                  "&:hover": { background: 'rgb(234, 234, 234)' }
+                  transition: 'background 0.3s ease',
+                  "&:hover": {
+                    background: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? gray[700]
+                        : gray[100]
+                  }
                 }}
               >
-                <AddIcon fontSize="large" />
+                <AddIcon fontSize="large" sx={{
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? gray[400]
+                      : gray[700]
+                }} />
               </Paper>
             </Grid2>
           )}

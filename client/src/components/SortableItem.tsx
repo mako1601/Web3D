@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Box, Grid2, Paper, IconButton, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { brand, gray } from '@theme/themePrimitives';
 
 const SortableItem = ({
   id,
@@ -46,17 +47,18 @@ const SortableItem = ({
               event.stopPropagation();
               onRemove();
             }}
-            style={{
+            sx={(theme) => ({
               position: 'absolute',
               top: 1,
               right: 1,
               zIndex: 2,
               border: 0,
               borderRadius: 20,
-              backgroundColor: 'rgb(212, 212, 212)',
               width: '1.5rem',
-              height: '1.5rem'
-            }}
+              height: '1.5rem',
+              backgroundColor: theme.palette.mode === 'dark' ? gray[500] : gray[100],
+              '&:hover': { backgroundColor: theme.palette.mode === 'dark' ? gray[600] : gray[200] }
+            })}
           >
             <CloseIcon fontSize="inherit" />
           </IconButton>
@@ -64,24 +66,54 @@ const SortableItem = ({
         <Paper
           {...attributes}
           {...listeners}
-          sx={{
-            transition,
-            transform: CSS.Transform.toString(transform),
-            outline: isDragging ? '2px solid #1976d2' : isActive ? '2px solid #ff9800' : 'none',
-            cursor: 'grab',
-            userSelect: 'none',
-            background: isDragging ? '#e3f2fd' : 'white',
-            boxShadow: isDragging ? '0px 4px 10px rgba(0, 0, 0, 0.2)' : 'none',
-            borderRadius: 1,
-            aspectRatio: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: isDragging ? 2 : 1,
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'auto'
+          sx={(theme) => {
+            let background, outline;
+
+            if (isDragging) {
+              if (theme.palette.mode === 'dark') {
+                outline = `2px solid ${brand[700]}`;
+                background = brand[800];
+              } else {
+                outline = `2px solid ${brand[300]}`;
+                background = brand[100];
+              }
+            } else if (isActive) {
+              outline = theme.palette.mode === 'dark'
+                ? '2px solid #ffb74d'
+                : '2px solid #ff9800';
+              background = theme.palette.mode === 'dark'
+                ? gray[700]
+                : 'hsl(0, 0%, 99%)';
+            } else {
+              outline = 'none';
+              background = theme.palette.mode === 'dark'
+                ? gray[700]
+                : 'hsl(0, 0%, 99%)';
+            }
+
+            return {
+              transition,
+              transform: CSS.Transform.toString(transform),
+              outline,
+              background,
+              cursor: 'grab',
+              userSelect: 'none',
+              boxShadow: isDragging
+                ? '0px 4px 10px rgba(0, 0, 0, 0.2)'
+                : theme.palette.mode === 'dark'
+                  ? 'none'
+                  : '0px 0px 6px rgba(0, 0, 0, 0.1)',
+              borderRadius: 1,
+              aspectRatio: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: isDragging ? 2 : 1,
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'auto',
+            };
           }}
           onClick={(event) => {
             event.stopPropagation();
@@ -104,7 +136,7 @@ const SortableItem = ({
           </Typography>
         </Paper>
       </Box>
-    </Grid2>
+    </Grid2 >
   );
 }
 
