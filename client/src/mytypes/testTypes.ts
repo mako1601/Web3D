@@ -4,6 +4,9 @@ export const ANSWER_OPTION_MIN = 2;
 export const ANSWER_OPTION_MAX = 5;
 export const TITLE_MAX_LENGTH = 100;
 export const DESCRIPTION_MAX_LENGTH = 500;
+export const QUESTION_TEXT_MAX_LENGTH = 500;
+export const ANSWER_OPTION_TEXT_MAX_LENGTH = 200;
+export const FILL_IN_THE_BLANK_MAX_LENGTH = 100;
 
 export const questionTypes = [
   { value: 0, label: 'Один правильный ответ' },
@@ -38,15 +41,17 @@ export interface Question {
   imageUrl?: string;
 }
 
-export interface TestForSchemas {
-  title: string;
-  description?: string;
-}
-
 export interface TestForCreate {
   title: string;
   description?: string;
   questions: QuestionForCreate[];
+}
+
+export interface QuestionValidationErrors {
+  text?: string;
+  options?: string[];
+  answerPairs?: string[][];
+  fillInBlankAnswer?: string;
 }
 
 export type QuestionMap = { [key: string]: QuestionForCreate };

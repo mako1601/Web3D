@@ -178,8 +178,8 @@ export default function EditArticle() {
           Вы действительно хотите удалить учебный материал?
         </DialogTitle>
         <DialogActions>
-          <Button autoFocus onClick={handleDialogClose}>Нет</Button>
           <Button onClick={() => { handleDialogClose(); onDelete(); }}>Да</Button>
+          <Button autoFocus onClick={handleDialogClose}>Нет</Button>
         </DialogActions>
       </Dialog>
       <Header />

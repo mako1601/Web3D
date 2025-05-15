@@ -129,8 +129,8 @@ export default function UserList() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Нет</Button>
           <Button onClick={() => { handleDialogClose(); handleRoleChange(selectedUser) }}>Да</Button>
+          <Button autoFocus onClick={handleDialogClose}>Нет</Button>
         </DialogActions>
       </Dialog>
       <Header />

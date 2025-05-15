@@ -14,17 +14,20 @@ import PageCard from '@components/PageCard';
 import DraggableGrid from '@components/DraggableGrid';
 import StyledIconButton from '@components/StyledIconButton';
 import ContentContainer from '@components/ContentContainer';
-import { questionTypes, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TestForSchemas } from '@mytypes/testTypes';
+import { questionTypes, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH } from '@mytypes/testTypes';
 import { useTestQuestions } from '@hooks/useTestQuestions';
 import { SnackbarContext } from '@context/SnackbarContext';
 
-// TODO: add question validation
 export default function CreateTest() {
   const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
 
   const {
+    title,
+    handleTitleChange,
+    description,
+    handleDescriptionChange,
     questions,
     activeQuestionId,
     setActiveQuestionId,
@@ -37,21 +40,20 @@ export default function CreateTest() {
     removeAnswerOption,
     setIsDirty,
     useCreateTest,
-    titleLength,
-    setTitleLength,
-    descriptionLength,
-    setDescriptionLength,
     isGridVisible,
     setIsGridVisible,
-    register,
-    handleSubmit,
-    errors
+    questionErrors,
+    handleQuestionChange,
+    validateQuestion,
+    setQuestionErrors,
+    shouldValidate,
+    formErrors
   } = useTestQuestions();
 
   const createTest = useCreateTest();
-  const onSubmit = async (data: TestForSchemas) => {
+  const onSubmit = async () => {
     setLoading(true);
-    await createTest(data, localImages);
+    await createTest(localImages);
     setLoading(false);
   };
 
@@ -59,30 +61,27 @@ export default function CreateTest() {
     <Page>
       <Header />
       <ContentContainer gap="1rem">
-        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
             {/* Title */}
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 Название теста
-                <Box>{titleLength}/{TITLE_MAX_LENGTH}</Box>
+                <Box>{title.length}/{TITLE_MAX_LENGTH}</Box>
               </FormLabel>
               <TextField
-                {...register("title")}
+                value={title}
                 fullWidth
-                error={!!errors.title}
-                helperText={errors.title?.message}
+                error={!!formErrors.title}
+                helperText={formErrors.title}
                 onInput={(e) => {
                   const target = e.target as HTMLInputElement;
                   if (target.value.length > TITLE_MAX_LENGTH) {
                     target.value = target.value.slice(0, TITLE_MAX_LENGTH);
                   }
                 }}
-                onChange={(e) => {
-                  setTitleLength(e.target.value.length);
-                  setIsDirty(true);
-                }}
+                onChange={(e) => handleTitleChange(e.target.value)}
               />
             </FormControl>
 
@@ -90,24 +89,21 @@ export default function CreateTest() {
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 Описание теста
-                <Box>{descriptionLength}/{DESCRIPTION_MAX_LENGTH}</Box>
+                <Box>{description.length}/{DESCRIPTION_MAX_LENGTH}</Box>
               </FormLabel>
               <TextField
-                {...register("description")}
+                value={description}
                 fullWidth
                 multiline
-                error={!!errors.description}
-                helperText={errors.description?.message}
+                error={!!formErrors.description}
+                helperText={formErrors.description}
                 onInput={(e) => {
                   const target = e.target as HTMLInputElement;
                   if (target.value.length > DESCRIPTION_MAX_LENGTH) {
                     target.value = target.value.slice(0, DESCRIPTION_MAX_LENGTH);
                   }
                 }}
-                onChange={(e) => {
-                  setDescriptionLength(e.target.value.length);
-                  setIsDirty(true);
-                }}
+                onChange={(e) => handleDescriptionChange(e.target.value)}
               />
             </FormControl>
           </PageCard>
@@ -292,11 +288,10 @@ export default function CreateTest() {
                 <TextField
                   fullWidth
                   value={questions[activeQuestionId].text ?? ""}
-                  onChange={(e) => {
-                    updateQuestion(activeQuestionId, { text: e.target.value });
-                    setIsDirty(true);
-                  }}
+                  onChange={(e) => handleQuestionChange(activeQuestionId, { text: e.target.value })}
                   placeholder="Текст вопроса"
+                  error={!!questionErrors[activeQuestionId]?.text}
+                  helperText={questionErrors[activeQuestionId]?.text}
                 />
               )}
 
@@ -305,12 +300,15 @@ export default function CreateTest() {
               {questions[activeQuestionId].type === 0 && (
                 <RadioGroup
                   sx={{ display: 'flex', gap: 2 }}
-                  value={questions[activeQuestionId].task.answer.findIndex(ans => ans === true)}
+                  value={(questions[activeQuestionId].task.answer as boolean[])
+                    .findIndex(ans => ans === true)
+                    .toString()}
                   onChange={(e) => {
                     const answerIndex = parseInt(e.target.value);
                     updateQuestion(activeQuestionId, {
                       task: {
-                        answer: (questions[activeQuestionId].task.answer as boolean[]).map((_, idx) => idx === answerIndex ? true : false)
+                        answer: (questions[activeQuestionId].task.answer as boolean[])
+                          .map((_, idx) => idx === answerIndex)
                       }
                     });
                     setIsDirty(true);
@@ -324,12 +322,28 @@ export default function CreateTest() {
                         onChange={(e) => {
                           updateAnswerOption(activeQuestionId, index, e.target.value);
                           setIsDirty(true);
+
+                          if (shouldValidate) {
+                            const updatedQuestion = { ...questions[activeQuestionId] };
+                            if (updatedQuestion.type === 0) {
+                              updatedQuestion.task.options[index] = e.target.value;
+                            }
+                            const errors = validateQuestion(updatedQuestion);
+                            setQuestionErrors(prev => ({
+                              ...prev,
+                              [activeQuestionId]: {
+                                ...prev[activeQuestionId],
+                                options: errors.options
+                              }
+                            }));
+                          }
                         }}
                         placeholder={`Вариант ответа ${index + 1}`}
+                        error={!!questionErrors[activeQuestionId]?.options?.[index]}
+                        helperText={questionErrors[activeQuestionId]?.options?.[index]}
                       />
                       <Box>
                         <FormControlLabel
-                          sx={{ margin: 0 }}
                           value={index}
                           control={<Radio />}
                           label="Правильный"
@@ -357,10 +371,28 @@ export default function CreateTest() {
                         onChange={(e) => {
                           updateAnswerOption(activeQuestionId, index, e.target.value);
                           setIsDirty(true);
+
+                          if (shouldValidate) {
+                            const updatedQuestion = { ...questions[activeQuestionId] };
+                            if (updatedQuestion.type === 1) {
+                              updatedQuestion.task.options[index] = e.target.value;
+                            }
+                            const errors = validateQuestion(updatedQuestion);
+                            setQuestionErrors(prev => ({
+                              ...prev,
+                              [activeQuestionId]: {
+                                ...prev[activeQuestionId],
+                                options: errors.options
+                              }
+                            }));
+                          }
                         }}
                         placeholder={`Вариант ответа ${index + 1}`}
+                        error={!!questionErrors[activeQuestionId]?.options?.[index]}
+                        helperText={questionErrors[activeQuestionId]?.options?.[index]}
                       />
                       <FormControlLabel
+                        sx={{ alignSelf: 'start', p: '1px 0px 1px 2px' }}
                         control={<Checkbox
                           checked={questions[activeQuestionId].task.answer[index] as boolean}
                           onChange={(e) => {
@@ -405,8 +437,25 @@ export default function CreateTest() {
                         onChange={(e) => {
                           updateAnswerOption(activeQuestionId, index, e.target.value, 0);
                           setIsDirty(true);
+
+                          if (shouldValidate) {
+                            const updatedQuestion = { ...questions[activeQuestionId] };
+                            if (updatedQuestion.type === 2) {
+                              updatedQuestion.task.answer[index][0] = e.target.value;
+                            }
+                            const errors = validateQuestion(updatedQuestion);
+                            setQuestionErrors(prev => ({
+                              ...prev,
+                              [activeQuestionId]: {
+                                ...prev[activeQuestionId],
+                                answerPairs: errors.answerPairs
+                              }
+                            }));
+                          }
                         }}
                         placeholder={`Элемент ${index + 1}`}
+                        error={!!questionErrors[activeQuestionId]?.answerPairs?.[index]?.[0]}
+                        helperText={questionErrors[activeQuestionId]?.answerPairs?.[index]?.[0]}
                       />
                       <TextField
                         fullWidth
@@ -414,8 +463,25 @@ export default function CreateTest() {
                         onChange={(e) => {
                           updateAnswerOption(activeQuestionId, index, e.target.value, 1);
                           setIsDirty(true);
+
+                          if (shouldValidate) {
+                            const updatedQuestion = { ...questions[activeQuestionId] };
+                            if (updatedQuestion.type === 2) {
+                              updatedQuestion.task.answer[index][1] = e.target.value;
+                            }
+                            const errors = validateQuestion(updatedQuestion);
+                            setQuestionErrors(prev => ({
+                              ...prev,
+                              [activeQuestionId]: {
+                                ...prev[activeQuestionId],
+                                answerPairs: errors.answerPairs
+                              }
+                            }));
+                          }
                         }}
                         placeholder="Соответствие"
+                        error={!!questionErrors[activeQuestionId]?.answerPairs?.[index]?.[1]}
+                        helperText={questionErrors[activeQuestionId]?.answerPairs?.[index]?.[1]}
                       />
                       <IconButton
                         onClick={() => removeAnswerOption(activeQuestionId, index)}
@@ -433,11 +499,10 @@ export default function CreateTest() {
                 <TextField
                   fullWidth
                   value={questions[activeQuestionId].task.answer}
-                  onChange={(e) => {
-                    updateQuestion(activeQuestionId, { task: { answer: e.target.value } });
-                    setIsDirty(true);
-                  }}
+                  onChange={(e) => handleQuestionChange(activeQuestionId, { task: { answer: e.target.value } })}
                   placeholder="Правильный ответ"
+                  error={!!questionErrors[activeQuestionId]?.fillInBlankAnswer}
+                  helperText={questionErrors[activeQuestionId]?.fillInBlankAnswer}
                 />
               )}
 
@@ -460,7 +525,7 @@ export default function CreateTest() {
               )}
             </FormControl>
             <Button
-              type="submit"
+              onClick={onSubmit}
               sx={{ alignSelf: 'center', width: '10rem' }}
               variant={loading ? "outlined" : "contained"}
               disabled={loading}

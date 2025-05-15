@@ -1,24 +1,25 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX, QuestionType, QuestionForCreate, TestForSchemas, TestDto, UserAnswer, AnswerResultDto } from '@mytypes/testTypes';
+import { QuestionMap, QUESTION_MIN, QUESTION_MAX, ANSWER_OPTION_MIN, ANSWER_OPTION_MAX, QuestionType, QuestionForCreate, TestDto, UserAnswer, AnswerResultDto, QuestionValidationErrors, FILL_IN_THE_BLANK_MAX_LENGTH, ANSWER_OPTION_TEXT_MAX_LENGTH, QUESTION_TEXT_MAX_LENGTH, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH } from '@mytypes/testTypes';
 import { createDefaultSingleChoiceQuestion, createDefaultMultipleChoiceQuestion, createDefaultMatchingQuestion, createDefaultFillInTheBlankQuestion } from '@mytypes/testTypes';
 import { deleteImage, uploadImage } from '@api/cloudinaryApi';
 import { createTest, deleteTest, finishTest, updateTest } from '@api/testApi';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { testSchema } from '@schemas/testSchemas';
 import { extractImageIdFromUrl } from '@utils/extractImageIdFromUrl';
 import { usePreventNavigation } from './usePreventNavigation';
 import { SnackbarContext } from '@context/SnackbarContext';
 
 export function useTestQuestions() {
+  const [title, setTitle] = React.useState('');
+  const [description, setDescription] = React.useState('');
   const [questions, setQuestions] = React.useState<QuestionMap>({
     [crypto.randomUUID()]: createDefaultSingleChoiceQuestion()
   });
+  const [formErrors, setFormErrors] = React.useState({ title: '', description: '' });
+  const [shouldValidateForm, setShouldValidateForm] = React.useState(false);
+  const [questionErrors, setQuestionErrors] = React.useState<Record<string, QuestionValidationErrors>>({});
+  const [shouldValidate, setShouldValidate] = React.useState(false);
 
   const [activeQuestionId, setActiveQuestionId] = React.useState<string>(Object.keys(questions)[0]);
-  const [titleLength, setTitleLength] = React.useState(0);
-  const [descriptionLength, setDescriptionLength] = React.useState(0);
   const [isGridVisible, setIsGridVisible] = React.useState(true);
   const [isDirty, setIsDirty] = React.useState(false);
   const allowNavigationRef = React.useRef(false);
@@ -37,28 +38,160 @@ export function useTestQuestions() {
     }
   }, [blocker.state]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset
-  } = useForm<TestForSchemas>({
-    resolver: yupResolver(testSchema)
-  });
+  React.useEffect(() => { console.log(questions) }, [questions]);
+
+  const validateTitle = (value: string): string => {
+    if (!value.trim()) return 'Обязательное поле';
+    if (value.length > TITLE_MAX_LENGTH) return `Название не может превышать ${TITLE_MAX_LENGTH} символов`;
+    return '';
+  };
+
+  const validateDescription = (value: string): string => {
+    if (value.length > DESCRIPTION_MAX_LENGTH) return `Описание не может превышать ${DESCRIPTION_MAX_LENGTH} символов`;
+    return '';
+  };
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    setIsDirty(true);
+    if (shouldValidateForm) {
+      setFormErrors(prev => ({
+        ...prev,
+        title: validateTitle(value)
+      }));
+    }
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    setIsDirty(true);
+    if (shouldValidateForm) {
+      setFormErrors(prev => ({
+        ...prev,
+        description: validateDescription(value)
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const titleError = validateTitle(title);
+    const descriptionError = validateDescription(description);
+
+    setFormErrors({
+      title: titleError,
+      description: descriptionError
+    });
+    setShouldValidateForm(true);
+
+    const questionsValid = validateAllQuestions();
+
+    return !titleError && !descriptionError && questionsValid;
+  };
+
+  const validateAllQuestions = (): boolean => {
+    const newErrors: Record<string, QuestionValidationErrors> = {};
+    let isValid = true;
+
+    Object.entries(questions).forEach(([id, question]) => {
+      const errors = validateQuestion(question);
+      if (Object.keys(errors).length > 0) {
+        newErrors[id] = errors;
+        isValid = false;
+      }
+    });
+
+    setQuestionErrors(newErrors);
+    setShouldValidate(true);
+    return isValid;
+  };
+
+  const handleQuestionChange = (id: string, updates: Partial<QuestionForCreate>) => {
+    updateQuestion(id, updates);
+    setIsDirty(true);
+    if (shouldValidate) {
+      const updatedQuestion = { ...questions[id], ...updates } as QuestionForCreate;
+      const errors = validateQuestion(updatedQuestion);
+      setQuestionErrors(prev => ({
+        ...prev,
+        [id]: errors
+      }));
+    }
+  };
+
+  const validateQuestion = (question: QuestionForCreate): QuestionValidationErrors => {
+    const errors: QuestionValidationErrors = {};
+
+    if (question.type !== 2) {
+      if (!question.text || !question.text.trim()) {
+        errors.text = `Обязательное поле`;
+      } else if (question.text.length > QUESTION_TEXT_MAX_LENGTH) {
+        errors.text = `Текст вопроса не должен превышать ${QUESTION_TEXT_MAX_LENGTH} символов`;
+      }
+    }
+
+    if (question.type === 0 || question.type === 1) {
+      const optionsErrors: string[] = [];
+      question.task.options.forEach((option, index) => {
+        if (!option.trim()) {
+          optionsErrors[index] = 'Обязательное поле';
+        } else if (option.length > ANSWER_OPTION_TEXT_MAX_LENGTH) {
+          optionsErrors[index] = `Вариант ответа не должен превышать ${ANSWER_OPTION_TEXT_MAX_LENGTH} символов`;
+        }
+      });
+
+      if (optionsErrors.length > 0) {
+        errors.options = optionsErrors;
+      }
+    }
+
+    if (question.type === 2) {
+      const answerPairsErrors: string[][] = [];
+      (question.task.answer as [string, string][]).forEach((pair, index) => {
+        const pairErrors: string[] = [];
+        if (!pair[0].trim()) {
+          pairErrors[0] = 'Обязательное поле';
+        }
+        if (!pair[1].trim()) {
+          pairErrors[1] = 'Обязательное поле';
+        }
+        if (pairErrors.length > 0) {
+          answerPairsErrors[index] = pairErrors;
+        }
+      });
+
+      if (answerPairsErrors.length > 0) {
+        errors.answerPairs = answerPairsErrors;
+      }
+    }
+
+    if (question.type === 3) {
+      if (!question.task.answer.trim()) {
+        errors.fillInBlankAnswer = 'Обязательное поле';
+      } else if (question.task.answer.length > FILL_IN_THE_BLANK_MAX_LENGTH) {
+        errors.fillInBlankAnswer = `Ответ не должен превышать ${FILL_IN_THE_BLANK_MAX_LENGTH} символов`;
+      }
+    }
+
+    return errors;
+  };
 
   const useCreateTest = () => {
     const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
     const navigate = ReactDOM.useNavigate();
 
-    return async (
-      data: TestForSchemas,
-      localImages: React.MutableRefObject<Map<string, File>>
-    ) => {
+    return async (localImages: React.MutableRefObject<Map<string, File>>) => {
+      if (!validateForm()) {
+        setSeverity("error");
+        setMessage("Исправьте ошибки в вопросах перед сохранением");
+        setOpen(true);
+        return;
+      }
+
       try {
         const updatedQuestions = await uploadLocalImages(localImages);
         const testData: TestDto = {
-          title: data.title,
-          description: data.description,
+          title: title,
+          description: description || undefined,
           questions: Object.values(updatedQuestions).map((question, qIndex) => ({
             id: question.id,
             testId: question.id,
@@ -98,10 +231,16 @@ export function useTestQuestions() {
 
     return async (
       id: number,
-      data: TestForSchemas,
       localImages: React.MutableRefObject<Map<string, File>>,
       initialImageUrls: React.MutableRefObject<string[]>
     ) => {
+      if (!validateForm()) {
+        setSeverity("error");
+        setMessage("Исправьте ошибки в вопросах перед сохранением");
+        setOpen(true);
+        return;
+      }
+
       try {
         const updatedQuestions = await uploadLocalImages(localImages);
         const questionImageUrls = new Set(Object.values(questions)
@@ -112,8 +251,8 @@ export function useTestQuestions() {
           await deleteImage(extractImageIdFromUrl(imageUrl));
         }
         const testData: TestDto = {
-          title: data.title,
-          description: data.description,
+          title: title,
+          description: description || undefined,
           questions: Object.values(updatedQuestions).map((question, qIndex) => ({
             id: question.id,
             testId: question.testId,
@@ -333,8 +472,7 @@ export function useTestQuestions() {
     setQuestions(prev => {
       const question = prev[key];
       if (!question) return prev;
-
-      if ((question.type === 0 || question.type === 1) && question.task.options.length > ANSWER_OPTION_MIN + 1) {
+      if ((question.type === 0 || question.type === 1) && question.task.options.length > ANSWER_OPTION_MIN) {
         const newOptions = question.task.options.filter((_, idx) => idx !== index);
         const newAnswer = question.task.answer.filter((_, idx) => idx !== index);
 
@@ -390,6 +528,14 @@ export function useTestQuestions() {
   };
 
   return {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    formErrors,
+    handleTitleChange,
+    handleDescriptionChange,
+    validateForm,
     questions,
     setQuestions,
     activeQuestionId,
@@ -407,15 +553,13 @@ export function useTestQuestions() {
     useEditTest,
     useDeleteTest,
     useFinishTest,
-    titleLength,
-    setTitleLength,
-    descriptionLength,
-    setDescriptionLength,
     isGridVisible,
     setIsGridVisible,
-    register,
-    handleSubmit,
-    errors,
-    reset
+    questionErrors,
+    setQuestionErrors,
+    validateQuestion,
+    handleQuestionChange,
+    validateAllQuestions,
+    shouldValidate
   };
 }
