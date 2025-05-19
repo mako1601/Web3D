@@ -150,8 +150,8 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
                   display: 'flex',
                   wordBreak: 'break-word',
                   whiteSpace: 'normal',
-                  textAlign: index % 2 === 0 ? 'left' : 'center',
-                  justifySelf: index % 2 === 0 ? 'start' : 'center',
+                  textAlign: 'left',
+                  justifySelf: 'start',
                 }}
               />
             ))}
@@ -192,8 +192,8 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
                 display: 'flex',
                 wordBreak: 'break-word',
                 whiteSpace: 'normal',
-                textAlign: index % 2 === 0 ? 'left' : 'center',
-                justifySelf: index % 2 === 0 ? 'start' : 'center',
+                textAlign: 'left',
+                justifySelf: 'start',
               }}
             />
           ))}

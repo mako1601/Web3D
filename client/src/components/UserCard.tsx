@@ -28,7 +28,7 @@ const UserCard = ({ user, onProfileClick, onRoleChange }: UserCardProps) => {
     <div style={{ display: 'flex', flexDirection: 'row', borderRadius: '8px' }}>
       <CardActionArea sx={styles.cardArea} onClick={onProfileClick}>
         <Typography width="100%">
-          {`${user.lastName} ${user.firstName} ${user.middleName}, ${roleLabel}`}
+          {`${user.lastName} ${user.firstName}${(user && typeof user.middleName === 'string' && user.middleName.trim() !== '') ? ' ' + user.middleName : ''}, ${roleLabel}`}
         </Typography>
       </CardActionArea>
       <CardActions sx={styles.cardActions}>

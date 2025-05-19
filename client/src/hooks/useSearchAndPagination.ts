@@ -88,6 +88,7 @@ export const useSearchAndPagination = (
   };
 
   return {
+    fetchData,
     searchQuery,
     orderBy,
     sortDirection,

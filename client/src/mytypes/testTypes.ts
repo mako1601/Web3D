@@ -4,9 +4,9 @@ export const ANSWER_OPTION_MIN = 2;
 export const ANSWER_OPTION_MAX = 5;
 export const TITLE_MAX_LENGTH = 100;
 export const DESCRIPTION_MAX_LENGTH = 500;
-export const QUESTION_TEXT_MAX_LENGTH = 500;
-export const ANSWER_OPTION_TEXT_MAX_LENGTH = 200;
-export const FILL_IN_THE_BLANK_MAX_LENGTH = 100;
+export const QUESTION_TEXT_MAX_LENGTH = 100;
+export const ANSWER_OPTION_TEXT_MAX_LENGTH = 100;
+export const FILL_IN_THE_BLANK_MAX_LENGTH = 30;
 
 export const questionTypes = [
   { value: 0, label: 'Один правильный ответ' },

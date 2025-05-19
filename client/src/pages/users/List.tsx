@@ -1,5 +1,4 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-router-dom';
 import { Box, Stack, Radio, Divider, Typography, RadioGroup, IconButton, FormControl, OutlinedInput, InputAdornment, FormControlLabel, CircularProgress, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
@@ -14,65 +13,30 @@ import { changeRole, getAllUsers } from '@api/userApi';
 import { ChangeUserRole, UserDto } from '@mytypes/userTypes';
 import { roleLabels } from '@utils/roleLabels';
 import { SnackbarContext } from '@context/SnackbarContext';
+import { useSearchAndPagination } from '@hooks/useSearchAndPagination';
 
 const PAGE_SIZE = 20;
 
 export default function UserList() {
   const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
-  const [searchParams, setSearchParams] = ReactDOM.useSearchParams();
-  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("name") || "");
-  const searchText = searchParams.get("searchText") || "";
-  const orderBy = (searchParams.get("orderBy") as "Name" | "Role") || "Name";
-  const sortDirection = (searchParams.get("sortDirection") === "1" ? 1 : 0) as 0 | 1;
-  const currentPage = parseInt(searchParams.get("page") || "1", 10);
-  const [totalCount, setTotalCount] = React.useState(0);
-  const [users, setUsers] = React.useState<UserDto[] | null>(null);
   const [openDialog, setOpenDialog] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<UserDto | null>(null);
 
-  const fetchUsers = React.useCallback(async () => {
-    try {
-      const data = await getAllUsers({ searchText, orderBy, sortDirection, currentPage, pageSize: PAGE_SIZE });
-      setUsers(data.data);
-      setTotalCount(data.totalCount);
-    } catch (e: any) {
-      setUsers(null);
-      setTotalCount(0);
-    }
-  }, [searchText, orderBy, sortDirection, currentPage]);
-
-  React.useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  const updateSearchParams = (newParams: Record<string, string | number>) => {
-    const updatedParams = new URLSearchParams(searchParams);
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value) {
-        updatedParams.set(key, value.toString());
-      } else {
-        updatedParams.delete(key);
-      }
-    });
-    setSearchParams(updatedParams);
-    window.scrollTo(0, 0);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleClearSearch = () => {
-    setSearchQuery("");
-    updateSearchParams({ name: "", page: 1 });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && searchQuery !== searchText) {
-      updateSearchParams({ name: searchQuery, page: 1 });
-      e.currentTarget.blur();
-    }
-  };
+  const {
+    fetchData,
+    searchQuery,
+    orderBy,
+    sortDirection,
+    data: users,
+    totalCount,
+    currentPage,
+    handleSearchChange,
+    handleClearSearch,
+    handleKeyDown,
+    handlePageChange,
+    handleOrderByChange,
+    handleSortDirectionChange,
+  } = useSearchAndPagination(getAllUsers, PAGE_SIZE);
 
   const handleProfileClick = React.useCallback((id: number) => {
     console.log(`Пользователь с ID: ${id}`);
@@ -90,15 +54,15 @@ export default function UserList() {
       try {
         const changeUserRole: ChangeUserRole = { userId: user.id, newRole: newRole };
         await changeRole(changeUserRole);
-        fetchUsers();
+        fetchData();
       } catch (e: any) {
         console.error("Ошибка при изменении роли: ", e);
       }
     }
-  }, [fetchUsers]);
+  }, [fetchData]);
 
   const handleDialogClickOpen = (user: UserDto) => { setSelectedUser(user); setOpenDialog(true); };
-  const handleDialogClose = () => { setOpenDialog(false); setSelectedUser(null); };
+  const handleDialogClose = () => { setOpenDialog(false); };
 
   if (!users) {
     return (
@@ -129,7 +93,7 @@ export default function UserList() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { handleDialogClose(); handleRoleChange(selectedUser) }}>Да</Button>
+          <Button onClick={() => { handleDialogClose(); handleRoleChange(selectedUser); }}>Да</Button>
           <Button autoFocus onClick={handleDialogClose}>Нет</Button>
         </DialogActions>
       </Dialog>
@@ -184,7 +148,7 @@ export default function UserList() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={Math.ceil(totalCount / PAGE_SIZE)}
-                onPageChange={(page) => updateSearchParams({ page })}
+                onPageChange={handlePageChange}
               />
             </Stack>
           )}
@@ -194,7 +158,7 @@ export default function UserList() {
             <FormControl>
               <RadioGroup
                 value={orderBy}
-                onChange={(e) => updateSearchParams({ orderBy: e.target.value, page: currentPage })}
+                onChange={handleOrderByChange}
               >
                 <FormControlLabel value="Name" control={<Radio />} label="По ФИО" />
                 <FormControlLabel value="Role" control={<Radio />} label="По роли" />
@@ -204,7 +168,7 @@ export default function UserList() {
             <FormControl>
               <RadioGroup
                 value={sortDirection}
-                onChange={(e) => updateSearchParams({ sortDirection: Number(e.target.value), page: currentPage })}
+                onChange={handleSortDirectionChange}
               >
                 <FormControlLabel value="0" control={<Radio />} label="По возрастанию" />
                 <FormControlLabel value="1" control={<Radio />} label="По убыванию" />

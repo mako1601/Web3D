@@ -146,16 +146,49 @@ export function useTestQuestions() {
 
     if (question.type === 2) {
       const answerPairsErrors: string[][] = [];
-      (question.task.answer as [string, string][]).forEach((pair, index) => {
+      const valueOccurrences = new Map<string, { count: number, indexes: Array<{ pairIndex: number, elementIndex: number }> }>();
+
+      (question.task.answer as [string, string][]).forEach((pair, pairIndex) => {
+        [0, 1].forEach(elementIndex => {
+          const value = pair[elementIndex].trim();
+          if (!value) return;
+
+          const normalizedValue = value.toLowerCase();
+          const existing = valueOccurrences.get(normalizedValue) || { count: 0, indexes: [] };
+
+          valueOccurrences.set(normalizedValue, {
+            count: existing.count + 1,
+            indexes: [...existing.indexes, { pairIndex, elementIndex }]
+          });
+        });
+      });
+
+      (question.task.answer as [string, string][]).forEach((pair, pairIndex) => {
         const pairErrors: string[] = [];
-        if (!pair[0].trim()) {
-          pairErrors[0] = 'Обязательное поле';
-        }
-        if (!pair[1].trim()) {
-          pairErrors[1] = 'Обязательное поле';
-        }
+
+        [0, 1].forEach(elementIndex => {
+          const value = pair[elementIndex].trim();
+
+          if (!value) {
+            pairErrors[elementIndex] = 'Обязательное поле';
+            return;
+          }
+
+          if (value.length > 100) {
+            pairErrors[elementIndex] = `Максимальная длина ${ANSWER_OPTION_TEXT_MAX_LENGTH} символов`;
+            return;
+          }
+
+          const normalizedValue = value.toLowerCase();
+          const occurrence = valueOccurrences.get(normalizedValue);
+
+          if (occurrence && occurrence.count > 1) {
+            pairErrors[elementIndex] = 'Не должно быть дублирующихся строк';
+          }
+        });
+
         if (pairErrors.length > 0) {
-          answerPairsErrors[index] = pairErrors;
+          answerPairsErrors[pairIndex] = pairErrors;
         }
       });
 

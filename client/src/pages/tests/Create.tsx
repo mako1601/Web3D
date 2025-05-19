@@ -111,7 +111,7 @@ export default function CreateTest() {
           {/* Draggable grid for questions */}
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography color='text.secondary'>Вопросы {Object.keys(questions).length}/50</Typography>
+              <Typography color='text.secondary'>Задания {Object.keys(questions).length}/50</Typography>
               <StyledIconButton onClick={() => setIsGridVisible(!isGridVisible)}>
                 {isGridVisible ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
               </StyledIconButton>
@@ -289,7 +289,7 @@ export default function CreateTest() {
                   fullWidth
                   value={questions[activeQuestionId].text ?? ""}
                   onChange={(e) => handleQuestionChange(activeQuestionId, { text: e.target.value })}
-                  placeholder="Текст вопроса"
+                  placeholder={questions[activeQuestionId].type !== 3 ? "Текст вопроса" : "Текст с пропуском"}
                   error={!!questionErrors[activeQuestionId]?.text}
                   helperText={questionErrors[activeQuestionId]?.text}
                 />
@@ -453,7 +453,7 @@ export default function CreateTest() {
                             }));
                           }
                         }}
-                        placeholder={`Элемент ${index + 1}`}
+                        placeholder={`Термин ${index + 1}`}
                         error={!!questionErrors[activeQuestionId]?.answerPairs?.[index]?.[0]}
                         helperText={questionErrors[activeQuestionId]?.answerPairs?.[index]?.[0]}
                       />
@@ -479,7 +479,7 @@ export default function CreateTest() {
                             }));
                           }
                         }}
-                        placeholder="Соответствие"
+                        placeholder={`Определение ${index + 1}`}
                         error={!!questionErrors[activeQuestionId]?.answerPairs?.[index]?.[1]}
                         helperText={questionErrors[activeQuestionId]?.answerPairs?.[index]?.[1]}
                       />
@@ -500,7 +500,7 @@ export default function CreateTest() {
                   fullWidth
                   value={questions[activeQuestionId].task.answer}
                   onChange={(e) => handleQuestionChange(activeQuestionId, { task: { answer: e.target.value } })}
-                  placeholder="Правильный ответ"
+                  placeholder="Пропущенное слово"
                   error={!!questionErrors[activeQuestionId]?.fillInBlankAnswer}
                   helperText={questionErrors[activeQuestionId]?.fillInBlankAnswer}
                 />
@@ -520,7 +520,7 @@ export default function CreateTest() {
                       : (questions[activeQuestionId].task.answer.length >= 4 ? 'none' : 'inline-flex')
                   }}
                 >
-                  Добавить вариант ответа
+                  {questions[activeQuestionId].type !== 2 ? "Добавить вариант ответа" : "Добавить соответствие"}
                 </Button>
               )}
             </FormControl>
