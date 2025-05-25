@@ -94,7 +94,6 @@ export default function CreateTest() {
               <TextField
                 value={description}
                 fullWidth
-                multiline
                 error={!!formErrors.description}
                 helperText={formErrors.description}
                 onInput={(e) => {

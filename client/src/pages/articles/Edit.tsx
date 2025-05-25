@@ -220,7 +220,6 @@ export default function EditArticle() {
               <TextField
                 {...register("description")}
                 fullWidth
-                multiline
                 error={!!errors.description}
                 helperText={errors.description?.message}
                 onInput={(e) => {

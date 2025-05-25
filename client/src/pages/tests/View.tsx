@@ -59,12 +59,10 @@ export default function ViewTest() {
       setSeverity("error");
       if (e.response) {
         setMessage(e.response.statusText);
-        console.log("e.response");
       } else if (e.request) {
         setMessage("Сервер не отвечает, повторите попытку позже");
       } else if (e.message) {
         setMessage(e.message);
-        console.log("e.message");
       } else {
         setMessage("Произошла неизвестная ошибка");
       }

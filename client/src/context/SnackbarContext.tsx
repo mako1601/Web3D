@@ -6,7 +6,6 @@ export type SnackbarContextType = {
   setOpen: (open: boolean) => void;
 };
 
-// Создаем контекст с дефолтными значениями
 export const SnackbarContext = React.createContext<SnackbarContextType>({
   setSeverity: () => {},
   setMessage: () => {},

@@ -1,11 +1,12 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Divider, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
 import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
+import katex from 'katex';
 import DOMPurify from 'dompurify';
 
 import Page from '@components/Page';
@@ -80,10 +81,73 @@ export default function ViewArticle() {
 
           elements.push(<CodeViewer key={index} code={codeText} />);
         } else {
+          // Обработка математических формул
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = element.outerHTML;
+
+          // Находим все текстовые узлы, содержащие формулы
+          const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT);
+          const textNodes: Node[] = [];
+          let currentNode;
+          while (currentNode = walker.nextNode()) {
+            textNodes.push(currentNode);
+          }
+
+          textNodes.forEach(textNode => {
+            const text = textNode.nodeValue || '';
+            const regex = /\$(.*?)\$/g;
+            let match;
+            let lastIndex = 0;
+            const fragments = [];
+
+            while ((match = regex.exec(text)) !== null) {
+              // Текст до формулы
+              if (match.index > lastIndex) {
+                fragments.push(document.createTextNode(text.substring(lastIndex, match.index)));
+              }
+
+              // Формула
+              const formula = match[1];
+              try {
+                const span = document.createElement('span');
+                katex.render(formula, span, {
+                  throwOnError: false,
+                  strict: false,
+                  displayMode: false,
+                  macros: {
+                    '\\text': '\\text'
+                  }
+                });
+                fragments.push(span);
+              } catch (e) {
+                console.error('Ошибка рендеринга формулы:', e);
+                fragments.push(document.createTextNode(`$${formula}$`));
+              }
+
+              lastIndex = match.index + match[0].length;
+            }
+
+            // Текст после последней формулы
+            if (lastIndex < text.length) {
+              fragments.push(document.createTextNode(text.substring(lastIndex)));
+            }
+
+            // Заменяем текстовый уузл на фрагменты
+            if (fragments.length > 0) {
+              const parent = textNode.parentNode;
+              if (parent) {
+                fragments.forEach(fragment => {
+                  parent.insertBefore(fragment, textNode);
+                });
+                parent.removeChild(textNode);
+              }
+            }
+          });
+
           elements.push(
             <div
               key={index}
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(element.outerHTML) }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tempDiv.innerHTML) }}
             />
           );
         }
@@ -131,6 +195,7 @@ export default function ViewArticle() {
                 ) : null}
               </Box>
             </Box>
+            <Divider variant="middle"/>
             <Box>
               <div style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>
                 {htmlContent && renderContent(htmlContent)}

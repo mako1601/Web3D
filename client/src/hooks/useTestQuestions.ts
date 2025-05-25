@@ -38,8 +38,6 @@ export function useTestQuestions() {
     }
   }, [blocker.state]);
 
-  React.useEffect(() => { console.log(questions) }, [questions]);
-
   const validateTitle = (value: string): string => {
     if (!value.trim()) return 'Обязательное поле';
     if (value.length > TITLE_MAX_LENGTH) return `Название не может превышать ${TITLE_MAX_LENGTH} символов`;

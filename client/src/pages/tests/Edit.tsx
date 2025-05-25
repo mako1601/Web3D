@@ -190,7 +190,6 @@ export default function EditTest() {
               <TextField
                 value={description}
                 fullWidth
-                multiline
                 error={!!formErrors.description}
                 helperText={formErrors.description}
                 onInput={(e) => {

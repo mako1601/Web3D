@@ -8,6 +8,7 @@ import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
+import Mathematics from '@tiptap-pro/extension-mathematics';
 
 import { createArticle, deleteArticle, updateArticle } from '@api/articleApi';
 import { deleteImage, updateJson, uploadImage, uploadJson } from '@api/cloudinaryApi';
@@ -58,6 +59,14 @@ export function useArticleForm() {
     return useEditor({
       extensions: [
         StarterKit,
+        Mathematics.configure({
+          katexOptions: {
+            strict: false,
+            macros: {
+              '\\text': '\\text'
+            }
+          }
+        }),
         Underline,
         Image
           .extend({
