@@ -168,9 +168,14 @@ export default function ViewArticle() {
         ) : (
           <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h4" color="text.primary">
-                {article.title}
-              </Typography>
+              <Box display="flex" flexDirection="column" gap={2}>
+                <Typography variant="h4" color="text.primary">
+                  {article.title}
+                </Typography>
+                <Typography>
+                  {article.description}
+                </Typography>
+              </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <Typography
                   sx={{ cursor: 'pointer' }}
@@ -195,7 +200,7 @@ export default function ViewArticle() {
                 ) : null}
               </Box>
             </Box>
-            <Divider variant="middle"/>
+            <Divider variant="middle" />
             <Box>
               <div style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>
                 {htmlContent && renderContent(htmlContent)}

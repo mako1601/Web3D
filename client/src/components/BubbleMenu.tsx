@@ -49,25 +49,25 @@ const CustomBubbleMenu = ({ editor, localImages }: Props) => {
           bgcolor: 'background.paper'
         }}
       >
-        <StyledIconButton onClick={() => editor.chain().focus().toggleBold().run()}><FormatBold /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleItalic().run()}><FormatItalic /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleStrike().run()}><FormatStrikethrough /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleUnderline().run()}><FormatUnderlined /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleBold().run()} title="Полужирный"><FormatBold /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleItalic().run()} title="Курсив"><FormatItalic /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleStrike().run()} title="Зачеркнутый"><FormatStrikethrough /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleUnderline().run()} title="Подчеркнутый"><FormatUnderlined /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
-        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("left").run()}><FormatAlignLeft /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("center").run()}><FormatAlignCenter /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("right").run()}><FormatAlignRight /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("justify").run()}><FormatAlignJustify /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("left").run()} title="Выровнять по левому краю"><FormatAlignLeft /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("center").run()} title="Выровнять по цетру"><FormatAlignCenter /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("right").run()} title="Выровнять по правому краю"><FormatAlignRight /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setTextAlign("justify").run()} title="Выровнять по ширине"><FormatAlignJustify /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}><Title style={{ fontSize: 24 }} /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}><Title /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().setParagraph().run()}><Title style={{ fontSize: 16 }} /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Заголовок"><Title style={{ fontSize: 24 }} /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Подзаголовок"><Title /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().setParagraph().run()} title="Основной текст"><Title style={{ fontSize: 16 }} /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleBulletList().run()}><FormatListBulleted /></StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleOrderedList().run()}><FormatListNumbered /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleBulletList().run()} title="Маркеры"><FormatListBulleted /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Нумерация"><FormatListNumbered /></StyledIconButton>
         <Divider orientation="vertical" variant="middle" flexItem></Divider>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleCodeBlock().run()}><Code /></StyledIconButton>
-        <StyledIconButton component="label">
+        <StyledIconButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Вставка кода"><Code /></StyledIconButton>
+        <StyledIconButton component="label" title="Вставка изображения">
           <input
             type="file"
             accept="image/png, image/jpeg, image/webp"
@@ -76,7 +76,7 @@ const CustomBubbleMenu = ({ editor, localImages }: Props) => {
           />
           <ImageIcon sx={{ margin: '-2px' }} />
         </StyledIconButton>
-        <StyledIconButton onClick={() => editor.chain().focus().toggleCodeRunner().run()}><Terminal /></StyledIconButton>
+        <StyledIconButton onClick={() => editor.chain().focus().toggleCodeRunner().run()} title="Исполняемый код"><Terminal /></StyledIconButton>
       </Box>
     </BubbleMenu>
   );
