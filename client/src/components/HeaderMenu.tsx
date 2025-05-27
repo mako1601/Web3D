@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, Divider, MenuItem, Avatar, Box } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 
@@ -9,6 +9,7 @@ import StyledIconButton from './StyledIconButton';
 import { roleLabels } from '@utils/roleLabels';
 
 const HeaderMenu = () => {
+  const location = useLocation();
   const { user, setUser } = useAuth();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -31,11 +32,16 @@ const HeaderMenu = () => {
   const roleLabel = React.useMemo(() => roleLabels[user.role] || "", [user.role]);
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center'
-    }}>
-      <StyledIconButton onClick={handleClick}>
+    <Box display="flex" alignItems="center">
+      <StyledIconButton
+        disabled={
+          location.pathname === "/articles/create" ||
+          /^\/articles\/[^/]+\/edit$/.test(location.pathname) ||
+          location.pathname === "/tests/create" ||
+          /^\/tests\/[^/]+\/edit$/.test(location.pathname) ||
+          /^\/tests\/[^/]+\/results\/[^/]+$/.test(location.pathname)
+        }
+        onClick={handleClick}>
         <MenuRoundedIcon />
       </StyledIconButton>
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
@@ -69,7 +75,7 @@ const HeaderMenu = () => {
         <Divider />
         <MenuItem onClick={handleLogout}>Выйти</MenuItem>
       </Menu>
-    </div>
+    </Box>
   );
 };
 

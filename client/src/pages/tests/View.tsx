@@ -58,7 +58,11 @@ export default function ViewTest() {
       setOpen(true);
       setSeverity("error");
       if (e.response) {
-        setMessage(e.response.statusText);
+        if (e.status === 403) {
+          setMessage("У вас нет доступа к прохождению тестов");
+        } else {
+          setMessage(e.response.statusText);
+        }
       } else if (e.request) {
         setMessage("Сервер не отвечает, повторите попытку позже");
       } else if (e.message) {

@@ -222,7 +222,7 @@ export function useTestQuestions() {
         const updatedQuestions = await uploadLocalImages(localImages);
         const testData: TestDto = {
           title: title,
-          description: description || undefined,
+          description: description || "",
           questions: Object.values(updatedQuestions).map((question, qIndex) => ({
             id: question.id,
             testId: question.id,
@@ -283,7 +283,7 @@ export function useTestQuestions() {
         }
         const testData: TestDto = {
           title: title,
-          description: description || undefined,
+          description: description || "",
           questions: Object.values(updatedQuestions).map((question, qIndex) => ({
             id: question.id,
             testId: question.testId,

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Stack, Avatar, Button } from '@mui/material';
 
 import HeaderMenu from '@components/HeaderMenu';
@@ -5,7 +6,6 @@ import CreateMenu from '@components/CreateMenu';
 import HeaderInner from '@components/HeaderInner';
 import HeaderContainer from '@components/HeaderContainer';
 import { useAuth } from '@context/AuthContext';
-import { Link } from 'react-router-dom';
 
 export default function Header() {
   const { user } = useAuth();
