@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop, IconButton, Dialog, DialogTitle, DialogActions } from '@mui/material';
-import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 import { EditorContent } from '@tiptap/react';
+import { Button, Box, FormControl, TextField, FormLabel, CircularProgress, Backdrop, IconButton, Dialog, DialogTitle, DialogActions, Tooltip } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
@@ -238,7 +239,17 @@ export default function EditArticle() {
           <PageCard className="page-card" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                Текст
+                <Box display="flex" flexDirection="row" gap={0.5}>
+                  Текст
+                  <Tooltip
+                    title="Редактор поддерживает математические формулы через LaTeX, например: $a^2 + b^2 = c^2$"
+                    placement="bottom"
+                  >
+                    <Box sx={{ color: 'text.secondary', cursor: 'pointer' }}>
+                      <InfoOutlinedIcon fontSize='small' />
+                    </Box>
+                  </Tooltip>
+                </Box>
                 <Box>{contentLength}/{CONTENT_MAX_LENGTH}</Box>
               </FormLabel>
               {editor && <BubbleMenu editor={editor} localImages={localImages} />}

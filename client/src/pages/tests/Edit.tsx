@@ -207,7 +207,7 @@ export default function EditTest() {
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography color='text.secondary'>Вопросы {Object.keys(questions).length}/50</Typography>
-              <StyledIconButton onClick={() => setIsGridVisible(!isGridVisible)}>
+              <StyledIconButton title={isGridVisible ? "Скрыть" : "Показать"} onClick={() => setIsGridVisible(!isGridVisible)}>
                 {isGridVisible ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
               </StyledIconButton>
             </Box>
