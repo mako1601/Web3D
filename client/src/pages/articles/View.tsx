@@ -91,6 +91,36 @@ export default function ViewArticle() {
           const codeText = codeElement?.textContent || "";
 
           elements.push(<CodeViewer key={index} code={codeText} />);
+        } else if (element.tagName === "PRE" && element.querySelector("code")) {
+          const codeElement = element.querySelector("code");
+          const codeText = codeElement?.textContent || "";
+          elements.push(
+            <Box
+              key={`code-${index}`}
+              component="pre"
+              sx={{
+                background: 'rgba(97, 97, 97, 0.1)',
+                borderRadius: '0.5rem',
+                padding: '16px',
+                margin: '16px 0',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                overflowX: 'auto',
+                border: (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                position: 'relative',
+                '&::before': {
+                  content: '"Code"',
+                  position: 'absolute',
+                  top: '4px',
+                  right: '8px',
+                  fontSize: '0.75rem',
+                  color: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                },
+              }}
+            >
+              {codeText}
+            </Box>
+          );
         } else {
           // Обработка математических формул
           const tempDiv = document.createElement('div');
@@ -212,7 +242,8 @@ export default function ViewArticle() {
               </Box>
             </Box>
             <Divider variant="middle" />
-            <Box>
+            <Box
+            >
               <div style={{ wordWrap: "break-word", overflowWrap: "break-word" }}>
                 {htmlContent && renderContent(htmlContent)}
               </div>

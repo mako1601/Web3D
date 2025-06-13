@@ -155,7 +155,20 @@ export default function ArticleForm({
               </FormLabel>
               {editor && <BubbleMenu editor={editor} localImages={localImages} />}
               <StyledEditorContainer>
-                <EditorContent editor={editor} />
+                <Box
+                  sx={{
+                    '.tiptap': {
+                      '& pre': {
+                        background: 'rgba(97, 97, 97, 0.1)',
+                        border: '1px solid green',
+                        padding: '1rem',
+                        color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'black',
+                      }
+                    }
+                  }}
+                >
+                  <EditorContent editor={editor} />
+                </Box>
               </StyledEditorContainer>
               {errors.content && (
                 <Box sx={{ color: 'error.main', fontSize: '0.75rem', mt: 0.375, ml: 1.75, mr: 1.75 }}>
@@ -187,22 +200,22 @@ export default function ArticleForm({
             </Box>
             {editor && editor.isActive('codeRunner') && (
               <IconButton
+                title="Выполнить код"
                 onClick={handleRunCode}
+                style={{ background: 'transparent' }}
                 sx={{
                   position: 'absolute',
                   top: `${cursorPos.top}px`,
                   left: `${cursorPos.left}px`,
                   padding: 0,
-                  zIndex: 9999,
+                  zIndex: 1,
                   transform: 'translateY(-50%)',
-                  backgroundColor: 'transparent',
                   border: 'transparent',
                   transition: 'transform 0.2s ease, color 0.2s ease',
                   '&:hover': {
-                    backgroundColor: 'transparent',
                     transform: 'translateY(-50%) scale(1.4)',
                     color: 'rgb(0, 200, 50)',
-                  },
+                  }
                 }}
               >
                 <PlayArrowRoundedIcon sx={{ color: 'rgb(12, 150, 0)', '&:hover': { color: 'rgb(0, 200, 50)' } }} />
@@ -228,7 +241,7 @@ export default function ArticleForm({
         <CircularProgress color="inherit" />
       </Backdrop>
 
-      {/* codeRunner canvas */}
+      {/* canvas */}
       <Backdrop
         sx={{
           color: '#fff',

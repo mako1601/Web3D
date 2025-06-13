@@ -59,7 +59,14 @@ export function useArticleForm() {
   ) => {
     return useEditor({
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          codeBlock: {
+            HTMLAttributes: {
+              class: 'tiptap-code-block',
+              style: 'border: 1px solid grey;'
+            }
+          }
+        }),
         Mathematics.configure({
           katexOptions: {
             strict: false,
