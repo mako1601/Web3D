@@ -30,6 +30,10 @@ export const useSearchAndPagination = (
   const [data, setData] = React.useState<any[] | null>(null);
   const [totalCount, setTotalCount] = React.useState(0);
 
+  const scrollToTop = React.useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   const fetchData = React.useCallback(async () => {
     try {
       const response = await fetch({ searchText, orderBy, sortDirection, currentPage, pageSize });
@@ -46,7 +50,7 @@ export const useSearchAndPagination = (
   }, [fetchData]);
 
   const updateSearchParams = (newParams: Record<string, string | number>) => {
-    setSearchParams((prev) => {
+    setSearchParams(prev => {
       const updatedParams = new URLSearchParams(prev);
       Object.entries(newParams).forEach(([key, value]) => {
         if (value) {
@@ -57,6 +61,7 @@ export const useSearchAndPagination = (
       });
       return updatedParams;
     });
+    scrollToTop();
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
 import { Box, Button, CircularProgress, Divider, Typography } from '@mui/material';
 import { generateHTML } from '@tiptap/react';
+import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -49,6 +50,16 @@ export default function ViewArticle() {
           const html = generateHTML(json, [
             StarterKit,
             Underline,
+            Link.configure({
+              openOnClick: false,
+              autolink: true,
+              defaultProtocol: 'https',
+              protocols: ['http', 'https'],
+              HTMLAttributes: {
+                target: '_blank',
+                rel: 'noopener noreferrer nofollow'
+              }
+            }),
             Image.extend({
               renderHTML({ HTMLAttributes }) {
                 return ["img", { ...HTMLAttributes, style: "max-width: 100%; height: auto;" }];

@@ -6,7 +6,7 @@ using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 
-internal class TokenRepository(Web3DDbContext context) : ITokenRepository
+public class TokenRepository(Web3DDbContext context) : ITokenRepository
 {
     public async Task CreateAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {

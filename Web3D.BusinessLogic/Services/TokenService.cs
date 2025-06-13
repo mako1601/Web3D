@@ -7,9 +7,10 @@ using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class TokenService(
+public class TokenService(
     ITokenRepository tokenRepository,
-    IHttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor,
+    IJwtService jwtService)
     : ITokenService
 {
     public async Task CreateAsync(long userId, CancellationToken cancellationToken = default)
@@ -17,7 +18,7 @@ internal class TokenService(
         var refreshToken = new RefreshToken
         {
             UserId = userId,
-            Token = JwtService.GenerateRefreshToken(),
+            Token = jwtService.GenerateRefreshToken(),
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
             UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent
@@ -37,7 +38,7 @@ internal class TokenService(
         var refreshToken = await tokenRepository.GetByTokenAsync(token, cancellationToken)
             ?? throw new RefreshTokenNotFoundException();
 
-        refreshToken.Token = JwtService.GenerateRefreshToken();
+        refreshToken.Token = jwtService.GenerateRefreshToken();
         refreshToken.ExpiresAt = DateTime.UtcNow.AddDays(7);
         refreshToken.IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
         refreshToken.UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent;

@@ -144,6 +144,7 @@ export default function PassTest() {
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
+          zIndex: 1000,
           paddingBottom: 2,
           cursor: 'pointer',
           '&:hover .hoverText': {
@@ -163,28 +164,48 @@ export default function PassTest() {
         </Typography>
       </Box>
       <Header />
-      <ContentContainer sx={{ justifyContent: 'space-between', position: 'relative' }}>
-        <PassTestQuestion
-          question={currentQuestion}
-          answer={currentAnswer}
-          updateQuestion={updatedQuestion => {
-            setTest(prev => {
-              if (!prev) return prev;
-              const updatedQuestions = prev.questions.map((q, index) =>
-                index === currentQuestionIndex ? updatedQuestion : q
+      <ContentContainer sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+        paddingLeft: '10rem',
+        paddingRight: '10rem',
+      }}>
+        <Box sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <PassTestQuestion
+            question={currentQuestion}
+            answer={currentAnswer}
+            updateQuestion={updatedQuestion => {
+              setTest(prev => {
+                if (!prev) return prev;
+                const updatedQuestions = prev.questions.map((q, index) =>
+                  index === currentQuestionIndex ? updatedQuestion : q
+                );
+                return { ...prev, questions: updatedQuestions };
+              });
+            }}
+            updateAnswer={updatedAnswer => {
+              setAnswers(prev =>
+                prev.map((a, index) =>
+                  index === currentQuestionIndex ? updatedAnswer : a
+                )
               );
-              return { ...prev, questions: updatedQuestions };
-            });
-          }}
-          updateAnswer={updatedAnswer => {
-            setAnswers(prev =>
-              prev.map((a, index) =>
-                index === currentQuestionIndex ? updatedAnswer : a
-              )
-            );
-          }}
-        />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', m: '3rem 0' }}>
+            }}
+          />
+        </Box>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          position: 'relative',
+          m: '3rem 0'
+        }}>
           <Button disabled={currentQuestionIndex === 0} variant="outlined" onClick={() => setCurrentQuestionIndex(prev => prev - 1)}>Назад</Button>
           <Typography sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
             {currentQuestionIndex + 1}/{questions.length}

@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import debounce from 'lodash.debounce';
 import { Editor, JSONContent, useEditor } from '@tiptap/react';
 import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -68,6 +69,16 @@ export function useArticleForm() {
           }
         }),
         Underline,
+        Link.configure({
+          openOnClick: false,
+          autolink: true,
+          defaultProtocol: 'https',
+          protocols: ['http', 'https'],
+          HTMLAttributes: {
+            target: '_blank',
+            rel: 'noopener noreferrer nofollow'
+          }
+        }),
         Image
           .extend({
             renderHTML({ HTMLAttributes }) {
@@ -146,7 +157,7 @@ export function useArticleForm() {
         setSeverity("success");
         setMessage("Учебный материал успешно обновлён!");
         allowNavigationRef.current = true;
-        navigate("/");
+        navigate("/profile/articles");
       } catch (e: any) {
         console.error(e);
         setSeverity("error");
@@ -175,7 +186,7 @@ export function useArticleForm() {
         setSeverity("success");
         setMessage("Учебный материал успешно удалён!");
         allowNavigationRef.current = true;
-        navigate("/");
+        navigate("/profile/articles");
       } catch (e: any) {
         console.error(e);
         setSeverity("error");

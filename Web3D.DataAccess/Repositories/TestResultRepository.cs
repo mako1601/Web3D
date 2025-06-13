@@ -8,7 +8,7 @@ using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 
-internal class TestResultRepository(Web3DDbContext context) : ITestResultRepository
+public class TestResultRepository(Web3DDbContext context) : ITestResultRepository
 {
     public async Task<long> StartTestAsync(TestResult testResult, CancellationToken cancellationToken = default)
     {

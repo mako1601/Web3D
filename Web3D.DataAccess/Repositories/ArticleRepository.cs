@@ -9,12 +9,12 @@ using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 
-internal class ArticleRepository(Web3DDbContext context) : IArticleRepository
+public class ArticleRepository(Web3DDbContext context) : IArticleRepository
 {
     public async Task CreateAsync(Article article, CancellationToken cancellationToken = default)
     {
         var user = await context.Users.FirstOrDefaultAsync(x => x.Id == article.UserId, cancellationToken)
-            ?? throw new UserNotFoundException();
+           ?? throw new UserNotFoundException();
 
         user.LastActivity = DateTime.UtcNow;
         context.Users.Update(user);

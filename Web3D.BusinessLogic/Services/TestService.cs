@@ -15,11 +15,11 @@ namespace Web3D.BusinessLogic.Services;
 
 using Utils = Utils.Utils;
 
-internal class TestService(
+public class TestService(
     IUserRepository userRepository,
     ITestRepository testRepository,
     ITestResultRepository testResultRepository,
-    Cloudinary сloudinary)
+    ICloudinaryService cloudinaryService)
     : ITestService
 {
     public async Task CreateAsync(
@@ -275,7 +275,7 @@ internal class TestService(
                     Invalidate = true
                 };
 
-                var result = await сloudinary.DestroyAsync(deleteParams);
+                var result = await cloudinaryService.DestroyAsync(deleteParams);
                 if (!result.Result.Equals("ok"))
                 {
                    throw new Exception($"Ошибка при удалении {publicId}: {result.Result}");

@@ -7,10 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 
 using Web3D.Domain.Models;
 using Web3D.Domain.Options;
+using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class JwtService(IOptions<AuthOptions> options)
+public class JwtService(IOptions<AuthOptions> options) : IJwtService
 {
     public string GenerateAccessToken(User user)
     {
@@ -34,7 +35,7 @@ internal class JwtService(IOptions<AuthOptions> options)
         return new JwtSecurityTokenHandler().WriteToken(jwtToken);
     }
 
-    public static string GenerateRefreshToken()
+    public string GenerateRefreshToken()
     {
         var randomBytes = new byte[64];
         using var rng = RandomNumberGenerator.Create();

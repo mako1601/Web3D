@@ -24,6 +24,7 @@
     "@react-three/fiber": "^8.17.14",
     "@tiptap-pro/extension-mathematics": "^2.19.1",
     "@tiptap/extension-image": "^2.11.5",
+    "@tiptap/extension-link": "^2.14.0",
     "@tiptap/extension-text-align": "^2.11.5",
     "@tiptap/extension-underline": "^2.11.5",
     "@tiptap/pm": "^2.11.5",

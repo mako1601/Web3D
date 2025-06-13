@@ -1,14 +1,12 @@
-﻿using Web3D.Domain.Models;
+﻿using System.Text.Json;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+
+using Web3D.Domain.Models;
 using Web3D.Domain.Filters;
 using Web3D.Domain.Exceptions;
 using Web3D.DataAccess.Abstractions;
 using Web3D.BusinessLogic.Abstractions;
-using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System;
 
 namespace Web3D.BusinessLogic.Services;
 
@@ -16,7 +14,7 @@ using Utils = Utils.Utils;
 
 public class ArticleService(
     IArticleRepository articleRepository,
-    Cloudinary cloudinary)
+    ICloudinaryService cloudinaryService)
     : IArticleService
 {
     public async Task CreateAsync(
@@ -122,7 +120,7 @@ public class ArticleService(
                     ResourceType = ResourceType.Image,
                     Invalidate = true
                 };
-                await cloudinary.DestroyAsync(imageDeleteParams);
+                await cloudinaryService.DestroyAsync(imageDeleteParams);
             }
         }
 
@@ -131,7 +129,7 @@ public class ArticleService(
             ResourceType = ResourceType.Raw,
             Invalidate = true
         };
-        await cloudinary.DestroyAsync(jsonDeleteParams);
+        await cloudinaryService.DestroyAsync(jsonDeleteParams);
 
         await articleRepository.DeleteAsync(article, cancellationToken);
     }

@@ -10,10 +10,10 @@ using Web3D.BusinessLogic.Abstractions;
 
 namespace Web3D.BusinessLogic.Services;
 
-internal class UserService(
+public class UserService(
     IUserRepository userRepository,
     ITokenRepository tokenRepository,
-    JwtService jwtService,
+    IJwtService jwtService,
     IHttpContextAccessor httpContextAccessor)
     : IUserService
 {
@@ -46,7 +46,7 @@ internal class UserService(
         var refreshToken = new RefreshToken
         {
             UserId = user.Id,
-            Token = JwtService.GenerateRefreshToken(),
+            Token = jwtService.GenerateRefreshToken(),
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
             UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent,
@@ -73,7 +73,7 @@ internal class UserService(
             var refreshToken = new RefreshToken
             {
                 UserId = user.Id,
-                Token = JwtService.GenerateRefreshToken(),
+                Token = jwtService.GenerateRefreshToken(),
                 ExpiresAt = DateTime.UtcNow.AddDays(7),
                 IpAddress = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString(),
                 UserAgent = httpContextAccessor.HttpContext?.Request.Headers.UserAgent

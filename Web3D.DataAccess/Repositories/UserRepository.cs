@@ -9,7 +9,7 @@ using Web3D.DataAccess.Abstractions;
 
 namespace Web3D.DataAccess.Repositories;
 
-internal class UserRepository(Web3DDbContext context) : IUserRepository
+public class UserRepository(Web3DDbContext context) : IUserRepository
 {
     public async Task RegisterAsync(User user, CancellationToken cancellationToken = default)
     {

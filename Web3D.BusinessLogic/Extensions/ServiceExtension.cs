@@ -14,6 +14,8 @@ public static class ServiceExtension
         servicesCollection.AddScoped<ITestService, TestService>();
         servicesCollection.AddScoped<IArticleService, ArticleService>();
         servicesCollection.AddScoped<ITokenService, TokenService>();
+        servicesCollection.AddScoped<IJwtService, JwtService>();
+        servicesCollection.AddScoped<ICloudinaryService, CloudinaryService>();
 
         servicesCollection.AddHostedService<UserCleanupService>();
         servicesCollection.AddHostedService<RefreshTokenCleanupService>();
