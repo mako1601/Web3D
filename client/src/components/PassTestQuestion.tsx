@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Radio, RadioGroup, FormControlLabel, Box, Typography, Checkbox, TextField, Paper } from "@mui/material";
 import { MatchingTask, QuestionForCreate, UserAnswer } from "@mytypes/testTypes";
+import { gray, green } from "@theme/themePrimitives";
 
 interface Props {
   question: QuestionForCreate;
@@ -21,10 +22,10 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
 
       const questionPairs = [...(question.task as MatchingTask).answer];
       const userPairs = [...answer.task.answer];
-      const newValue = questionPairs[index][1];
+      const newValue = questionPairs[selectedRight][1];
 
       const conflictingIndex = userPairs.findIndex(
-        ([, right], i) => i !== selectedRight && right === newValue
+        ([, right], i) => i !== index && right === newValue
       );
 
       if (conflictingIndex !== -1) {
@@ -215,12 +216,12 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
                     cursor: 'pointer',
                     backgroundColor:
                       (answer.task.answer as [string, string][])[index][1] !== ""
-                        ? 'lightgreen'
-                        : 'white',
+                        ? (theme) => theme.palette.mode === 'dark' ? green[700] : green[200]
+                        : (theme) => theme.palette.mode === 'dark' ? gray[700] : 'white',
                     border:
                       selectedLeft === index
-                        ? '2px solid rgba(125, 125, 125, 0.5)'
-                        : '2px solid transparent'
+                        ? (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.2)'
+                        : '1px solid transparent'
                   }}
                   onClick={() => handleSelectLeft(index)}
                 >
@@ -242,12 +243,12 @@ export default function PassTestQuestion({ question, answer, updateQuestion, upd
                     cursor: 'pointer',
                     backgroundColor:
                       (answer.task.answer as [string, string][])[index][1] !== ""
-                        ? 'lightgreen'
-                        : 'white',
+                        ? (theme) => theme.palette.mode === 'dark' ? green[700] : green[200]
+                        : (theme) => theme.palette.mode === 'dark' ? gray[700] : 'white',
                     border:
                       selectedRight === index
-                        ? '2px solid rgba(125, 125, 125, 0.5)'
-                        : '2px solid transparent'
+                        ? (theme) => theme.palette.mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.2)'
+                        : '1px solid transparent'
                   }}
                   onClick={() => handleSelectRight(index)}
                 >

@@ -104,6 +104,10 @@ export default function PassTest() {
     }
   }, [user, userLoading, fetchTest]);
 
+  React.useEffect(() => {
+    console.log(answers);
+  }, [answers])
+
   const finishTest = useFinishTest();
 
   const onFinishTest = async () => {
