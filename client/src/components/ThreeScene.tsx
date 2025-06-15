@@ -3,9 +3,11 @@ import * as THREE from 'three';
 import { GUI } from 'lil-gui';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TeapotGeometry } from 'three/examples/jsm/geometries/TeapotGeometry.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { SnackbarContext } from '@context/SnackbarContext';
 
 export default function ThreeScene() {
+  const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [_gui, setGui] = React.useState<GUI | null>(null);
 
@@ -120,27 +122,40 @@ export default function ThreeScene() {
       modelFile = file;
       const loader = new GLTFLoader();
       const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          loader.parse(reader.result as string, '', (gltf) => {
-            deleteModel();
-            model = gltf.scene;
-            const box = new THREE.Box3().setFromObject(model);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            model.position.sub(center);
-            model.traverse((child) => {
-              if ((child as THREE.Mesh).isMesh) {
-                const mesh = child as THREE.Mesh;
-                mesh.material = materials[effectController.newShading as keyof typeof materials];
-              }
-            });
-            scene.add(model);
-            handleShadingChange();
-            renderScene();
+
+      reader.onload = async () => {
+        if (!reader.result) return;
+
+        try {
+          const gltf = await new Promise<GLTF>((resolve, reject) => {
+            loader.parse(reader.result as ArrayBuffer, '', resolve, reject);
           });
+
+          deleteModel();
+          model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          model.position.sub(center);
+          model.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.material = materials[effectController.newShading as keyof typeof materials];
+            }
+          });
+          scene.add(model);
+          deleteTeapot();
+          handleShadingChange();
+          renderScene();
+        } catch (error) {
+          console.error('Error loading model:', error);
+          setMessage("Загрузка модели завершилась с ошибкой. См. консоль разработчика для деталей.");
+          setOpen(true);
+          setSeverity('error');
         }
       };
+
+      reader.onerror = () => console.error('Error reading file');
       reader.readAsArrayBuffer(file);
     }
 
@@ -343,7 +358,7 @@ export default function ThreeScene() {
     inputElement.style.display = 'none';
     document.body.appendChild(inputElement);
 
-    guiInstance.add({ loadModel: () => { deleteTeapot(); inputElement.click(); } }, 'loadModel').name('Load Model');
+    guiInstance.add({ loadModel: () => { inputElement.click(); } }, 'loadModel').name('Load Model');
 
     inputElement.addEventListener('change', (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];

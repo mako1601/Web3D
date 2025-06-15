@@ -7,12 +7,12 @@ import { roleLabels } from '@utils/roleLabels';
 
 interface UserCardProps {
   user: UserDto;
-  onProfileClick: () => void;
   onRoleChange: () => void;
 }
 
 const styles = {
   cardArea: {
+    cursor: 'auto',
     padding: '1rem',
     marginRight: '-72px',
   },
@@ -21,12 +21,12 @@ const styles = {
   },
 };
 
-const UserCard = ({ user, onProfileClick, onRoleChange }: UserCardProps) => {
+const UserCard = ({ user, onRoleChange }: UserCardProps) => {
   const roleLabel = React.useMemo(() => roleLabels[user.role] || "", [user.role]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'row', borderRadius: '8px' }}>
-      <CardActionArea sx={styles.cardArea} onClick={onProfileClick}>
+      <CardActionArea sx={styles.cardArea}>
         <Typography width="100%">
           {`${user.lastName} ${user.firstName}${(user && typeof user.middleName === 'string' && user.middleName.trim() !== '') ? ' ' + user.middleName : ''}, ${roleLabel}`}
         </Typography>

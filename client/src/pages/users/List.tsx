@@ -38,10 +38,6 @@ export default function UserList() {
     handleSortDirectionChange,
   } = useSearchAndPagination(getAllUsers, PAGE_SIZE);
 
-  const handleProfileClick = React.useCallback((id: number) => {
-    console.log(`Пользователь с ID: ${id}`);
-  }, []);
-
   const handleRoleChange = React.useCallback(async (user: UserDto | null) => {
     if (user) {
       if (user.role === 0) {
@@ -136,11 +132,10 @@ export default function UserList() {
           ) : (
             <Stack gap="1rem">
               <PageCard sx={{ padding: '0' }}>
-                {users.map((user) => (
+                {users.map(user => (
                   <UserCard
                     key={user.id}
                     user={user}
-                    onProfileClick={() => handleProfileClick(user.id)}
                     onRoleChange={() => handleDialogClickOpen(user)}
                   />
                 ))}
