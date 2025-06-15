@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-router-dom';
-import { alpha, Backdrop, Badge, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Drawer, List, ListItem, ListItemButton, ListItemText, Typography } from '@mui/material';
+import { alpha, Backdrop, Badge, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Drawer, List, ListItem, ListItemButton, ListItemText, Tooltip, Typography } from '@mui/material';
 
 import Page from '@components/Page';
 import Header from '@components/Header';
@@ -126,6 +126,13 @@ export default function PassTest() {
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = answers[currentQuestionIndex];
 
+  const hints: Record<number, string> = {
+    0: 'Один правильный ответ. Задание содержит один правильный ответ',
+    1: 'Несколько правильных ответов. В задании может быть один или несколько правильных ответов',
+    2: 'Сопостовление. Выберите элемент в одном из столбцов и затем нажмите на элемент в другом столбце',
+    3: 'Заполнение пропущенного термина. Введите одно слово, которое считаете пропущенным',
+  };
+
   return (
     <Page>
       <Box
@@ -144,7 +151,7 @@ export default function PassTest() {
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
-          zIndex: 1000,
+          zIndex: 2,
           paddingBottom: 2,
           cursor: 'pointer',
           '&:hover .hoverText': {
@@ -199,22 +206,32 @@ export default function PassTest() {
             }}
           />
         </Box>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          position: 'relative',
-          m: '3rem 0'
-        }}>
-          <Button disabled={currentQuestionIndex === 0} variant="outlined" onClick={() => setCurrentQuestionIndex(prev => prev - 1)}>Назад</Button>
-          <Typography sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            {currentQuestionIndex + 1}/{questions.length}
-          </Typography>
-          {currentQuestionIndex < questions.length - 1 ? (
-            <Button variant="outlined" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>Далее</Button>
-          ) : (
-            <Button variant="outlined" onClick={handleEarlyFinishClick}>Завершить тест</Button>
-          )}
+        <Box display="flex" flexDirection="column">
+          <Tooltip
+            title={hints[currentQuestion.type]}
+            placement="top"
+          >
+            <Typography sx={{ marginTop: '2rem', alignSelf: 'center' }}>
+              <em>Инструкция</em>
+            </Typography>
+          </Tooltip>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative',
+            m: '3rem 0'
+          }}>
+            <Button disabled={currentQuestionIndex === 0} variant="outlined" onClick={() => setCurrentQuestionIndex(prev => prev - 1)}>Назад</Button>
+            <Typography sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+              {currentQuestionIndex + 1}/{questions.length}
+            </Typography>
+            {currentQuestionIndex < questions.length - 1 ? (
+              <Button variant="outlined" onClick={() => setCurrentQuestionIndex(prev => prev + 1)}>Далее</Button>
+            ) : (
+              <Button variant="outlined" onClick={handleEarlyFinishClick}>Завершить тест</Button>
+            )}
+          </Box>
         </Box>
         <Box sx={{ position: 'absolute', top: 0, right: 0, p: 2 }}>
           <Button variant="contained" onClick={handleEarlyFinishClick}>
@@ -222,6 +239,7 @@ export default function PassTest() {
           </Button>
         </Box>
       </ContentContainer>
+
       <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <Box sx={{ width: 250, p: 1 }}>
           <Typography fontSize="1rem" fontWeight="bold">Список вопросов</Typography>
@@ -245,6 +263,7 @@ export default function PassTest() {
           </List>
         </Box>
       </Drawer>
+
       <Dialog open={openWarning} onClose={() => setOpenWarning(false)}>
         <DialogTitle>Внимание</DialogTitle>
         <DialogContent>
