@@ -33,6 +33,7 @@ public class ArticleServiceTests
         string title = "Test Title";
         string description = "Test Description";
         string contentUrl = "https://test.com/content.json";
+        long relatedTestId = 1;
         var cancellationToken = CancellationToken.None;
 
         Article createdArticle = null;
@@ -41,7 +42,7 @@ public class ArticleServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _articleService.CreateAsync(authorId, title, description, contentUrl, cancellationToken);
+        await _articleService.CreateAsync(authorId, title, description, contentUrl, relatedTestId, cancellationToken);
 
         // Assert
         _articleRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Article>(), cancellationToken), Times.Once);
@@ -114,6 +115,7 @@ public class ArticleServiceTests
         string newTitle = "New Title";
         string newDescription = "New Description";
         string newContentUrl = "https://test.com/new-content.json";
+        long relatedTestId = 1;
         var cancellationToken = CancellationToken.None;
 
         var existingArticle = new Article { Id = articleId };
@@ -124,7 +126,7 @@ public class ArticleServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _articleService.UpdateAsync(articleId, newTitle, newDescription, newContentUrl, cancellationToken);
+        await _articleService.UpdateAsync(articleId, newTitle, newDescription, newContentUrl, relatedTestId, cancellationToken);
 
         // Assert
         _articleRepositoryMock.Verify(x => x.GetByIdAsync(articleId, cancellationToken), Times.Once);
@@ -147,7 +149,7 @@ public class ArticleServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArticleNotFoundException>(
-            () => _articleService.UpdateAsync(articleId, "title", "desc", "url", cancellationToken));
+            () => _articleService.UpdateAsync(articleId, "title", "desc", "url", 1, cancellationToken));
     }
 
     //[Fact]

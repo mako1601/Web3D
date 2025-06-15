@@ -15,6 +15,7 @@ import { Test, TestResult } from '@mytypes/testTypes';
 import { getUserById } from '@api/userApi';
 import { PageResult } from '@mytypes/commonTypes';
 import { useAuth } from '@context/AuthContext';
+import { TextLink } from '@components/TextLink';
 
 export default function ViewTest() {
   const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
@@ -119,11 +120,19 @@ export default function ViewTest() {
               </Button>
             ) : null}
           </Box>
-          {author && (
-            <Typography variant="body2" color="text.secondary">
-              {`${author.lastName} ${author.firstName} ${author.middleName || ''}`}
-            </Typography>
-          )}
+          <Box display="flex" justifyContent="space-between" gap={4}>
+            {author && (
+              <Typography variant="body2" color="text.secondary">
+                {`${author.lastName} ${author.firstName} ${author.middleName || ''}`}
+              </Typography>
+            )}
+            {test.relatedArticleId
+              ? <TextLink to={`/articles/${test.relatedArticleId}`}>
+                Открыть связанный учебный материал
+              </TextLink>
+              : null
+            }
+          </Box>
           {test.description && (
             <Typography gutterBottom variant="body1" sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
               {test.description}

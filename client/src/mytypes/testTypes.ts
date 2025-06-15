@@ -23,12 +23,14 @@ export interface Test {
   questions: Question[];
   createdAt: string;
   updatedAt?: string;
+  relatedArticleId?: number | null;
 }
 
 export interface TestDto {
   title: string;
   description?: string;
   questions: Question[];
+  relatedArticleId?: number | null;
 }
 
 export interface Question {
@@ -45,6 +47,7 @@ export interface TestForCreate {
   title: string;
   description?: string;
   questions: QuestionForCreate[];
+  relatedArticleId?: number | null;
 }
 
 export interface QuestionValidationErrors {
@@ -187,6 +190,7 @@ export interface TestExtended {
   questions: QuestionForCreate[];
   createdAt: string;
   updatedAt?: string;
+  relatedArticleId?: number | null;
 }
 
 export interface TestResultExtended {

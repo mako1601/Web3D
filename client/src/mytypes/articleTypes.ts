@@ -6,18 +6,21 @@ export interface Article {
   contentUrl: string;
   createdAt: string;
   updatedAt?: string;
+  relatedTestId?: number | null;
 }
 
 export interface ArticleDto {
   title: string;
   description?: string;
   contentUrl: string;
+  relatedTestId?: number | null;
 }
 
 export interface ArticleForSchemas {
   title: string;
   description?: string;
   content: string;
+  relatedTestId?: number | null;
 }
 
 export const TITLE_MAX_LENGTH = 60;

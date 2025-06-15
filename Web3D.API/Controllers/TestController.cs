@@ -17,7 +17,7 @@ public class TestController(ITestService testService) : ControllerBase
     public async Task<IActionResult> CreateAsync([FromBody] TestRequest request)
     {
         var authorId = Convert.ToInt64(User.Claims.FirstOrDefault(x => x.Type == "id")?.Value);
-        await testService.CreateAsync(authorId, request.Title, request.Description, request.Questions);
+        await testService.CreateAsync(authorId, request.Title, request.Description, request.Questions, request.RelatedArticleId);
         return NoContent();
     }
 
@@ -46,7 +46,7 @@ public class TestController(ITestService testService) : ControllerBase
     [Authorize(Roles = "Teacher")]
     public async Task<IActionResult> UpdateAsync([FromRoute] long testId, [FromBody] TestRequest request)
     {
-        await testService.UpdateAsync(testId, request.Title, request.Description, request.Questions);
+        await testService.UpdateAsync(testId, request.Title, request.Description, request.Questions, request.RelatedArticleId);
         return NoContent();
     }
 

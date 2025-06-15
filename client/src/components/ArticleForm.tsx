@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { EditorContent } from '@tiptap/react';
-import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField, IconButton, Tooltip, Dialog, DialogTitle, DialogActions } from '@mui/material';
+import { Button, Box, FormControl, FormLabel, Backdrop, CircularProgress, TextField, IconButton, Tooltip, Dialog, DialogTitle, DialogActions, Select, MenuItem, Typography, SelectChangeEvent } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import PlayArrowRoundedIcon from '@mui/icons-material/PlayArrowRounded';
 
@@ -11,6 +11,7 @@ import BubbleMenu from '@components/BubbleMenu';
 import ContentContainer from '@components/ContentContainer';
 import StyledEditorContainer from '@components/StyledEditorContainer';
 import { ArticleForSchemas, CONTENT_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH } from '@mytypes/articleTypes';
+import { Test } from '@mytypes/testTypes';
 
 interface ArticleFormProps {
   mode: 'create' | 'edit';
@@ -19,6 +20,7 @@ interface ArticleFormProps {
   register: any;
   handleSubmit: any;
   errors: any;
+  tests: Test[] | null;
   titleLength: number;
   setTitleLength: (length: number) => void;
   descriptionLength: number;
@@ -33,6 +35,8 @@ interface ArticleFormProps {
   closeBackdrop: () => void;
   handleRunCode: () => void;
   cursorPos: { top: number; left: number };
+  relatedTestId: number | null;
+  setRelatedTestId: (id: number | null) => void;
 }
 
 export default function ArticleForm({
@@ -42,6 +46,7 @@ export default function ArticleForm({
   register,
   handleSubmit,
   errors,
+  tests,
   titleLength,
   setTitleLength,
   descriptionLength,
@@ -55,12 +60,19 @@ export default function ArticleForm({
   setCanvasContainerRef,
   closeBackdrop,
   handleRunCode,
-  cursorPos
+  cursorPos,
+  relatedTestId,
+  setRelatedTestId
 }: ArticleFormProps) {
   const [openDialog, setOpenDialog] = React.useState(false);
 
   const handleDialogClickOpen = () => { setOpenDialog(true); };
   const handleDialogClose = () => { setOpenDialog(false); };
+
+  const handleChange = (event: SelectChangeEvent<number | null>) => {
+    const value = event.target.value;
+    setRelatedTestId(value === "" ? null : Number(value));
+  };
 
   return (
     <Page>
@@ -83,29 +95,68 @@ export default function ArticleForm({
           onSubmit={handleSubmit(onSubmit)}
           sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}
         >
-          <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <FormControl>
-              <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                Название
-                <Box>{titleLength}/{TITLE_MAX_LENGTH}</Box>
-              </FormLabel>
-              <TextField
-                {...register("title")}
-                fullWidth
-                error={!!errors.title}
-                helperText={errors.title?.message}
-                onInput={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  if (target.value.length > TITLE_MAX_LENGTH) {
-                    target.value = target.value.slice(0, TITLE_MAX_LENGTH);
-                  }
-                }}
-                onChange={(e) => {
-                  setTitleLength(e.target.value.length);
-                  setIsDirty(true);
-                }}
-              />
-            </FormControl>
+          <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'space-between' }}>
+            <Box display="flex" gap={2} sx={{ width: '100%' }}>
+              <FormControl sx={{ flex: 2 }}>
+                <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  Название
+                  <Box>{titleLength}/{TITLE_MAX_LENGTH}</Box>
+                </FormLabel>
+                <TextField
+                  {...register("title")}
+                  fullWidth
+                  error={!!errors.title}
+                  helperText={errors.title?.message}
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value.length > TITLE_MAX_LENGTH) {
+                      target.value = target.value.slice(0, TITLE_MAX_LENGTH);
+                    }
+                  }}
+                  onChange={(e) => {
+                    setTitleLength(e.target.value.length);
+                    setIsDirty(true);
+                  }}
+                />
+              </FormControl>
+              <FormControl sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, }}>
+                  <Typography sx={{ margin: '0 0 7px 0' }} color='textSecondary'>
+                    Выберите тест
+                  </Typography>
+                  <Tooltip
+                    title="Выберите тест, связанный с учебным материалом, чтобы студенты могли перейти к прохождению тестирования по изученному материалу"
+                    placement="top"
+                  >
+                    <Box sx={{ color: 'text.secondary', cursor: 'pointer' }}>
+                      <InfoOutlinedIcon fontSize="small" />
+                    </Box>
+                  </Tooltip>
+                </Box>
+                <Select
+                  {...register("relatedTestId")}
+                  value={relatedTestId && tests?.some(t => t.id === relatedTestId) ? relatedTestId : ""}
+                  onChange={handleChange}
+                  displayEmpty
+                  disabled={!tests || tests.length === 0}
+                  renderValue={(selected) => {
+                    if (!selected || !tests?.some(t => t.id === selected)) {
+                      return <Typography color="textSecondary">Не выбрано</Typography>;
+                    }
+                    return tests.find(t => t.id === selected)?.title || selected;
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Не выбрано</em>
+                  </MenuItem>
+                  {tests?.map(test => (
+                    <MenuItem key={test.id} value={test.id}>
+                      {test.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 Описание

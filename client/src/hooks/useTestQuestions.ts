@@ -210,7 +210,7 @@ export function useTestQuestions() {
     const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
     const navigate = ReactDOM.useNavigate();
 
-    return async (localImages: React.MutableRefObject<Map<string, File>>) => {
+    return async (localImages: React.MutableRefObject<Map<string, File>>, relatedArticleId: number | null) => {
       if (!validateForm()) {
         setSeverity("error");
         setMessage("Исправьте ошибки в вопросах перед сохранением");
@@ -231,7 +231,8 @@ export function useTestQuestions() {
             text: question.text,
             taskJson: JSON.stringify(question.task),
             imageUrl: question.imageUrl
-          }))
+          })),
+          relatedArticleId: relatedArticleId
         };
         await createTest(testData);
         setSeverity("success");
@@ -263,7 +264,8 @@ export function useTestQuestions() {
     return async (
       id: number,
       localImages: React.MutableRefObject<Map<string, File>>,
-      initialImageUrls: React.MutableRefObject<string[]>
+      initialImageUrls: React.MutableRefObject<string[]>,
+      relatedArticleId: number | null
     ) => {
       if (!validateForm()) {
         setSeverity("error");
@@ -292,7 +294,8 @@ export function useTestQuestions() {
             text: question.text,
             taskJson: JSON.stringify(question.task),
             imageUrl: question.imageUrl
-          }))
+          })),
+          relatedArticleId: relatedArticleId
         };
         await updateTest(id, testData);
         setSeverity("success");

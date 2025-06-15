@@ -22,6 +22,7 @@ import { formatDate } from '@utils/dateUtils';
 import { Article } from '@mytypes/articleTypes';
 import { useAuth } from '@context/AuthContext';
 import { useArticleForm } from '@hooks/useArticles';
+import { TextLink } from '@components/TextLink';
 
 export default function ViewArticle() {
   const { id } = ReactDOM.useParams();
@@ -218,23 +219,25 @@ export default function ViewArticle() {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <Typography
-                  sx={{ cursor: 'pointer' }}
-                  color="text.primary"
-                  onClick={() => author && console.log(`ID автора: ${article.userId}`)}
-                >
+                <Typography color="text.primary">
                   {author ? `${author.lastName} ${author.firstName} ${author.middleName}` : "Загрузка…"}
                 </Typography>
                 <Typography variant="caption" color="text.primary">
                   {article.updatedAt ? "Обновлено" : "Создано"}: {article.updatedAt ? formatDate(article.updatedAt) : formatDate(article.createdAt)}
                 </Typography>
+                {article.relatedTestId
+                  ? <TextLink to={`/tests/${article.relatedTestId}`} sx={{ margin: '1rem 0 0' }}>
+                      Пройти тест по учебному материалу
+                    </TextLink>
+                  : null
+                }
                 {user && user.id === article.userId ? (
                   <Button
                     variant="outlined"
                     fullWidth
                     component={ReactDOM.Link}
                     to="edit"
-                    sx={{ margin: '1rem 0' }}
+                    sx={{ maxWidth: '10rem', margin: '1rem 0' }}
                   >
                     Изменить
                   </Button>

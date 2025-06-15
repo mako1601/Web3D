@@ -6,6 +6,8 @@ import TestForm from '@components/TestForm';
 import { useAuth } from '@context/AuthContext';
 import { QuestionMap, Test } from '@mytypes/testTypes';
 import { useTestQuestions } from '@hooks/useTestQuestions';
+import { getAllArticles } from '@api/articleApi';
+import { Article } from '@mytypes/articleTypes';
 
 export default function EditTest() {
   const navigate = ReactDOM.useNavigate();
@@ -16,6 +18,8 @@ export default function EditTest() {
   const [loading, setLoading] = React.useState(false);
   const initialImageUrls = React.useRef<string[]>([]);
   const localImages = React.useRef<Map<string, File>>(new Map());
+  const [articles, setArticles] = React.useState<Article[] | null>(null);
+  const [selectedArticleId, setSelectedArticleId] = React.useState<number | null>(test?.relatedArticleId || null);
 
   const {
     title,
@@ -64,6 +68,9 @@ export default function EditTest() {
         setTest(data);
         setTitle(data.title);
         setDescription(data.description ?? '');
+        if (data.relatedArticleId) {
+          setSelectedArticleId(data.relatedArticleId);
+        }
         const sortedQuestions = data.questions.sort((a, b) => a.index - b.index);
 
         const questionMap: QuestionMap = {};
@@ -98,7 +105,16 @@ export default function EditTest() {
         setLoading(false);
       }
     };
+    const fetchArticles = async () => {
+      try {
+        const data = await getAllArticles({ userId: [user!.id], sortDirection: 1, orderBy: "UpdatedAt", pageSize: 50 });
+        setArticles(data.data);
+      } catch (e: any) {
+        console.log(e);
+      }
+    };
     fetchTest();
+    fetchArticles();
   }, [testId, user, userLoading]);
 
   React.useEffect(() => {
@@ -115,7 +131,7 @@ export default function EditTest() {
 
   const onSubmit = async () => {
     setLoading(true);
-    await editTest(test!.id, localImages, initialImageUrls);
+    await editTest(test!.id, localImages, initialImageUrls, selectedArticleId);
     setLoading(false);
   };
 
@@ -155,6 +171,9 @@ export default function EditTest() {
       shouldValidate={shouldValidate}
       onSubmit={onSubmit}
       onDelete={onDelete}
+      articles={articles}
+      relatedArticleId={selectedArticleId}
+      setRelatedArticleId={setSelectedArticleId}
     />
   );
 }

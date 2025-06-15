@@ -2,12 +2,18 @@ import * as React from 'react';
 import { useArticleForm } from '@hooks/useArticles';
 import ArticleForm from '@components/ArticleForm';
 import { ArticleForSchemas } from '@mytypes/articleTypes';
+import { getAllTests } from '@api/testApi';
+import { Test } from '@mytypes/testTypes';
+import { useAuth } from '@context/AuthContext';
 
 export default function CreateArticle() {
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
   const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
   const [canvasContainerRef, setCanvasContainerRef] = React.useState<HTMLDivElement | null>(null);
+  const { user } = useAuth();
+  const [tests, setTests] = React.useState<Test[] | null>(null);
+  const [selectedTestId, setSelectedTestId] = React.useState<number | null>(null);
 
   const {
     register,
@@ -29,6 +35,18 @@ export default function CreateArticle() {
   const editor = useArticleEditor(setValue, setContentLength, setIsDirty);
   const uploadImages = useUploadImages(localImages);
   const createArticle = useCreateArticle();
+
+  React.useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const data = await getAllTests({ userId: [user!.id], sortDirection: 1, orderBy: "UpdatedAt", pageSize: 50 });
+        setTests(data.data);
+      } catch (e: any) {
+        console.log(e);
+      }
+    };
+    fetchTests();
+  }, []);
 
   React.useEffect(() => {
     (window as any).onCanvasGenerated = (generatedCanvas: HTMLCanvasElement) => {
@@ -97,6 +115,7 @@ export default function CreateArticle() {
       register={register}
       handleSubmit={handleSubmit}
       errors={errors}
+      tests={tests}
       titleLength={titleLength}
       setTitleLength={setTitleLength}
       descriptionLength={descriptionLength}
@@ -110,6 +129,8 @@ export default function CreateArticle() {
       closeBackdrop={closeBackdrop}
       handleRunCode={handleRunCode}
       cursorPos={cursorPos}
+      relatedTestId={selectedTestId}
+      setRelatedTestId={setSelectedTestId}
     />
   );
 }

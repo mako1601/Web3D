@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography, Select, MenuItem, Checkbox, Collapse, Tooltip, Dialog, DialogTitle, DialogActions } from '@mui/material';
+import { Button, Box, FormControl, TextField, FormLabel, IconButton, RadioGroup, FormControlLabel, Radio, Backdrop, CircularProgress, Typography, Select, MenuItem, Checkbox, Collapse, Tooltip, Dialog, DialogTitle, DialogActions, SelectChangeEvent } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import CloseIcon from '@mui/icons-material/Close';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -16,6 +16,7 @@ import StyledIconButton from '@components/StyledIconButton';
 import ContentContainer from '@components/ContentContainer';
 import { questionTypes, TITLE_MAX_LENGTH, DESCRIPTION_MAX_LENGTH, QuestionMap, QuestionValidationErrors, QuestionForCreate } from '@mytypes/testTypes';
 import { SnackbarContext } from '@context/SnackbarContext';
+import { Article } from '@mytypes/articleTypes';
 
 interface TestFormProps {
   mode: 'create' | 'edit';
@@ -63,6 +64,9 @@ interface TestFormProps {
   shouldValidate: boolean;
   onSubmit: () => void;
   onDelete?: () => void;
+  articles: Article[] | null;
+  relatedArticleId: number | null;
+  setRelatedArticleId: (id: number | null) => void;
 }
 
 export default function TestForm({
@@ -93,13 +97,21 @@ export default function TestForm({
   setQuestionErrors,
   shouldValidate,
   onSubmit,
-  onDelete
+  onDelete,
+  articles,
+  relatedArticleId,
+  setRelatedArticleId
 }: TestFormProps) {
   const { setSeverity, setMessage, setOpen } = React.useContext(SnackbarContext);
   const [openDialog, setOpenDialog] = React.useState(false);
 
   const handleDialogClickOpen = () => { setOpenDialog(true); };
   const handleDialogClose = () => { setOpenDialog(false); };
+
+  const handleChange = (event: SelectChangeEvent<number | null>) => {
+    const value = event.target.value;
+    setRelatedArticleId(value === "" ? null : Number(value));
+  };
 
   return (
     <Page>
@@ -119,25 +131,63 @@ export default function TestForm({
 
           {/* Title and Description Card */}
           <PageCard sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <FormControl>
-              <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                Название теста
-                <Box>{title.length}/{TITLE_MAX_LENGTH}</Box>
-              </FormLabel>
-              <TextField
-                value={title}
-                fullWidth
-                error={!!formErrors.title}
-                helperText={formErrors.title}
-                onInput={(e) => {
-                  const target = e.target as HTMLInputElement;
-                  if (target.value.length > TITLE_MAX_LENGTH) {
-                    target.value = target.value.slice(0, TITLE_MAX_LENGTH);
-                  }
-                }}
-                onChange={(e) => handleTitleChange(e.target.value)}
-              />
-            </FormControl>
+            <Box display="flex" gap={2} sx={{ width: '100%' }}>
+              <FormControl sx={{ flex: 2 }}>
+                <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  Название теста
+                  <Box>{title.length}/{TITLE_MAX_LENGTH}</Box>
+                </FormLabel>
+                <TextField
+                  value={title}
+                  fullWidth
+                  error={!!formErrors.title}
+                  helperText={formErrors.title}
+                  onInput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    if (target.value.length > TITLE_MAX_LENGTH) {
+                      target.value = target.value.slice(0, TITLE_MAX_LENGTH);
+                    }
+                  }}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                />
+              </FormControl>
+              <FormControl sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, }}>
+                  <Typography sx={{ margin: '0 0 7px 0' }} color='textSecondary'>
+                    Выберите учебный материал
+                  </Typography>
+                  <Tooltip
+                    title="Выберите учебный материал, связанный с тестом, чтобы студенты могли изучить его перед тестированием"
+                    placement="top"
+                  >
+                    <Box sx={{ color: 'text.secondary', cursor: 'pointer' }}>
+                      <InfoOutlinedIcon fontSize="small" />
+                    </Box>
+                  </Tooltip>
+                </Box>
+                <Select
+                  value={relatedArticleId && articles?.some(a => a.id === relatedArticleId) ? relatedArticleId : ""}
+                  onChange={handleChange}
+                  displayEmpty
+                  disabled={!articles || articles.length === 0}
+                  renderValue={(selected) => {
+                    if (!selected || !articles?.some(a => a.id === selected)) {
+                      return <Typography color="textSecondary">Не выбрано</Typography>;
+                    }
+                    return articles.find(a => a.id === selected)?.title || selected;
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Не выбрано</em>
+                  </MenuItem>
+                  {articles?.map(article => (
+                    <MenuItem key={article.id} value={article.id}>
+                      {article.title}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
             <FormControl>
               <FormLabel sx={{ display: 'flex', justifyContent: 'space-between' }}>

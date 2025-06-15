@@ -42,6 +42,7 @@ public class TestServiceTests
         string title = "Test Title";
         string description = "Test Description";
         var questions = new List<Question>();
+        long relatedArticleId = 1;
         var cancellationToken = CancellationToken.None;
 
         Domain.Models.Test createdTest = null;
@@ -50,7 +51,7 @@ public class TestServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _testService.CreateAsync(userId, title, description, questions, cancellationToken);
+        await _testService.CreateAsync(userId, title, description, questions, relatedArticleId, cancellationToken);
 
         // Assert
         _testRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<Domain.Models.Test>(), cancellationToken), Times.Once);
@@ -212,6 +213,7 @@ public class TestServiceTests
         string newTitle = "New Title";
         string newDescription = "New Description";
         var newQuestions = new List<Question>();
+        long relatedArticleId = 1;
         var cancellationToken = CancellationToken.None;
 
         var existingTest = new Domain.Models.Test { Id = testId };
@@ -222,7 +224,7 @@ public class TestServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _testService.UpdateAsync(testId, newTitle, newDescription, newQuestions, cancellationToken);
+        await _testService.UpdateAsync(testId, newTitle, newDescription, newQuestions, relatedArticleId, cancellationToken);
 
         // Assert
         _testRepositoryMock.Verify(x => x.GetByIdAsync(testId, cancellationToken), Times.Once);
@@ -245,7 +247,7 @@ public class TestServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<TestNotFoundException>(
-            () => _testService.UpdateAsync(testId, "title", "desc", new List<Question>(), cancellationToken));
+            () => _testService.UpdateAsync(testId, "title", "desc", new List<Question>(), 1, cancellationToken));
     }
 
     [Fact]

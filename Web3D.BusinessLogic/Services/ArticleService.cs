@@ -22,6 +22,7 @@ public class ArticleService(
         string title,
         string? description,
         string contentUrl,
+        long? relatedTestId,
         CancellationToken cancellationToken = default)
     {
         var article = new Article
@@ -31,6 +32,7 @@ public class ArticleService(
             Description = description,
             ContentUrl = contentUrl,
             CreatedAt = DateTime.UtcNow,
+            RelatedTestId = relatedTestId,
         };
 
         await articleRepository.CreateAsync(article, cancellationToken);
@@ -58,6 +60,7 @@ public class ArticleService(
         string title,
         string? description,
         string contentUrl,
+        long? relatedTestId,
         CancellationToken cancellationToken = default)
     {
         var article = await articleRepository.GetByIdAsync(id, cancellationToken)
@@ -67,6 +70,7 @@ public class ArticleService(
         article.Description = description;
         article.ContentUrl = contentUrl;
         article.UpdatedAt = DateTime.UtcNow;
+        article.RelatedTestId = relatedTestId;
 
         await articleRepository.UpdateAsync(article, cancellationToken);
     }

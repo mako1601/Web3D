@@ -5,6 +5,8 @@ import { getArticleById } from '@api/articleApi';
 import { useArticleForm } from '@hooks/useArticles';
 import ArticleForm from '@components/ArticleForm';
 import { Article, ArticleForSchemas } from '@mytypes/articleTypes';
+import { Test } from '@mytypes/testTypes';
+import { getAllTests } from '@api/testApi';
 
 export default function EditArticle() {
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ export default function EditArticle() {
   const localImages = React.useRef<Map<string, File>>(new Map());
   const [canvas, setCanvas] = React.useState<HTMLCanvasElement | null>(null);
   const [canvasContainerRef, setCanvasContainerRef] = React.useState<HTMLDivElement | null>(null);
+  const [tests, setTests] = React.useState<Test[] | null>(null);
+  const [selectedTestId, setSelectedTestId] = React.useState<number | null>(article?.relatedTestId || null);
 
   const {
     register,
@@ -58,6 +62,9 @@ export default function EditArticle() {
           navigate("/", { replace: true });
           return;
         }
+        if (data.relatedTestId) {
+          setSelectedTestId(data.relatedTestId);
+        }
         setTitleLength(data.title.length);
         setDescriptionLength(data.description?.length ?? 0);
       } catch (error) {
@@ -67,7 +74,16 @@ export default function EditArticle() {
         setLoading(false);
       }
     };
+    const fetchTests = async () => {
+      try {
+        const data = await getAllTests({ userId: [user!.id], sortDirection: 1, orderBy: "UpdatedAt", pageSize: 50 });
+        setTests(data.data);
+      } catch (e: any) {
+        console.log(e);
+      }
+    };
     fetchArticle();
+    fetchTests();
   }, [articleId, user, userLoading]);
 
   React.useEffect(() => {
@@ -164,6 +180,7 @@ export default function EditArticle() {
       register={register}
       handleSubmit={handleSubmit}
       errors={errors}
+      tests={tests}
       titleLength={titleLength}
       setTitleLength={setTitleLength}
       descriptionLength={descriptionLength}
@@ -178,6 +195,8 @@ export default function EditArticle() {
       closeBackdrop={closeBackdrop}
       handleRunCode={handleRunCode}
       cursorPos={cursorPos}
+      relatedTestId={selectedTestId}
+      setRelatedTestId={setSelectedTestId}
     />
   );
 }

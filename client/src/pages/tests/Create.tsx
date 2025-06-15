@@ -1,10 +1,16 @@
 import * as React from 'react';
 import { useTestQuestions } from '@hooks/useTestQuestions';
 import TestForm from '@components/TestForm';
+import { getAllArticles } from '@api/articleApi';
+import { Article } from '@mytypes/articleTypes';
+import { useAuth } from '@context/AuthContext';
 
 export default function CreateTest() {
   const [loading, setLoading] = React.useState(false);
   const localImages = React.useRef<Map<string, File>>(new Map());
+    const { user } = useAuth();
+    const [articles, setArticles] = React.useState<Article[] | null>(null);
+    const [selectedArticleId, setSelectedArticleId] = React.useState<number | null>(null);
 
   const {
     title,
@@ -33,10 +39,22 @@ export default function CreateTest() {
     formErrors
   } = useTestQuestions();
 
+    React.useEffect(() => {
+      const fetchArticles = async () => {
+        try {
+          const data = await getAllArticles({ userId: [user!.id], sortDirection: 1, orderBy: "UpdatedAt", pageSize: 50 });
+          setArticles(data.data);
+        } catch (e: any) {
+          console.log(e);
+        }
+      };
+      fetchArticles();
+    }, []);
+
   const createTest = useCreateTest();
   const onSubmit = async () => {
     setLoading(true);
-    await createTest(localImages);
+    await createTest(localImages, selectedArticleId);
     setLoading(false);
   };
 
@@ -69,6 +87,9 @@ export default function CreateTest() {
       setQuestionErrors={setQuestionErrors}
       shouldValidate={shouldValidate}
       onSubmit={onSubmit}
+      articles={articles}
+      relatedArticleId={selectedArticleId}
+      setRelatedArticleId={setSelectedArticleId}
     />
   );
 }

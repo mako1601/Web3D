@@ -117,7 +117,7 @@ export function useArticleForm() {
       try {
         const updatedJson = await uploadImages(editor.getJSON());
         const jsonUrl = await uploadJson(JSON.stringify(updatedJson));
-        const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl };
+        const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl, relatedTestId: data.relatedTestId?.toString() === "" ? null : data.relatedTestId };
         await createArticle(updatedData);
         setSeverity("success");
         setMessage("Учебный материал успешно создан!");
@@ -159,7 +159,7 @@ export function useArticleForm() {
           await deleteImage(extractImageIdFromUrl(imageUrl));
         }
         const jsonUrl = await updateJson(JSON.stringify(updatedJson), extractJsonIdFromUrl(article.contentUrl));
-        const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl };
+        const updatedData: ArticleDto = { title: data.title, description: data.description, contentUrl: jsonUrl, relatedTestId: data.relatedTestId?.toString() === "" ? null : data.relatedTestId };
         await updateArticle(article.id, updatedData);
         setSeverity("success");
         setMessage("Учебный материал успешно обновлён!");

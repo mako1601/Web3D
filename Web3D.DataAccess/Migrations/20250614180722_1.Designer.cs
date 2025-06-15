@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Web3D.DataAccess.Contexts;
@@ -11,9 +12,11 @@ using Web3D.DataAccess.Contexts;
 namespace Web3D.DataAccess.Migrations
 {
     [DbContext(typeof(Web3DDbContext))]
-    partial class Web3DDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250614180722_1")]
+    partial class _1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

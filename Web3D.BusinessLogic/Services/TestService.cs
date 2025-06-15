@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 
 using Web3D.Domain.Models;
@@ -27,6 +26,7 @@ public class TestService(
         string title,
         string description,
         ICollection<Question> questions,
+        long? relatedArticleId,
         CancellationToken cancellationToken = default)
     {
         var test = new Test
@@ -35,7 +35,8 @@ public class TestService(
             Title = title,
             Description = description,
             Questions = questions,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            RelatedArticleId = relatedArticleId,
         };
 
         await testRepository.CreateAsync(test, cancellationToken);
@@ -141,6 +142,7 @@ public class TestService(
         string newTitle,
         string newDescription,
         ICollection<Question> questions,
+        long? relatedArticleId,
         CancellationToken cancellationToken = default)
     {
         var test = await testRepository.GetByIdAsync(testId, cancellationToken)
@@ -150,6 +152,7 @@ public class TestService(
         test.Description = newDescription;
         test.Questions = questions;
         test.UpdatedAt = DateTime.UtcNow;
+        test.RelatedArticleId = relatedArticleId;
 
         await testRepository.UpdateAsync(test, cancellationToken);
     }
