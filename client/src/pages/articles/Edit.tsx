@@ -93,6 +93,7 @@ export default function EditArticle() {
         if (json) {
           editor.commands.setContent(json);
           setContentLength(editor.getText().length);
+          setValue("content", editor.getText(), { shouldValidate: true });
         }
       };
 
